@@ -23,8 +23,8 @@ from pygments import highlight as pyg_highlight
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = Path(__file__).resolve().parent / "_site"
-SITE = "CKA · Sesiones Especiales"
-BASE_TAGLINE = "Track especial de Kubernetes — sesiones 9 a 15"
+SITE = "CKA · Entrenamiento"
+BASE_TAGLINE = "Entrenamiento práctico de Kubernetes — sesiones 9 a 15"
 
 CLASES = [
     ("sesion-9", "CLASE-09", "9", "Networking en Kubernetes (Services)",
@@ -192,7 +192,7 @@ def shell(*, title, root, breadcrumb, content, nav_active="", head_extra="",
 <header class="topbar">
   <a class="brand" href="{root}index.html">
     {svg(WHEEL, 24, "#74A6FF", "1.6")}
-    <span>CKA · SESIONES ESPECIALES</span>
+    <span>CKA · ENTRENAMIENTO</span>
   </a>
   <nav class="mainnav">{nav}<span class="chip mono">v1.35</span></nav>
   <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
@@ -205,7 +205,6 @@ def shell(*, title, root, breadcrumb, content, nav_active="", head_extra="",
 </main>
 <footer>
   <span>{SITE}</span>
-  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
 </footer>
 <script src="{root}assets/app.js"></script>
 </body>
@@ -346,7 +345,7 @@ def build_index():
     content = f"""
 <section class="hero">
   <div class="eyebrow">Track especial</div>
-  <h1>Sesiones Especiales · Kubernetes</h1>
+  <h1>Entrenamiento · Kubernetes</h1>
   <p class="lead">Siete sesiones que amplían el curso CKA sobre una arquitectura de
   microservicios real —el programa <strong>GRATITUD</strong>—: Services, Ingress y TLS,
   configuración y almacenamiento, observabilidad, seguridad, CI/CD y un proyecto
@@ -362,14 +361,6 @@ def build_index():
 <section class="block">
   <h2 class="section-title">Las siete sesiones</h2>
   <div class="cgrid">{''.join(cards)}</div>
-</section>
-
-<section class="block">
-  <p class="notice">
-    {svg('<circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path>', 15, "#8493AD", "2")}
-    Este sitio publica diapositivas, laboratorios y recursos. Las carpetas
-    <span class="mono">SOLUCIONES/</span> son material del instructor y no se incluyen.
-  </p>
 </section>
 """
     (OUT / "index.html").write_text(shell(
