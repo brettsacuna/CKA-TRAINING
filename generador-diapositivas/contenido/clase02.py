@@ -61,6 +61,12 @@ DECK = {
             "t": "concept",
             "eyebrow": "Concepto",
             "heading": "El control plane no son Deployments",
+            "icon": "controlplane",
+            "theory": [
+                "En un cluster montado con kubeadm, los componentes del control plane —kube-apiserver, kube-controller-manager, kube-scheduler y etcd— no son Deployments ni los gestiona el propio Kubernetes. Son static Pods: el kubelet del nodo maestro vigila la carpeta /etc/kubernetes/manifests/, y por cada archivo YAML que encuentra allí crea y mantiene un Pod, sin pasar por el API server ni por el scheduler.",
+                "Esto tiene consecuencias prácticas muy directas. No puedes borrar estos Pods con kubectl: el kubelet los recrea al instante. Sí puedes intervenir editando su manifiesto en esa carpeta —el kubelet detecta el cambio y reinicia el componente en segundos—, y esa es la palanca principal de recuperación cuando algo va mal.",
+                "El kubelet, en cambio, es un servicio de systemd normal: sobrevive aunque el API server esté caído. Por eso, cuando kubectl no responde, el diagnóstico se hace por SSH al nodo con systemctl status kubelet, journalctl -u kubelet y crictl ps -a, nunca con kubectl.",
+            ],
             "points": [
                 "En kubeadm, el control plane son static Pods: el kubelet los arranca leyendo archivos del disco.",
                 "El scheduler no interviene y no puedes borrarlos con kubectl: el kubelet los recrea al instante.",
@@ -83,6 +89,11 @@ DECK = {
             "t": "process",
             "eyebrow": "Mantenimiento",
             "heading": "Vaciar un nodo sin cortar el servicio",
+            "theory": [
+                "Antes de tocar un nodo (actualizarlo, parchear el kernel, reiniciar el hardware) hay que sacarle la carga sin cortar el servicio. cordon marca el nodo como no programable: deja de aceptar Pods nuevos, pero los que ya corren siguen intactos. drain va más allá: además de acordonar, desaloja los Pods existentes para que sus controladores los recreen en otros nodos.",
+                "drain se detiene a propósito en dos casos y hay que autorizarlos explícitamente. Con --ignore-daemonsets porque los Pods de un DaemonSet están atados a cada nodo y no tiene sentido moverlos. Con --delete-emptydir-data porque un emptyDir contiene datos que se perderán al recrear el Pod en otro sitio, y Kubernetes exige que confirmes que asumes esa pérdida. El mensaje de error te dice exactamente qué flag falta.",
+                "uncordon revierte el acordonado y el nodo vuelve a aceptar Pods nuevos, pero los que se movieron NO regresan solos: el scheduler solo decide al crear un Pod, no reequilibra los que ya están colocados. Para repartir de nuevo hay que forzar la recreación, por ejemplo con kubectl rollout restart.",
+            ],
             "steps": [
                 {"title": "cordon", "body": "El nodo deja de aceptar Pods nuevos. Los actuales siguen ahí."},
                 {"title": "drain", "body": "Desaloja los Pods existentes. Los controladores los recrean en otros nodos."},
@@ -130,6 +141,11 @@ DECK = {
             "t": "chain",
             "eyebrow": "Procedimiento",
             "heading": "El orden no es negociable",
+            "theory": [
+                "El upgrade de un cluster kubeadm sigue un orden fijo que no es arbitrario. Primero el control plane, después los workers, y siempre una minor cada vez (1.33 → 1.34 → 1.35, nunca saltos). El motivo es la regla de version skew: el kubelet puede estar en la misma versión que el API server o hasta tres minors por debajo, pero nunca por encima. Si actualizaras el kubelet primero, el cluster quedaría en un estado no soportado.",
+                "Dentro de cada nodo, kubeadm va primero porque es quien reescribe los manifiestos de los static Pods con las imágenes nuevas: kubeadm upgrade apply <versión> en el primer control plane, kubeadm upgrade node en el resto de nodos (no aplican una versión de cluster, solo se ponen al día). Solo después se actualizan los paquetes kubelet y kubectl, se hace systemctl daemon-reload y se reinicia el kubelet.",
+                "El snapshot de etcd va antes de empezar, sin excepción: es la única red de seguridad si el upgrade deja el cluster inconsistente. Y en cada nodo hay que acordonar y drenar antes de reiniciar el kubelet, y hacer uncordon al terminar.",
+            ],
             "nodes": ["Validar versiones", "Snapshot de etcd", "kubeadm", "upgrade plan / apply",
                       "drain", "kubelet + kubectl", "restart kubelet", "uncordon"],
             "detail": {"label": "Por qué ese orden", "lines": [
@@ -201,6 +217,11 @@ DECK = {
             "t": "concept",
             "eyebrow": "Concepto",
             "heading": "El backup que nadie ha restaurado no es un backup",
+            "theory": [
+                "etcd es la única fuente de verdad del cluster: guarda todos los objetos (Pods, Deployments, Secrets, ConfigMaps, RBAC, estado de los nodos) como pares clave-valor. Si etcd se corrompe o se pierde, el cluster deja de existir aunque los nodos sigan encendidos. Restaurar un snapshot devuelve el cluster exactamente al instante en que se tomó; todo lo creado después desaparece, y esa ventana de pérdida (el RPO) es el argumento para automatizar los backups.",
+                "No hace falta memorizar rutas ni puertos: el manifiesto del API server (/etc/kubernetes/manifests/kube-apiserver.yaml) declara en sus argumentos el endpoint de etcd y los tres certificados que usa para hablar con él (--etcd-cafile, --etcd-certfile, --etcd-keyfile, --etcd-servers). Un grep sobre ese archivo te da todo lo necesario.",
+                "El restore va SIEMPRE a un data-dir nuevo y con el control plane parado. El procedimiento: mover los manifiestos fuera de la carpeta para detener API server y etcd, ejecutar el restore hacia el directorio nuevo, reapuntar el hostPath del volumen de datos de etcd en su manifiesto, y devolver los manifiestos para que el kubelet lo levante todo.",
+            ],
             "points": [
                 "etcd guarda el estado completo del cluster. Restaurarlo devuelve el cluster a ese instante exacto.",
                 "Todo lo creado después del snapshot desaparece. Eso es el RPO, y es el argumento para automatizar.",
@@ -222,6 +243,11 @@ DECK = {
             "t": "columns",
             "eyebrow": "Actualización técnica",
             "heading": "etcdctl y etcdutl no son lo mismo",
+            "theory": [
+                "Son dos binarios distintos con propósitos distintos y confundirlos hace perder tiempo en el examen. etcdctl es el cliente de red: habla con una instancia de etcd EN FUNCIONAMIENTO, así que necesita el endpoint y los certificados. Con él se comprueba la salud (endpoint health, endpoint status) y se toma el snapshot en caliente (snapshot save).",
+                "etcdutl es la herramienta offline: trabaja directamente sobre el ARCHIVO .db del snapshot, sin cluster, sin endpoint y sin certificados. Con él se valida la integridad del snapshot (snapshot status) y se hace el restore (snapshot restore). Si un procedimiento te pide certificados para consultar el estado de un archivo, estás usando el binario equivocado.",
+                "Dos notas de versión: snapshot restore en etcdctl está deprecado y avisa por consola —el comando correcto hoy es etcdutl snapshot restore—; y la variable ETCDCTL_API=3 ya no hace falta, porque la v3 es el valor por defecto desde hace varias versiones.",
+            ],
             "cols": [
                 {"title": "etcdctl", "subtitle": "Habla con un etcd VIVO", "lines": [
                     "Necesita certificados y endpoint.",
@@ -283,6 +309,11 @@ DECK = {
             "t": "concept",
             "eyebrow": "Concepto",
             "heading": "RBAC en cuatro ideas",
+            "theory": [
+                "RBAC (Role-Based Access Control) responde a una sola pregunta: ¿esta identidad puede ejecutar este verbo sobre este recurso, en este ámbito? Es whitelisting puro: todo lo que no se concede explícitamente está denegado, y no existen reglas de denegación. Los permisos son aditivos: si una identidad tiene varios bindings, sus permisos efectivos son la unión de todos, y el orden en que se evalúan no importa.",
+                "Hay dos tipos de sujeto. Las ServiceAccounts sí son objetos del API, viven en un namespace y su identidad real es system:serviceaccount:<ns>:<nombre>. Los usuarios y grupos NO son objetos: no se crean con kubectl; existen únicamente dentro de los bindings y en los certificados o tokens que presenta el cliente al autenticarse.",
+                "Cuatro objetos combinan el qué y el a-quién. Role y ClusterRole definen QUÉ se puede hacer (verbos sobre recursos); el Role está limitado a un namespace, el ClusterRole no tiene ámbito. RoleBinding y ClusterRoleBinding asignan un rol A UN SUJETO; el RoleBinding concede solo en su namespace, el ClusterRoleBinding en todo el cluster.",
+            ],
             "points": [
                 "Es whitelisting puro: todo lo que no se concede explícitamente está denegado.",
                 "Los permisos son aditivos. No existen reglas de denegación: solo se suman.",
@@ -300,6 +331,11 @@ DECK = {
             "t": "table",
             "eyebrow": "La pregunta que lo resuelve todo",
             "heading": "¿El permiso vale en un namespace o en todos?",
+            "theory": [
+                "El alcance real de un permiso lo determina el BINDING, no el rol. Un Role con un RoleBinding concede solo en ese namespace, como cabe esperar. Un ClusterRole con un ClusterRoleBinding concede en todo el cluster, incluidos los recursos que no tienen namespace (nodos, PersistentVolumes, la propia definición de namespaces).",
+                "La combinación potente y a la vez peligrosa es un ClusterRole con un RoleBinding: reutiliza una definición de permisos común (por ejemplo, «leer pods») pero la aplica solo dentro del namespace del binding. Es la forma correcta de dar permisos acotados sin repetir el mismo Role en cada namespace.",
+                "La combinación inválida es un Role con un ClusterRoleBinding: el API la acepta sin error, pero no concede absolutamente nada. Y el error más caro en producción es poner un ClusterRoleBinding donde debía ir un RoleBinding: se cree que se ha dado acceso a un namespace y en realidad se ha dado a los treinta. Auditar siempre con kubectl auth can-i --as, nunca leyendo los YAML.",
+            ],
             "headers": ["Role usado", "Binding usado", "Alcance resultante"],
             "weights": [2, 2, 5],
             "mono_last": False,

@@ -61,6 +61,11 @@ DECK = {
             "t": "chain",
             "eyebrow": "Ruta del tráfico",
             "heading": "Cómo llega un paquete a un Pod",
+            "theory": [
+                "Cuando un cliente dentro del cluster contacta con un Service, no habla con ningún proceso: la ClusterIP es una IP virtual que no existe en ninguna interfaz de red. Es una regla que kube-proxy programa en todos los nodos (con iptables o IPVS) y que, en cuanto sale un paquete hacia esa IP, reescribe el destino hacia la IP real de uno de los Pods backend y su targetPort.",
+                "El DNS no interviene en el balanceo: resuelve el nombre del Service SIEMPRE a la misma ClusterIP. Quien reparte entre los Pods es kube-proxy, eligiendo un endpoint distinto por conexión. La lista de endpoints candidatos sale de los objetos EndpointSlice, que solo contienen Pods que están Ready.",
+                "De aquí salen tres conclusiones para depurar: un Pod que deja de estar Ready desaparece del EndpointSlice y deja de recibir tráfico (esto es lo que hace que un rollout roto no rompa el servicio); si nslookup del nombre funciona pero curl a la ClusterIP da timeout, el problema es de endpoints o de NetworkPolicy, no de DNS; y si el EndpointSlice está vacío, hay que mirar el selector del Service frente a los labels de los Pods.",
+            ],
             "nodes": ["Cliente", "ClusterIP (virtual)", "kube-proxy · iptables/IPVS",
                       "EndpointSlice", "IP del Pod : targetPort"],
             "detail": {"label": "Tres consecuencias prácticas", "lines": [
@@ -74,6 +79,11 @@ DECK = {
             "t": "cards",
             "eyebrow": "Tipos",
             "heading": "Cuatro tipos y un caso especial",
+            "theory": [
+                "Los tipos de Service se apilan. ClusterIP es la base: una IP virtual accesible solo dentro del cluster, para que los componentes hablen entre sí. NodePort añade a un ClusterIP la apertura del mismo puerto (30000–32767) en todos los nodos; sirve en laboratorio y detrás de un balanceador propio. LoadBalancer añade a un NodePort una IP externa que aprovisiona el proveedor de nube, una por Service.",
+                "ExternalName es la excepción: no crea ClusterIP, ni endpoints, ni proxy. CoreDNS simplemente devuelve un registro CNAME hacia un nombre DNS externo. Es un alias interno estable para un servicio de fuera del cluster.",
+                "El caso especial es headless (clusterIP: None): en vez de una VIP, el DNS del Service devuelve directamente las IP de todos los Pods del selector. Es la base del StatefulSet, porque permite direccionar réplicas concretas por nombre. Y el error de siempre: port es el puerto del Service, targetPort el del contenedor, nodePort el del nodo.",
+            ],
             "cols": 3,
             "cards": [
                 {"title": "ClusterIP", "body": "Por defecto. Solo dentro del cluster. Para que un componente hable con otro."},
@@ -88,6 +98,11 @@ DECK = {
             "t": "concept",
             "eyebrow": "CoreDNS",
             "heading": "Cómo encuentra un Pod a otro por nombre",
+            "theory": [
+                "CoreDNS es el servidor DNS interno del cluster. Corre como Deployment en el namespace kube-system y se expone con un Service que, por motivos históricos, se sigue llamando kube-dns. El kubelet inyecta su ClusterIP en el /etc/resolv.conf de cada Pod.",
+                "El FQDN de un Service es <svc>.<ns>.svc.cluster.local; el de un Pod de StatefulSet añade el nombre del Pod delante. Casi nunca hace falta escribirlo entero: la línea search del resolv.conf añade sufijos automáticamente, de modo que desde dentro de un namespace basta con el nombre corto del Service.",
+                "La opción ndots:5 significa que un nombre con menos de cinco puntos se prueba primero concatenándole cada sufijo de search antes de intentarlo como nombre absoluto. Esto explica por qué a veces una resolución tarda o falla de forma rara. Para diagnosticar rápido: kubectl run tmp --rm -it --image=busybox:1.36 --restart=Never -- nslookup <svc>.<ns>.",
+            ],
             "points": [
                 "CoreDNS vive en kube-system. Su Service se sigue llamando kube-dns por motivos históricos.",
                 "El FQDN de un Service es <svc>.<ns>.svc.cluster.local; el de un Pod de StatefulSet añade el nombre del Pod delante.",
@@ -134,6 +149,11 @@ DECK = {
             "t": "chain",
             "eyebrow": "Arquitectura",
             "heading": "Del cliente al contenedor",
+            "theory": [
+                "El objeto Ingress es SOLO una declaración de reglas de routing HTTP (por host y por path) y de qué Secret TLS usar. Por sí mismo no hace nada: necesita un Ingress Controller —un proxy de nivel 7 como Traefik, HAProxy o Contour— que lea esos objetos y configure el reenvío real. Si no hay controlador, el Ingress se queda sin ADDRESS y no pasa nada.",
+                "El controlador termina el TLS en el borde: descifra la conexión del cliente y, del controlador al Pod, el tráfico va en claro dentro del cluster. El Secret de tipo kubernetes.io/tls debe estar en el MISMO namespace que el objeto Ingress.",
+                "Dos fallos silenciosos habituales. Si ingressClassName no coincide con ninguna IngressClass registrada, ningún controlador adopta el Ingress y no hay ningún error. Y si los Services de backend no tienen endpoints, verás errores 503 y buscarás el problema en el Ingress cuando está en los Pods: por eso se verifican los Services ANTES de crear el Ingress.",
+            ],
             "nodes": ["CLIENTE", "INGRESS CONTROLLER (proxy L7)", "SERVICE", "ENDPOINTSLICE", "POD"],
             "detail": {"label": "Lo que hay que entender", "lines": [
                 "El objeto Ingress es solo una declaración. Sin un controlador que la lea, no hace absolutamente nada.",
@@ -165,6 +185,11 @@ DECK = {
             "t": "columns",
             "eyebrow": "Presente y futuro",
             "heading": "Ingress frente a Gateway API",
+            "theory": [
+                "Ingress resuelve todo con un único objeto: reglas, TLS y cualquier ajuste avanzado. El problema es que la API base es muy limitada, así que cada controlador añadió sus propias anotaciones propietarias para reescrituras, timeouts, autenticación, etc. Esas anotaciones NO son portables entre controladores, y esa fragmentación se volvió una carga de mantenimiento y un riesgo de seguridad. Aun así, Ingress sigue siendo estándar, está ampliamente desplegado y es lo que se pide hoy en el examen.",
+                "Gateway API es el sucesor. Reparte la responsabilidad en tres objetos con dueños distintos: GatewayClass (lo define el proveedor de la infraestructura), Gateway (lo gestiona el equipo de plataforma: puertos, TLS) y HTTPRoute (lo gestiona cada equipo de aplicación: sus rutas). Sustituye las anotaciones por filtros tipados y estándar —URLRewrite, RequestHeaderModifier—, y controla las referencias entre namespaces con ReferenceGrant.",
+                "Gateway API ya figura en el currículum CKA vigente y es la dirección recomendada por el proyecto, sobre todo tras la retirada de ingress-nginx. En este curso se practica Ingress y se presenta Gateway API con un manifiesto de referencia equivalente.",
+            ],
             "cols": [
                 {"title": "Ingress", "subtitle": "Lo que se pide hoy en el examen", "lines": [
                     "Un solo objeto para todo: reglas, TLS y configuración.",
@@ -234,6 +259,11 @@ DECK = {
             "t": "concept",
             "eyebrow": "Concepto",
             "heading": "Cuatro reglas que lo explican todo",
+            "theory": [
+                "Una NetworkPolicy es un firewall a nivel de Pod, pero su lógica es contraintuitiva. Regla uno: un Pod al que NO selecciona ninguna política acepta todo el tráfico; el aislamiento no es el estado por defecto. Regla dos: en cuanto UNA política selecciona a un Pod para un policyType (Ingress o Egress), ese Pod queda aislado para ese tipo y solo pasa lo que las políticas autoricen explícitamente.",
+                "Regla tres: las políticas son ADITIVAS. Si varias seleccionan al mismo Pod, se aplica la unión de todo lo que permiten; no existen reglas de denegación y el orden no importa. Regla cuatro: Ingress y Egress son independientes. Para que el Pod A hable con el Pod B hacen falta DOS permisos: salida (egress) en A hacia B, y entrada (ingress) en B desde A.",
+                "Requisito previo que se olvida: el CNI instalado tiene que implementar NetworkPolicy (Calico, Cilium sí; Flannel a secas no). Si el CNI no las soporta, las políticas se crean sin error pero no filtran nada.",
+            ],
             "points": [
                 "Un Pod al que no selecciona ninguna política acepta todo el tráfico. El aislamiento no es el estado por defecto.",
                 "En cuanto UNA política lo selecciona para un policyType, queda aislado para ese tipo y solo pasa lo autorizado.",
@@ -278,6 +308,11 @@ DECK = {
             "t": "columns",
             "eyebrow": "Un guion lo cambia todo",
             "heading": "AND frente a OR en los selectores",
+            "theory": [
+                "En una regla from o to de NetworkPolicy, la diferencia entre exigir dos condiciones a la vez o cualquiera de ellas es un solo guion de YAML, y es la diferencia entre una política correcta y un agujero de seguridad.",
+                "Si namespaceSelector y podSelector van bajo el MISMO elemento de la lista (un solo guion), se combinan con AND: «Pods que cumplan ESE podSelector Y que estén en un namespace que cumpla ESE namespaceSelector». Es lo que casi siempre quieres: ese Pod, en ese namespace.",
+                "Si van como DOS elementos de la lista (dos guiones), se combinan con OR: «cualquier Pod de ese namespace, O cualquier Pod con ese label en cualquier namespace». Concede muchísimo más de lo que parece. Revisa siempre la indentación de estas reglas.",
+            ],
             "cols": [
                 {"title": "AND — un solo elemento", "subtitle": "Ese Pod, en ese namespace", "lines": [
                     "- from:",

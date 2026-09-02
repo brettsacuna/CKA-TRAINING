@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Vistas previas / temporales del generador de diapositivas
+generador-diapositivas/_preview/
+generador-diapositivas/**/*.png.tmp
+
+# Sistema
+.DS_Store
+Thumbs.db

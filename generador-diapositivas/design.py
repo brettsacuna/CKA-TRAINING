@@ -290,15 +290,21 @@ def hex_motif(slide, *, cx, cy, r, color=FAINT, line_w=1.5):
     return shp
 
 
-def code_panel(slide, x, y, w, lines, *, accent=K8S, min_h=None, pad=190000,
-               size=SZ_CODE, title=None):
+def code_panel(slide, x, y, w, lines, *, accent=K8S, min_h=None, max_h=None,
+               pad=190000, size=SZ_CODE, title=None):
     """Panel de código. `lines` es lista de str. Comentarios (#...) atenuados."""
-    line_h = int(Pt(size).emu * 1.42)
     head_h = 300000 if title else 0
+    if max_h:                       # baja el cuerpo de fuente hasta que quepa
+        while size > 7.5 and (int(Pt(size).emu * 1.42) * max(1, len(lines))
+                              + 2 * pad + head_h) > max_h:
+            size -= 0.5
+    line_h = int(Pt(size).emu * 1.42)
     body_h = int(line_h * max(1, len(lines))) + 2 * pad
     h = body_h + head_h
     if min_h:
         h = max(h, min_h)
+    if max_h:
+        h = min(h, max_h)
     panel = rect(slide, x, y, w, h, fill=CODE_BG, line=HAIRLINE, line_w=1.0,
                  rounded=True, radius=0.03)
     rect(slide, x, y + (head_h if title else 0), 46000,
@@ -356,6 +362,36 @@ def note_band(slide, text, *, y, accent=K8S, x=MARGIN, w=CONTENT_W, h=470000,
              line=1.0)
     para(tf, text, size=SZ_SMALL, color=BODY, font=F_BODY, italic=True,
          first=not label, space_after=0, line=1.16)
+
+
+def theory_panel(slide, paragraphs, *, x, y, w, h, accent=K8S,
+                 label="Teoría", size=10.5, min_size=8.5):
+    """Bloque de teoría: varios párrafos de texto corrido, tamaño ajustable."""
+    rect(slide, x, y, w, h, fill=PANEL_SOFT, line=HAIRLINE, line_w=1.0,
+         rounded=True, radius=0.045)
+    rect(slide, x + 26000, y + 22000, 40000, h - 44000, fill=accent, line=None)
+    pad_l, pad_t, pad_r = 240000, 130000, 190000
+    tw = w - pad_l - pad_r
+    tb = textbox(slide, x + pad_l, y + pad_t, tw, h - 2 * pad_t)
+    tf = tb.text_frame
+    avail = h - 2 * pad_t
+
+    def needed(sz):
+        cpl = max(28, int(tw / (Pt(sz).emu * 0.50)))
+        lines = sum(max(1, -(-len(p) // cpl)) for p in paragraphs)
+        return (260000 + lines * int(Pt(sz).emu * 1.28)
+                + (len(paragraphs) - 1) * int(Pt(sz).emu * 0.45))
+
+    sz = size
+    while sz > min_size and needed(sz) > avail:
+        sz -= 0.5
+
+    para(tf, label.upper(), size=SZ_SMALL - 2,
+         color=accent if isinstance(accent, RGBColor) else K8S_TEXT,
+         font=F_HEAD, bold=True, spacing=2.0, first=True, space_after=6, line=1.0)
+    for p in paragraphs:
+        para(tf, p, size=sz, color=BODY, font=F_BODY, space_after=4,
+             line=1.28, space_before=0)
 
 
 def scaffold(slide, *, clase_n, page, eyebrow_text, heading_text,

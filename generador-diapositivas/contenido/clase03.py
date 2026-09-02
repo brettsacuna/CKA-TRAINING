@@ -61,6 +61,11 @@ DECK = {
             "t": "chain",
             "eyebrow": "Relación",
             "heading": "Cada capa tiene una responsabilidad distinta",
+            "theory": [
+                "La cadena Deployment → ReplicaSet → Pod separa dos responsabilidades. El ReplicaSet gestiona CANTIDAD: cuenta cuántos Pods casan con su selector y crea o borra hasta llegar a spec.replicas. Es lo que da el self-healing: si borras un Pod, el ReplicaSet lo repone en segundos. Pero un ReplicaSet no sabe hacer rolling update; cambiarle la imagen solo afecta a los Pods que cree a partir de ese momento.",
+                "El Deployment gestiona VERSIONES: cada vez que cambias spec.template (imagen, variables, recursos) crea un ReplicaSet nuevo y orquesta la transición gradual del viejo al nuevo. El ReplicaSet anterior no se borra, queda a 0 réplicas, y es lo que permite el rollback inmediato.",
+                "kubectl scale toca spec.replicas, que vive en el ReplicaSet activo, así que NO genera un ReplicaSet nuevo. Y la pertenencia se puede comprobar en cualquier Pod leyendo metadata.ownerReferences, que apunta a su ReplicaSet, cuyo ownerReferences a su vez apunta al Deployment.",
+            ],
             "nodes": ["Deployment", "ReplicaSet", "Pod"],
             "detail": {"label": "Quién hace qué", "lines": [
                 "El Deployment gestiona VERSIONES: cada cambio en spec.template crea un ReplicaSet nuevo.",
@@ -74,6 +79,11 @@ DECK = {
             "t": "cards",
             "eyebrow": "Elección",
             "heading": "Qué controlador para qué carga",
+            "theory": [
+                "El controlador elegido codifica las garantías que necesita la carga. El Deployment es para cargas stateless: réplicas intercambiables con nombre aleatorio (hash), sin orden de arranque, con rolling update y rollback. Es la opción por defecto para cualquier aplicación web o API.",
+                "El StatefulSet es para cargas con estado que necesitan identidad: nombre estable y predecible (web-0, web-1…), arranque y parada en orden, y un volumen persistente propio por réplica creado mediante volumeClaimTemplates. Bases de datos, colas y clusters de consenso.",
+                "El DaemonSet garantiza exactamente un Pod por nodo (agentes de logs, CNI, exporters de métricas); por eso drain necesita --ignore-daemonsets. El ReplicationController es el antecesor del ReplicaSet, solo referencia histórica. Y un Pod suelto no tiene ningún controlador detrás: si te importa que siga existiendo, no lo crees así.",
+            ],
             "cols": 2,
             "cards": [
                 {"title": "Deployment", "body": "Cargas stateless. Réplicas intercambiables, nombres con hash, rolling update y rollback. Es tu opción por defecto."},
@@ -109,6 +119,11 @@ DECK = {
             "t": "columns",
             "eyebrow": "Primera distinción",
             "heading": "emptyDir frente a almacenamiento persistente",
+            "theory": [
+                "Un volumen en Kubernetes comparte el ciclo de vida del POD, no el del contenedor: si un contenedor se reinicia dentro del mismo Pod, los datos del volumen siguen ahí. La diferencia clave está en qué pasa cuando el Pod se recrea.",
+                "emptyDir se crea vacío cuando el Pod arranca en un nodo y se destruye cuando el Pod desaparece de ese nodo. Vive y muere con el Pod. Todos los contenedores del Pod lo comparten, así que es perfecto para caché, ficheros temporales o para pasar datos de un contenedor a otro (un init container prepara algo y el principal lo consume).",
+                "PersistentVolume y PersistentVolumeClaim desacoplan el almacenamiento del Pod. El PV es el recurso real (un disco, un export NFS, un volumen de nube) y no tiene namespace. El PVC es la solicitud que hace la aplicación —tanto espacio, este modo de acceso— y sí vive en un namespace. El Pod nunca referencia el PV: monta el PVC. Es lo único que se debe usar para datos que importan.",
+            ],
             "cols": [
                 {"title": "emptyDir", "subtitle": "Vive y muere con el Pod", "lines": [
                     "Se crea vacío cuando el Pod arranca en un nodo.",
@@ -129,6 +144,11 @@ DECK = {
             "t": "chain",
             "eyebrow": "Relación",
             "heading": "De la clase de almacenamiento al contenedor",
+            "theory": [
+                "Hay dos caminos para que un PVC obtenga almacenamiento. En el aprovisionamiento ESTÁTICO, el administrador crea los PV a mano por adelantado; cuando aparece un PVC, el control plane busca un PV libre que encaje (mismo storageClassName, un accessMode compatible y capacidad suficiente) y los enlaza. Si no hay ninguno que encaje, el PVC se queda en Pending.",
+                "En el aprovisionamiento DINÁMICO, el PVC nombra una StorageClass y el provisioner asociado crea el PV al vuelo con las características pedidas. Es lo habitual en la nube. Muchos clusters tienen una StorageClass marcada como default que se aplica a los PVC que no especifican ninguna.",
+                "Dos trampas frecuentes: si existe una StorageClass por defecto y no la desactivas, tus PV estáticos se ignoran porque el PVC pide dinámico; y storageClassName: \"\" (cadena vacía) NO es lo mismo que omitir el campo —la cadena vacía desactiva explícitamente la clase por defecto y fuerza el emparejamiento estático.",
+            ],
             "nodes": ["StorageClass", "PersistentVolume", "PersistentVolumeClaim", "Pod", "volumeMount"],
             "detail": {"label": "Dos caminos", "lines": [
                 "ESTÁTICO: el administrador crea el PV a mano; el PVC lo encuentra si todo coincide.",
@@ -141,6 +161,11 @@ DECK = {
             "t": "table",
             "eyebrow": "Emparejamiento",
             "heading": "Un PV y un PVC enlazan solo si TODO esto coincide",
+            "theory": [
+                "El enlace (binding) entre un PVC y un PV es todo-o-nada: se comprueban varios criterios y basta que uno falle para que el PVC se quede en Pending. El storageClassName debe coincidir exactamente, incluida la cadena vacía. Los accessModes del PV deben OFRECER lo que el PVC PIDE (un PV solo-RWO no sirve para un PVC que pide RWX). La capacidad del PV debe ser mayor o igual que la solicitada.",
+                "Si el PVC declara un selector de labels, el PV tiene que cumplirlo. Y el PV no puede estar ya reservado: si tiene un claimRef apuntando a otro PVC, no está disponible aunque su estado parezca libre.",
+                "Un detalle que confunde en el examen: una vez enlazado, el PVC muestra la capacidad del PV real, no la que pidió. Si solicitas 1Gi y el único PV disponible es de 2Gi, verás 2Gi. Y cuando se borra el PVC, un PV con reclaimPolicy Retain no vuelve a Available: queda en Released con sus datos y su claimRef, y hay que liberarlo a mano.",
+            ],
             "headers": ["Criterio", "Regla", "Si falla"],
             "weights": [3, 5, 3],
             "mono_last": False,
@@ -157,6 +182,11 @@ DECK = {
             "t": "concept",
             "eyebrow": "Modos y políticas",
             "heading": "Dos campos que deciden si tu Pod arranca",
+            "theory": [
+                "El accessMode describe cómo se puede montar el volumen. ReadWriteOnce (RWO) permite lectura y escritura desde un solo NODO —varios Pods de ese nodo pueden compartirlo— y es el modo por defecto de casi todo el almacenamiento de bloque. ReadOnlyMany (ROX) es solo lectura desde varios nodos. ReadWriteMany (RWX) es lectura y escritura desde varios nodos, y exige almacenamiento de fichero tipo NFS o CephFS. ReadWriteOncePod (RWOP) lo restringe a un único Pod, ni siquiera dos en el mismo nodo.",
+                "El accessMode no es una propiedad mágica del disco: es lo que el PV declara ofrecer y el PVC declara necesitar. Pedir RWX sobre un backend que solo da RWO deja el PVC en Pending o el Pod sin arrancar.",
+                "La reclaimPolicy decide qué pasa con el PV al borrar su PVC. Retain conserva el PV y sus datos en estado Released (recuperación manual). Delete borra el PV y el almacenamiento subyacente. Recycle fue eliminado hace tiempo: si lo ves en unos apuntes, están desactualizados.",
+            ],
             "points": [
                 "ReadWriteOnce (RWO): lectura y escritura desde un solo nodo. Es el modo por defecto de casi todo el almacenamiento de bloque.",
                 "ReadOnlyMany (ROX): solo lectura desde varios nodos.",
@@ -207,6 +237,11 @@ DECK = {
             "t": "cards",
             "eyebrow": "Garantías",
             "heading": "Qué te da un StatefulSet que un Deployment no",
+            "theory": [
+                "Un StatefulSet da cuatro garantías que un Deployment no puede ofrecer. Nombre estable: las réplicas se llaman <sts>-0, <sts>-1… sin hash, y si un Pod muere, el que lo sustituye recupera exactamente el mismo nombre. Orden garantizado: <sts>-1 no arranca hasta que <sts>-0 está Ready, y al reducir réplicas se retiran en orden inverso.",
+                "Volumen propio: volumeClaimTemplates crea un PVC independiente por réplica (www-<sts>-0, www-<sts>-1…), de modo que cada Pod tiene su propio disco y nunca lo comparten. DNS por Pod: junto a un Headless Service (clusterIP: None), cada réplica es resoluble por <sts>-0.<svc>.<ns>.svc.cluster.local, lo que permite dirigirse a una instancia concreta.",
+                "Un punto crítico de operación: los PVC creados por volumeClaimTemplates NO se borran al reducir réplicas ni al eliminar el StatefulSet. Es deliberado —son datos— y significa que recrear el StatefulSet reengancha los volúmenes existentes. El enlace que más se equivoca es serviceName, que debe coincidir con el nombre del Headless Service o el DNS por Pod no se crea, sin ningún error visible.",
+            ],
             "cols": 2,
             "cards": [
                 {"title": "Nombre estable", "body": "web-0, web-1, web-2. No hay hash. Si un Pod muere, el nuevo recupera exactamente el mismo nombre."},

@@ -82,6 +82,11 @@ DECK = {
             "t": "concept",
             "eyebrow": "Concepto",
             "heading": "Qué es realmente un Pod",
+            "theory": [
+                "Un Pod es el objeto más pequeño que Kubernetes programa. Envuelve uno o varios contenedores que siempre se ejecutan juntos en el mismo nodo y que comparten una única IP, el espacio de puertos y los volúmenes; entre ellos se comunican por localhost. Es, a la vez, la unidad de scheduling, de escalado y de ciclo de vida: Kubernetes nunca coloca medio Pod ni escala contenedores sueltos.",
+                "Un Pod es efímero y desechable por diseño. No se autorrepara: si el proceso muere de forma irrecuperable o el nodo se apaga, el Pod desaparece y nadie lo recrea. Por eso en producción casi nunca se crea un Pod suelto, sino mediante un controlador —Deployment, StatefulSet, DaemonSet o Job— que vigila el número deseado de réplicas y sustituye las que fallan.",
+                "El patrón multicontenedor (init containers, sidecars, adapter, ambassador) se apoya justo en que todos comparten red y disco: un contenedor escribe en un volumen emptyDir y otro lo lee; un sidecar de proxy escucha en localhost. El contenedor principal aporta la función; los auxiliares la complementan sin acoplarse a su imagen.",
+            ],
             "points": [
                 "Es la unidad mínima de despliegue: uno o varios contenedores que comparten red y almacenamiento.",
                 "Todos sus contenedores comparten la misma IP y el mismo espacio de puertos.",
@@ -107,6 +112,11 @@ DECK = {
             "t": "columns",
             "eyebrow": "Decisión",
             "heading": "Imperativo o declarativo",
+            "theory": [
+                "El modo imperativo ordena acciones concretas al API server (crea este Pod, escala a 3, cambia esta imagen). Es inmediato y no requiere escribir YAML, pero no deja constancia de la intención: el estado deseado solo vive en tu cabeza y en el cluster. Es ideal para tareas puntuales y para ir rápido en el examen.",
+                "El modo declarativo describe en un manifiesto cómo debe quedar el recurso y deja que Kubernetes calcule las diferencias con kubectl apply. Es idempotente (aplicar dos veces no rompe nada), versionable en Git y reproducible entre entornos. Es lo que se usa en producción y lo que piden los enunciados cuando necesitan campos sin flag equivalente.",
+                "En la práctica se combinan: se genera el esqueleto con un comando imperativo y --dry-run=client -o yaml, se edita el archivo para añadir lo que falta y se aplica con apply. Así se obtiene la velocidad del imperativo y la trazabilidad del declarativo.",
+            ],
             "cols": [
                 {"title": "Imperativo",
                  "subtitle": "Le dices a Kubernetes qué hacer",
@@ -152,6 +162,11 @@ DECK = {
             "t": "table",
             "eyebrow": "Traducción",
             "heading": "El estado de un Pod ya te dice dónde mirar",
+            "theory": [
+                "El campo STATUS de un Pod no es decorativo: identifica la fase exacta en la que se detuvo el arranque, y cada fase se investiga con un comando distinto. Pending significa que el scheduler aún no le ha asignado nodo (recursos, taints o selectores); ContainerCreating y los errores de imagen o configuración ocurren ya en el nodo, durante la preparación del contenedor.",
+                "CrashLoopBackOff indica que el contenedor arrancó y salió: la causa está en la instancia anterior, que solo se ve con kubectl logs --previous. Running con 0/1 READY quiere decir que el proceso vive pero su readinessProbe no pasa, así que el Pod queda fuera de los endpoints del Service. OOMKilled con exit 137 es memoria: el contenedor superó limits.memory y el kernel lo mató.",
+                "Regla práctica: lee primero el estado, formula una hipótesis sobre la capa (scheduling, imagen, configuración, aplicación, recursos) y solo entonces ejecuta describe, events o logs para confirmarla. Esta tabla reaparece en la Clase 6 como base del método de diagnóstico.",
+            ],
             "headers": ["Estado", "Significa", "Primer comando"],
             "weights": [3, 5, 4],
             "rows": [
@@ -191,6 +206,11 @@ DECK = {
             "t": "concept",
             "eyebrow": "Concepto",
             "heading": "El problema que resuelve un Service",
+            "theory": [
+                "Las IP de los Pods son efímeras: cada recreación asigna una nueva, así que ningún cliente puede depender de ellas. Un Service resuelve esto dando un nombre DNS y una IP virtual (ClusterIP) estables a un conjunto de Pods. Esa ClusterIP no existe en ninguna interfaz de red; es una regla que kube-proxy programa en iptables o IPVS en todos los nodos y que reescribe el destino hacia un Pod concreto.",
+                "El vínculo entre Service y Pods no es una lista fija: es un selector sobre labels que el controlador de endpoints evalúa continuamente. El resultado se materializa en objetos EndpointSlice, que contienen las IP y puertos de los Pods que además están Ready. Si un Pod deja de estar Ready, sale del EndpointSlice y deja de recibir tráfico sin que el Service cambie.",
+                "Los tres puertos tienen significados distintos y confundirlos es el error más repetido: port es el puerto del Service, targetPort el del contenedor al que se reenvía, y nodePort el que se abre en cada nodo (rango 30000–32767) para los Services de tipo NodePort.",
+            ],
             "points": [
                 "Las IP de Pod son efímeras: cada recreación cambia la dirección.",
                 "Un Service da un nombre y una IP estables a un conjunto de Pods.",
@@ -208,6 +228,11 @@ DECK = {
             "t": "chain",
             "eyebrow": "Relación",
             "heading": "La cadena que hay que memorizar",
+            "theory": [
+                "Esta cadena es el modelo mental para depurar cualquier problema de conectividad a un Service. El Service declara un selector; el controlador de endpoints busca los Pods cuyos labels lo cumplen y que están Ready, y escribe sus direcciones en el EndpointSlice; kube-proxy usa ese EndpointSlice para repartir el tráfico hacia la IP del Pod y su targetPort.",
+                "Cuando el selector del Service y los labels del Pod no coinciden, el EndpointSlice queda vacío. El Service sigue existiendo, conserva su ClusterIP y sigue resolviéndose por DNS: lo único que falla es que no hay backends. El síntoma clásico es que nslookup del nombre funciona pero curl a la ClusterIP da timeout.",
+                "Por eso el diagnóstico se hace de fuera hacia dentro: primero se comprueba que el nombre resuelve, luego que el EndpointSlice tiene direcciones (kubectl get endpointslices -l kubernetes.io/service-name=<svc>) y, si está vacío, se comparan selector y labels con kubectl get pods --show-labels.",
+            ],
             "nodes": ["Service", "selector", "EndpointSlice", "Pod labels", "Pod : targetPort"],
             "detail": {"label": "Cuando se rompe", "lines": [
                 "Si el selector no casa con los labels del Pod, el EndpointSlice queda vacío.",
@@ -221,6 +246,11 @@ DECK = {
             "t": "cards",
             "eyebrow": "Tipos",
             "heading": "Qué tipo de Service usar",
+            "theory": [
+                "Los tipos de Service se apilan: cada uno añade una capa de exposición sobre el anterior. ClusterIP es la base y solo es accesible dentro del cluster; es lo que usan los componentes para hablar entre sí. NodePort añade a un ClusterIP la apertura del mismo puerto en todos los nodos, útil en laboratorio o detrás de un balanceador propio. LoadBalancer añade a un NodePort una IP externa que aprovisiona el proveedor de nube.",
+                "ExternalName es la excepción: no crea IP ni endpoints ni proxy; CoreDNS simplemente devuelve un registro CNAME hacia un nombre externo. Sirve para dar un alias interno estable a un servicio de fuera del cluster.",
+                "El caso especial es el Service headless (clusterIP: None): en lugar de una IP virtual, el DNS devuelve directamente las IP de todos los Pods del selector. Es la base de los StatefulSet, porque permite dirigirse a una réplica concreta por su nombre; se trata en la Clase 3.",
+            ],
             "cols": 2,
             "cards": [
                 {"title": "ClusterIP", "body": "Por defecto. Solo accesible dentro del cluster. Es lo que usas para que un componente hable con otro."},
@@ -277,6 +307,11 @@ DECK = {
             "t": "process",
             "eyebrow": "Proceso",
             "heading": "Cómo elige nodo el scheduler",
+            "theory": [
+                "El kube-scheduler observa los Pods sin nodo asignado y decide dónde colocarlos en dos etapas. En el filtrado descarta todos los nodos que no pueden alojar el Pod: no tienen recursos libres suficientes para los requests, no cumplen el nodeSelector o la node affinity obligatoria, tienen un taint que el Pod no tolera, o el puerto de host ya está ocupado.",
+                "Con los nodos que superan el filtro pasa a la puntuación: asigna una nota a cada uno según la affinity preferida, el reparto de carga, la localidad de la imagen y otros criterios, y elige el de mayor puntuación. Finalmente vincula el Pod escribiendo spec.nodeName, y a partir de ahí el kubelet de ese nodo lo arranca.",
+                "Si ningún nodo supera el filtrado, el Pod se queda en Pending y el scheduler emite un evento FailedScheduling que enumera cuántos nodos había y por qué falló cada uno. Ese mensaje es la respuesta, no una pista: hay que leerlo entero antes de tocar nada.",
+            ],
             "steps": [
                 {"title": "Filtrar", "body": "Descarta nodos que no cumplen: recursos, nodeSelector, taints, affinity required"},
                 {"title": "Puntuar", "body": "Da una nota a los que quedan: affinity preferred, reparto de carga"},
@@ -289,6 +324,11 @@ DECK = {
             "t": "cards",
             "eyebrow": "Herramientas",
             "heading": "Cinco formas de influir en la colocación",
+            "theory": [
+                "Hay dos familias de mecanismos. Los que atraen o restringen por características del nodo: nodeSelector (igualdad exacta sobre labels de nodo, simple y suficiente casi siempre) y node affinity (lo mismo con operadores In, NotIn, Exists y una variante preferida que puntúa sin filtrar). Los taints hacen lo contrario: repelen; un nodo con un taint solo acepta Pods que lo toleren explícitamente, y la toleration únicamente levanta el veto, no atrae.",
+                "Los que dependen de otros Pods: pod affinity y anti-affinity colocan o separan Pods según los labels de Pods ya existentes, usando topologyKey para definir el ámbito (mismo nodo, misma zona). Es como se reparten las réplicas de un Deployment por varios nodos.",
+                "Y dos transversales: PriorityClass da preferencia a cargas críticas y permite desalojar (preemption) Pods de menor prioridad cuando no hay sitio; y los requests de recursos, que reservan capacidad: si el Pod no cabe en ningún nodo queda Pending, y esta es, con diferencia, la causa más frecuente.",
+            ],
             "cols": 3,
             "cards": [
                 {"title": "nodeSelector", "body": "Igualdad exacta sobre labels de nodo. Simple y suficiente el 80 % de las veces."},
@@ -303,6 +343,11 @@ DECK = {
             "t": "columns",
             "eyebrow": "Matiz crítico",
             "heading": "required frente a preferred",
+            "theory": [
+                "requiredDuringSchedulingIgnoredDuringExecution es una condición dura: forma parte del filtrado, así que si ningún nodo la cumple el Pod se queda en Pending. Equivale a un nodeSelector con operadores. Su estructura es una lista de nodeSelectorTerms, y dentro de cada término las matchExpressions se combinan con AND.",
+                "preferredDuringSchedulingIgnoredDuringExecution es una preferencia blanda: interviene solo en la puntuación. Si ningún nodo la cumple, el Pod se programa igual en el mejor disponible. Su estructura es distinta: una lista de objetos {weight, preference}, donde weight (1–100) es cuánto suma a la nota del nodo. Nunca deja un Pod sin arrancar.",
+                "El sufijo IgnoredDuringExecution significa que la regla solo se evalúa al programar: si más tarde cambian los labels del nodo, el Pod que ya está corriendo no se mueve. La contrapartida RequiredDuringExecution, que sí expulsaría Pods, aún no está implementada.",
+            ],
             "cols": [
                 {"title": "requiredDuringScheduling…", "tag": "Filtra", "accent": "blue",
                  "lines": [
@@ -351,6 +396,11 @@ DECK = {
             "t": "chain",
             "eyebrow": "Mental model",
             "heading": "Un Pod en Pending: ruta de diagnóstico",
+            "theory": [
+                "Un Pod en Pending casi siempre es un problema de scheduling: el scheduler no ha encontrado ningún nodo que lo pueda alojar. El primer paso, sin excepción, es leer los eventos con kubectl describe pod <p> | sed -n '/Events/,$p'. El mensaje FailedScheduling indica cuántos nodos hay y agrupa el motivo de rechazo de cada uno.",
+                "Ese mensaje suele señalar varias causas a la vez, por ejemplo: «0/3 nodes are available: 1 node(s) had untolerated taint, 2 node(s) didn't match node selector». Se revisan en este orden: recursos (¿los requests caben en algún nodo?), nodeSelector (¿existe un nodo con esos labels?), node affinity obligatoria, y taints frente a tolerations.",
+                "Menos frecuente, pero posible: no hay ningún nodo Ready, o el Pod pide un hostPort ya ocupado. Lo que nunca se hace es adivinar y aplicar tres cambios seguidos: se corrige una causa, se vuelve a mirar el evento y se repite.",
+            ],
             "nodes": ["Pod Pending", "Events", "Recursos (requests)", "nodeSelector", "Affinity", "Taints / Tolerations"],
             "detail": {"label": "Cómo se aplica", "lines": [
                 "Empieza siempre por los eventos: el mensaje FailedScheduling enumera cuántos nodos hay y por qué falló cada uno.",

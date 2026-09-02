@@ -59,6 +59,11 @@ DECK = {
             "t": "process",
             "eyebrow": "Método general",
             "heading": "Seis pasos, siempre en el mismo orden",
+            "theory": [
+                "Lo que separa a quien diagnostica de quien prueba comandos al azar es seguir siempre el mismo método. Observar: con kubectl get, anota el estado EXACTO de cada objeto implicado, sin interpretarlo todavía. Acotar: decide en qué capa está el problema (scheduling, imagen, almacenamiento, configuración, permisos, aplicación, red) y no toques nada aún.",
+                "Hipótesis: formula una causa CONCRETA («falta el ConfigMap x», «el selector no casa») antes de investigar. Verificar: ejecuta UN comando que confirme o descarte esa hipótesis (describe, events, logs, auth can-i). Corregir: aplica UNA sola cosa. Validar: comprueba que funciona antes de pasar a lo siguiente.",
+                "El error clásico es saltar de «observar» directo a «corregir»: se cambian tres cosas a la vez, dos estaban bien, y ya nadie sabe qué pasaba. En el examen, con el tiempo justo, el método es lo que evita quemar veinte minutos en una tarea de cinco.",
+            ],
             "steps": [
                 {"title": "Observar", "body": "get: ¿qué estado exacto tiene cada objeto?"},
                 {"title": "Acotar", "body": "¿En qué capa está el problema? No toques nada todavía."},
@@ -73,6 +78,11 @@ DECK = {
             "t": "table",
             "eyebrow": "Traducción",
             "heading": "El estado ya te dice en qué fase murió el Pod",
+            "theory": [
+                "Cada estado de Pod corresponde a una fase concreta del arranque y se investiga con un comando distinto. Pending: el scheduler no encontró nodo (recursos, taints, selectores) — se mira en los eventos. ContainerCreating atascado: el nodo ya está asignado pero falla el montaje del volumen o la red del Pod — también en los eventos. ImagePullBackOff: el nodo no puede traer la imagen (nombre mal, registro privado sin credenciales) — eventos.",
+                "CreateContainerConfigError: falta un ConfigMap, un Secret o una clave que el Pod referencia — describe más get cm,secret. CrashLoopBackOff: el proceso arrancó y salió, la causa está en la instancia anterior — kubectl logs --previous. Running con 0/1 READY: el proceso vive pero la readinessProbe no pasa — describe, sección Conditions. OOMKilled con exit 137: superó limits.memory — describe, Last State.",
+                "El par que más se confunde es Pending frente a ImagePullBackOff: en Pending el Pod aún no tiene nodo; en ImagePullBackOff ya lo tiene y el problema es la imagen. Leer bien el estado ahorra minutos de mirar en el sitio equivocado.",
+            ],
             "headers": ["Estado", "Fase en la que falló", "Primer comando"],
             "weights": [3, 4, 3],
             "rows": [
@@ -127,6 +137,11 @@ DECK = {
             "t": "columns",
             "eyebrow": "Distinción crítica",
             "heading": "NotReady no es SchedulingDisabled",
+            "theory": [
+                "Un nodo puede aparecer «mal» por dos razones opuestas que se confunden constantemente. NotReady significa que el nodo está averiado: el kubelet ha dejado de reportar al API server. Las causas típicas son el kubelet parado, el container runtime caído, el disco lleno o un problema de red del nodo. Se diagnostica por SSH: systemctl status kubelet, journalctl -u kubelet, df -h. Pasado un tiempo, los Pods que había en ese nodo se marcan para desalojo.",
+                "SchedulingDisabled significa que el nodo está cerrado A PROPÓSITO: alguien ejecutó cordon o drain y no hizo uncordon. El nodo está perfectamente sano, los Pods que ya corren siguen funcionando con normalidad, y solo se rechazan Pods nuevos. Se arregla con un único comando: kubectl uncordon <nodo>.",
+                "Confundirlos cuesta diez minutos revisando el kubelet de un nodo que no tiene absolutamente nada. La pista está en las Conditions del kubectl describe node y en la columna STATUS: «Ready,SchedulingDisabled» no es lo mismo que «NotReady».",
+            ],
             "cols": [
                 {"title": "NotReady", "subtitle": "El nodo está averiado", "accent": "danger", "lines": [
                     "El kubelet no reporta al API server.",
@@ -147,6 +162,11 @@ DECK = {
             "t": "chain",
             "eyebrow": "Cuando kubectl no responde",
             "heading": "Deja de usar kubectl",
+            "theory": [
+                "Si kubectl no responde, el API server está caído, y como el API server es un static Pod que gestiona el kubelet, no hay ningún kubectl que pueda ayudarte. El diagnóstico se hace en el nodo maestro por SSH. El kubelet es un servicio de systemd, no un contenedor, así que sigue vivo: systemctl status kubelet y journalctl -u kubelet -n 80 te dicen por qué no consigue arrancar el static Pod (un error de sintaxis en el manifiesto, un flag mal, un certificado caducado).",
+                "crictl es el sustituto de kubectl a nivel de nodo: crictl ps -a lista los contenedores, crictl logs <id> muestra sus logs. Con eso ves si el contenedor de kube-apiserver está reiniciándose y por qué.",
+                "La corrección casi siempre es editar el manifiesto en /etc/kubernetes/manifests/: el kubelet detecta el cambio y recrea el componente en segundos. No existe systemctl restart kube-apiserver. Y kubeadm guarda copias de seguridad de los manifiestos en /etc/kubernetes/tmp/kubeadm-backup-manifests-* por si necesitas volver atrás.",
+            ],
             "nodes": ["kubectl no responde", "systemctl status kubelet", "crictl ps -a",
                       "crictl logs / journalctl", "/etc/kubernetes/manifests/"],
             "detail": {"label": "Por qué funciona", "lines": [
@@ -184,6 +204,11 @@ DECK = {
             "t": "cards",
             "eyebrow": "Referencia",
             "heading": "Cada capa tiene su ruta",
+            "theory": [
+                "Los seis mental models del curso no son mnemotecnias: son el ORDEN exacto en que hay que ir descartando causas dentro de cada capa. El de POD es el punto de partida de todo: get → describe → events → logs → logs --previous. El de SCHEDULING, para un Pod en Pending: Events → recursos → nodeSelector → affinity → taints.",
+                "El de SERVICE, para conectividad interna: Service → selector → EndpointSlice → labels del Pod → targetPort. El de STORAGE, para un PVC que no enlaza: PVC → StorageClass → PV → accessMode → capacity → Pod. El de RBAC, para un Forbidden: identidad → Role/ClusterRole → binding → recurso → verbo, confirmado con auth can-i.",
+                "El de NETWORKING junta todo lo externo: Pod → Service → EndpointSlice → DNS → NetworkPolicy → Ingress. Saltarse un escalón de cualquiera de estas rutas es lo que hace perder tiempo: se investiga algo de más arriba cuando el fallo estaba abajo.",
+            ],
             "cols": 3,
             "cards": [
                 {"title": "POD", "body": "get → describe → events → logs → logs --previous. El punto de partida de todo."},
@@ -199,6 +224,11 @@ DECK = {
             "t": "chain",
             "eyebrow": "Cadenas de fallos",
             "heading": "Cuando todo parece roto, hay un orden",
+            "theory": [
+                "Cuando un escenario tiene varios fallos encadenados y todo parece roto a la vez, hay un orden fijo para atacarlos: de abajo hacia arriba, porque cada capa depende de que la anterior funcione.",
+                "Sin PERMISOS no puedes ni operar: auth can-i primero. Sin nodo asignado no hay Pod, así que un Pod en Pending no puede tener un problema de red — se resuelve el SCHEDULING antes. Sin volumen, el Pod no monta y se queda en ContainerCreating: STORAGE va antes que nada que pase dentro del contenedor. Sin ConfigMap ni Secret, el contenedor ni siquiera se crea: CONFIGURACIÓN antes que APLICACIÓN.",
+                "Solo cuando hay un contenedor corriendo y sano tiene sentido probar la RED: DNS, endpoints, NetworkPolicy e Ingress. Intentar depurar la red de un Pod que está en CrashLoopBackOff es tiempo perdido.",
+            ],
             "nodes": ["PERMISOS", "SCHEDULING", "STORAGE", "CONFIGURACIÓN", "APLICACIÓN", "RED"],
             "detail": {"label": "Se diagnostica de abajo hacia arriba", "lines": [
                 "Sin permisos no puedes ni operar: auth can-i primero.",

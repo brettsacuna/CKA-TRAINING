@@ -28,12 +28,28 @@ def _accent(name):
 
 
 HEADING_W = CONTENT_W - 900000        # deja hueco para el icono del tema
+TH_H = 2000000                        # alto del bloque de teoría
 
 
 def _topic_icon(slide, s, ac_t, size=640000):
     """Icono del tema en la esquina superior derecha de una diapositiva de contenido."""
     icon = s.get("icon") or I.name_for(s.get("heading", ""), s.get("eyebrow", ""))
     I.draw(slide, icon, EMU_W - MARGIN - size, 275000, size, ac_t)
+
+
+def _theory_paras(s):
+    """Devuelve la lista de párrafos de teoría (o None)."""
+    th = s.get("theory")
+    if not th:
+        return None
+    return list(th) if isinstance(th, (list, tuple)) else [th]
+
+
+def _draw_theory(slide, s, accent, avail_h):
+    paras = _theory_paras(s)
+    if paras:
+        D.theory_panel(slide, paras, x=MARGIN, y=Y_BODY + avail_h + 170000,
+                       w=CONTENT_W, h=TH_H, accent=accent)
 
 
 # --------------------------------------------------------------------------- #
@@ -182,8 +198,9 @@ def render_concept(slide, s, ctx):
     left_w = CONTENT_W * 0.52
     right_x = MARGIN + left_w + COL_GAP
     right_w = CONTENT_W - left_w - COL_GAP
-    note = s.get("note")
-    avail_h = BODY_H - (600000 if note else 0)
+    theory = _theory_paras(s)
+    note = None if theory else s.get("note")
+    avail_h = BODY_H - (600000 if note else 0) - (TH_H + 170000 if theory else 0)
 
     pts = s["points"]
     ph = min(avail_h / len(pts), 940000)
@@ -202,7 +219,7 @@ def render_concept(slide, s, ctx):
     if side["kind"] == "code":
         D.code_panel(slide, right_x, y0, right_w, side["lines"],
                      accent=ac, title=side.get("title"), min_h=block_h,
-                     size=SZ_SMALL)
+                     max_h=avail_h, size=SZ_SMALL)
     else:
         line_h = 300000
         nat = 220000 + 300000 + len(side["lines"]) * line_h + 240000
@@ -226,6 +243,7 @@ def render_concept(slide, s, ctx):
         nac = _accent(note.get("accent") or s.get("accent"))
         D.note_band(slide, note["text"], y=Y_BODY + avail_h + 150000,
                     accent=nac[0], label=note.get("label"), label_color=nac[1])
+    _draw_theory(slide, s, ac, avail_h)
 
 
 def render_columns(slide, s, ctx):
@@ -235,8 +253,9 @@ def render_columns(slide, s, ctx):
                accent_text=ac_t, rule_color=ac, heading_w=HEADING_W)
     _topic_icon(slide, s, ac_t)
     cols = s["cols"]
-    note = s.get("note")
-    avail_h = BODY_H - (600000 if note else 0)
+    theory = _theory_paras(s)
+    note = None if theory else s.get("note")
+    avail_h = BODY_H - (600000 if note else 0) - (TH_H + 170000 if theory else 0)
     n = len(cols)
     cw = (CONTENT_W - COL_GAP * (n - 1)) / n
     pad = 260000
@@ -283,6 +302,7 @@ def render_columns(slide, s, ctx):
         nac = _accent(note.get("accent") or s.get("accent"))
         D.note_band(slide, note["text"], y=Y_BODY + avail_h + 150000,
                     accent=nac[0], label=note.get("label"), label_color=nac[1])
+    _draw_theory(slide, s, ac, avail_h)
 
 
 def render_codeblocks(slide, s, ctx):
@@ -363,8 +383,9 @@ def render_table(slide, s, ctx):
     _topic_icon(slide, s, ac_t)
     headers = s["headers"]
     rows = s["rows"]
-    note = s.get("note")
-    avail_h = BODY_H - (520000 if note else 0)
+    theory = _theory_paras(s)
+    note = None if theory else s.get("note")
+    avail_h = BODY_H - (520000 if note else 0) - (TH_H + 170000 if theory else 0)
     ncol = len(headers)
     weights = s.get("weights", [1] * ncol)
     tot = sum(weights)
@@ -405,6 +426,7 @@ def render_table(slide, s, ctx):
         nac = _accent(note.get("accent") or s.get("accent"))
         D.note_band(slide, note["text"], y=Y_BODY + avail_h + 120000,
                     accent=nac[0], label=note.get("label"), label_color=nac[1])
+    _draw_theory(slide, s, ac, avail_h)
 
 
 def render_cards(slide, s, ctx):
@@ -413,18 +435,24 @@ def render_cards(slide, s, ctx):
                eyebrow_text=s["eyebrow"], heading_text=s["heading"],
                accent_text=ac_t, rule_color=ac, heading_w=HEADING_W)
     cards = s["cards"]
-    note = s.get("note")
+    theory = _theory_paras(s)
+    note = None if theory else s.get("note")
     ncols = s.get("cols", 2)
-    avail_h = BODY_H - (600000 if note else 0)
+    avail_h = BODY_H - (600000 if note else 0) - (TH_H + 170000 if theory else 0)
     nrows = (len(cards) + ncols - 1) // ncols
     gx, gy = COL_GAP, 240000
     cw = (CONTENT_W - gx * (ncols - 1)) / ncols
-    pad = 230000
+    pad = 200000 if theory else 230000
+    b_sz = (SZ_SMALL - 1) if theory else SZ_SMALL
+    b_off = 360000 if theory else 420000
+    b_line = 1.12 if theory else 1.18
     # altura natural: barra + título + cuerpo estimado
     cpl = max(20, int((cw - 2 * pad) / 82000))       # caracteres por línea aprox.
     est_lines = max((-(-len(c["body"]) // cpl)) for c in cards)
     nat_ch = pad + 400000 + est_lines * 236000 + pad
     ch = min((avail_h - gy * (nrows - 1)) / nrows, nat_ch, 2050000)
+    if theory:
+        ch = (avail_h - gy * (nrows - 1)) / nrows     # ocupa el espacio disponible
     grid_h = ch * nrows + gy * (nrows - 1)
     y_top = Y_BODY + (avail_h - grid_h) / 2
     dfl = I.name_for(s["heading"], s["eyebrow"])
@@ -443,14 +471,15 @@ def render_cards(slide, s, ctx):
                        340000, anchor=MSO_ANCHOR.MIDDLE)
         D.para(tb.text_frame, card["title"], size=SZ_LEAD, color=INK,
                font=F_HEAD, bold=True, first=True, space_after=0, line=1.05)
-        tb = D.textbox(slide, x + pad, y + pad + 420000, cw - 2 * pad,
-                       ch - pad - 500000)
-        D.para(tb.text_frame, card["body"], size=SZ_SMALL, color=BODY,
-               font=F_BODY, first=True, space_after=0, line=1.18)
+        tb = D.textbox(slide, x + pad, y + pad + b_off, cw - 2 * pad,
+                       ch - pad - b_off - 60000)
+        D.para(tb.text_frame, card["body"], size=b_sz, color=BODY,
+               font=F_BODY, first=True, space_after=0, line=b_line)
     if note:
         nac = _accent(note.get("accent") or s.get("accent"))
         D.note_band(slide, note["text"], y=Y_BODY + avail_h + 150000,
                     accent=nac[0], label=note.get("label"), label_color=nac[1])
+    _draw_theory(slide, s, ac, avail_h)
 
 
 def render_process(slide, s, ctx):
@@ -460,8 +489,9 @@ def render_process(slide, s, ctx):
                accent_text=ac_t, rule_color=ac, heading_w=HEADING_W)
     _topic_icon(slide, s, ac_t)
     steps = s["steps"]
-    note = s.get("note")
-    avail_h = BODY_H - (520000 if note else 0)
+    theory = _theory_paras(s)
+    note = None if theory else s.get("note")
+    avail_h = BODY_H - (520000 if note else 0) - (TH_H + 170000 if theory else 0)
     n = len(steps)
     gap = 170000
     sh = (avail_h - gap * (n - 1)) / n
@@ -490,6 +520,7 @@ def render_process(slide, s, ctx):
         nac = _accent(note.get("accent") or s.get("accent"))
         D.note_band(slide, note["text"], y=Y_BODY + avail_h + 120000,
                     accent=nac[0], label=note.get("label"), label_color=nac[1])
+    _draw_theory(slide, s, ac, avail_h)
 
 
 def render_chain(slide, s, ctx):
@@ -500,14 +531,15 @@ def render_chain(slide, s, ctx):
     _topic_icon(slide, s, ac_t)
     nodes = s["nodes"]
     detail = s["detail"]
+    theory = _theory_paras(s)
     n = len(nodes)
     gap = 210000
     per_row = n if n <= 5 else -(-n // 2)      # 2 filas si hay más de 5
     rows = [nodes[i:i + per_row] for i in range(0, n, per_row)]
-    node_h = 760000 if len(rows) == 1 else 680000
-    row_gap = 260000
+    node_h = (700000 if theory else 760000) if len(rows) == 1 else 660000
+    row_gap = 220000 if theory else 260000
 
-    y = Y_BODY + (360000 if len(rows) == 1 else 240000)
+    y = Y_BODY + (200000 if theory else (360000 if len(rows) == 1 else 240000))
     for r, row in enumerate(rows):
         ry = y + r * (node_h + row_gap)
         nw = (CONTENT_W - gap * (per_row - 1)) / per_row
@@ -530,7 +562,15 @@ def render_chain(slide, s, ctx):
                        x + nw / 2, ry + node_h + row_gap - 26000,
                        ac_t, 1.75, arrow=True)
 
-    dy = y + len(rows) * node_h + (len(rows) - 1) * row_gap + 360000
+    dy = y + len(rows) * node_h + (len(rows) - 1) * row_gap + (300000 if theory else 360000)
+
+    if theory:
+        # la teoría sustituye al panel de detalle (mismo contenido, ampliado)
+        D.theory_panel(slide, theory, x=MARGIN, y=dy, w=CONTENT_W,
+                       h=Y_FOOTER - 150000 - dy, accent=ac,
+                       label=detail.get("label", "Teoría"), size=11)
+        return
+
     max_dy = Y_FOOTER - 160000
     line_h = 250000
     detail_h = min(max_dy - dy,

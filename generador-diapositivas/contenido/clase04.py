@@ -61,6 +61,11 @@ DECK = {
             "t": "process",
             "eyebrow": "Mecánica",
             "heading": "Qué ocurre durante un Rolling Update",
+            "theory": [
+                "Un Rolling Update no reemplaza los Pods de golpe. Al cambiar spec.template el Deployment crea un ReplicaSet nuevo con 0 réplicas y luego hace un escalado cruzado: sube el nuevo de uno en uno y baja el viejo, manteniendo en todo momento un número de réplicas dentro de los márgenes que fijan maxSurge y maxUnavailable.",
+                "maxSurge es cuántos Pods de más se permiten por encima del total deseado; maxUnavailable, cuántos de menos. Con los valores por defecto (25 %) y 3 réplicas, maxSurge redondea a 1 Pod extra y maxUnavailable a 0 indisponibles, así que el rollout es muy conservador: siempre hay 3 sirviendo.",
+                "Un Pod nuevo solo CUENTA como disponible cuando su readinessProbe pasa. Por eso, si la imagen nueva está rota y nunca llega a Ready, el rollout se BLOQUEA en lugar de tumbar el servicio: las réplicas viejas siguen atendiendo. Al terminar, el ReplicaSet viejo queda a 0 réplicas pero no se borra —es el material del rollback.",
+            ],
             "steps": [
                 {"title": "Cambio", "body": "Modificas spec.template: se crea un ReplicaSet nuevo con 0 réplicas."},
                 {"title": "Escalado cruzado", "body": "El nuevo sube, el viejo baja, respetando maxSurge y maxUnavailable."},
@@ -73,6 +78,11 @@ DECK = {
             "t": "concept",
             "eyebrow": "Concepto clave",
             "heading": "Un despliegue roto no debería tumbar el servicio",
+            "theory": [
+                "El comportamiento correcto ante un despliegue defectuoso es que el rollout se detenga, no que caiga el servicio. Si la imagen nueva no existe o el proceso no arranca, el Pod nuevo nunca llega a Ready. Con maxUnavailable en 0, el controlador no puede retirar ninguna réplica vieja hasta tener una nueva lista, así que el rollout se queda a la espera y las réplicas buenas siguen sirviendo indefinidamente.",
+                "El síntoma es claro: kubectl rollout status se queda en «Waiting for deployment … X out of N new replicas have been updated» y no termina nunca. La solución inmediata es kubectl rollout undo, que vuelve a la revisión anterior.",
+                "Todo esto depende de tener una readinessProbe. Sin ella, Kubernetes considera «listo» a cualquier Pod que arranque su proceso, aunque la aplicación aún no responda o esté rota; entonces sí entra en el Service, empieza a recibir tráfico y el servicio se degrada. La readinessProbe es lo que convierte un rollout peligroso en uno seguro.",
+            ],
             "points": [
                 "Si la imagen nueva no existe, el Pod nuevo nunca llega a Ready.",
                 "Con maxUnavailable en 0, el controlador no puede retirar ninguna réplica vieja hasta que una nueva esté lista.",
@@ -135,6 +145,11 @@ DECK = {
             "t": "table",
             "eyebrow": "Decisión de diseño",
             "heading": "Cuatro formas de consumir, dos comportamientos",
+            "theory": [
+                "Un ConfigMap o un Secret se puede consumir de cuatro maneras, y lo que decide cuál usar es si el valor debe poder recargarse sin reiniciar el Pod. Las tres formas basadas en variables de entorno —env con configMapKeyRef o secretKeyRef para claves sueltas, y envFrom para volcar todas las claves de golpe— fijan el valor en el arranque del contenedor y NO se actualizan en caliente. Cambiar el ConfigMap no afecta a los Pods que ya corren.",
+                "Montar el ConfigMap o el Secret como VOLUMEN sí propaga los cambios: el kubelet actualiza los ficheros del volumen al cabo de un tiempo, sin recrear el Pod. Por eso los archivos de configuración y los certificados se montan como volumen, y las variables simples se pasan como env.",
+                "Para forzar que una variable de entorno tome el valor nuevo hay que provocar una recreación de los Pods, típicamente con kubectl rollout restart deployment/<d>. Y un Secret montado como volumen se guarda en un tmpfs (memoria), nunca en el disco del nodo.",
+            ],
             "headers": ["Forma de consumo", "¿Se actualiza en caliente?", "Cuándo usarla"],
             "weights": [4, 3, 4],
             "mono_last": False,
@@ -150,6 +165,11 @@ DECK = {
             "t": "concept",
             "eyebrow": "Corrección conceptual",
             "heading": "Un Secret no cifra nada",
+            "theory": [
+                "El contenido de un Secret se guarda en base64, que es una CODIFICACIÓN, no un cifrado: cualquiera con acceso al objeto puede decodificarlo con base64 -d. Un Secret y un ConfigMap son, en cuanto a confidencialidad del valor en sí, prácticamente lo mismo.",
+                "Lo que aporta un Secret es otra cosa. Primero, es un tipo de objeto separado sobre el que se pueden dar permisos RBAC distintos: puedes permitir leer ConfigMaps a mucha gente y restringir los Secrets a unos pocos. Segundo, si el cluster tiene configurado EncryptionConfiguration, los Secrets (y solo ellos) se cifran en reposo dentro de etcd. Tercero, al montarse en tmpfs y no en la imagen, no se distribuye a todos los nodos ni queda en el registro de contenedores.",
+                "En resumen: la protección de un Secret está en el control de acceso y en la configuración del cluster, no en el base64. Tratarlo como si el base64 fuera seguro es el malentendido más común.",
+            ],
             "points": [
                 "El contenido de un Secret está en base64, que es codificación reversible por cualquiera con acceso al objeto.",
                 "Lo que protege un Secret es otra cosa: el acceso al objeto vía RBAC.",
@@ -218,6 +238,11 @@ DECK = {
             "t": "columns",
             "eyebrow": "Concepto",
             "heading": "requests y limits actúan en momentos distintos",
+            "theory": [
+                "requests y limits parecen dos caras de lo mismo, pero actúan en momentos distintos y los usan actores distintos. Los REQUESTS los usa el SCHEDULER: son la cantidad de CPU y memoria que el Pod reserva, y con ellos decide en qué nodo cabe. Si la suma de requests no cabe en ningún nodo, el Pod se queda en Pending con el evento «Insufficient cpu/memory». El fallo ocurre ANTES de arrancar.",
+                "Los LIMITS los aplica el RUNTIME mediante cgroups, ya con el contenedor en ejecución: son el techo que no puede superar. La CPU es un recurso comprimible: pasarse del límite provoca throttling (el proceso va más lento), no muerte. La memoria NO es comprimible: superar limits.memory provoca que el kernel mate el contenedor con OOMKilled y exit code 137.",
+                "La consecuencia para el diagnóstico es que Pending por CPU y OOMKilled por memoria son ramas completamente separadas: una se investiga en los eventos del scheduler, la otra en el Last State del contenedor. Y cuidado: si defines solo limits, Kubernetes copia esos valores a los requests y el Pod acaba en QoS Guaranteed sin que lo pretendieras.",
+            ],
             "cols": [
                 {"title": "requests", "subtitle": "Los usa el SCHEDULER", "lines": [
                     "Deciden en qué nodo cabe el Pod.",
@@ -238,6 +263,11 @@ DECK = {
             "t": "cards",
             "eyebrow": "QoS",
             "heading": "Tu configuración decide quién muere primero",
+            "theory": [
+                "La clase de QoS de un Pod no se declara: Kubernetes la deduce de cómo hayas puesto requests y limits, y determina el orden en que se desalojan los Pods cuando un nodo se queda sin memoria. Guaranteed exige que requests sea igual a limits en TODOS los recursos de TODOS los contenedores; es el último en ser desalojado.",
+                "Burstable es cualquier Pod que tenga algún request o limit pero no cumpla la condición de Guaranteed. Es el caso más habitual en producción. BestEffort es un Pod sin ningún request ni limit: es el PRIMERO en caer cuando hay presión de memoria.",
+                "La regla práctica: para cargas críticas, pon requests == limits y consigue Guaranteed; para el resto, define al menos requests realistas para no acabar en BestEffort. Y recuerda que definir solo limits te lleva a Guaranteed de forma implícita.",
+            ],
             "cols": 3,
             "cards": [
                 {"title": "Guaranteed", "body": "requests == limits en TODOS los recursos de TODOS los contenedores. Es el último en ser desalojado bajo presión."},
