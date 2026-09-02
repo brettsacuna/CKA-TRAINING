@@ -1,0 +1,8 @@
+apiVersion: v2
+name: gratitud
+description: >-
+  Chart integrador del programa GRATITUD: portal + API + caché, con Ingress/TLS,
+  ConfigMap/Secrets, PVC, sondas, RBAC, NetworkPolicy y securityContext restricted.
+type: application
+version: 1.0.0
+appVersion: "1.27-alpine"

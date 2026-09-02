@@ -1,0 +1,18 @@
+# LAB 9.1 - Deployment de partida. Se usa para ver cambiar la IP de un Pod
+# y para observar el EndpointSlice del Service ClusterIP del paso 6.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: c9-basico
+  labels: {app: web}
+spec:
+  replicas: 3
+  selector: {matchLabels: {app: web}}
+  template:
+    metadata: {labels: {app: web}}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]

@@ -1,0 +1,80 @@
+# Valores por defecto del chart integrador de GRATITUD.
+image:
+  repository: nginxinc/nginx-unprivileged
+  tag: "1.27-alpine"
+  pullPolicy: IfNotPresent
+  containerPort: 8080
+
+# Réplicas y recursos por tier.
+tiers:
+  portal:  {replicas: 2}
+  api:     {replicas: 2}
+  cache:   {replicas: 1}
+
+resources:
+  requests: {cpu: 25m, memory: 32Mi}
+  limits: {cpu: 200m, memory: 128Mi}
+
+# Endpoints de las sondas (nginx sirve "/" siempre; en una app real serían /healthz y /ready).
+probes:
+  startupFailureThreshold: 15
+  path: /
+
+service:
+  port: 80
+
+ingress:
+  enabled: true
+  className: traefik
+  host: gratitud.example.com
+  tls:
+    enabled: true
+    secretName: gratitud-tls
+
+# Configuración no sensible.
+config:
+  LOG_LEVEL: info
+  FEATURE_GRATITUD_V2: "true"
+  UPSTREAM_CACHE: http://cache
+
+# Datos sensibles (en un entorno real vendrían de un gestor de secretos).
+secrets:
+  db:
+    DB_USER: gratitud
+    DB_PASSWORD: cambia-esto-en-prod
+    DB_HOST: db-externa
+  tokens:
+    PARTNER_TOKEN: pt_live_0000
+    WEBHOOK_SIGNING_KEY: whsk_0000
+
+externalDatabase:
+  name: db-externa
+  host: db.corp.example.com
+
+persistence:
+  enabled: true
+  name: gratitud-uploads
+  size: 1Gi
+  storageClassName: ""          # "" = usa la StorageClass por defecto; o pon "manual" para un PV estático
+  mountPath: /data/uploads
+
+rbac:
+  create: true
+  deployerName: gratitud-deployer
+
+networkPolicy:
+  enabled: true
+
+# El securityContext cumple el nivel 'restricted' de Pod Security.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  fsGroup: 101
+  seccompProfile: {type: RuntimeDefault}
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities: {drop: ["ALL"]}
+
+prometheus:
+  scrape: true

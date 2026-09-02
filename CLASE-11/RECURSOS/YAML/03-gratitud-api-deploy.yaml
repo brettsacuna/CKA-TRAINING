@@ -1,0 +1,37 @@
+# LAB 11.2 - Deployment api con las tres formas de inyeccion:
+#   envFrom  -> todas las claves de gratitud-config y gratitud-db
+#   valueFrom -> una clave concreta de gratitud-api-tokens
+#   volumen  -> solo app.conf, montado con subPath en /etc/gratitud/app.conf
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: gratitud-api
+  labels: {app: gratitud-api, part-of: gratitud}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: gratitud-api}}
+  template:
+    metadata: {labels: {app: gratitud-api, part-of: gratitud}}
+    spec:
+      containers:
+        - name: api
+          image: nginxinc/nginx-unprivileged:1.27-alpine
+          ports: [{containerPort: 8080}]
+          envFrom:
+            - configMapRef: {name: gratitud-config}
+            - secretRef: {name: gratitud-db}
+          env:
+            - name: PARTNER_TOKEN
+              valueFrom:
+                secretKeyRef: {name: gratitud-api-tokens, key: PARTNER_TOKEN}
+          volumeMounts:
+            - name: cfg
+              mountPath: /etc/gratitud/app.conf
+              subPath: app.conf
+      volumes:
+        - name: cfg
+          configMap:
+            name: gratitud-config
+            items:
+              - {key: app.conf, path: app.conf}

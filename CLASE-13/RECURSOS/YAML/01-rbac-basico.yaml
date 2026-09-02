@@ -1,0 +1,63 @@
+# LAB 13.1 - RBAC declarativo. Equivale a los comandos 'kubectl create' del lab.
+apiVersion: v1
+kind: Namespace
+metadata: {name: c13-rbac}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: app-reader, namespace: c13-rbac}
+---
+# Role: solo lectura de Pods y ConfigMaps en c13-rbac.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: pod-reader, namespace: c13-rbac}
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "configmaps"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: app-reader-bind, namespace: c13-rbac}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pod-reader
+subjects:
+  - kind: ServiceAccount
+    name: app-reader
+    namespace: c13-rbac
+---
+# ClusterRole: leer nodes (recurso sin namespace).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata: {name: node-reader}
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata: {name: app-reader-nodes}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: node-reader
+subjects:
+  - kind: ServiceAccount
+    name: app-reader
+    namespace: c13-rbac
+---
+# RoleBinding a un ClusterRole por defecto ('view'), acotado a c13-rbac.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: app-reader-view, namespace: c13-rbac}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+  - kind: ServiceAccount
+    name: app-reader
+    namespace: c13-rbac

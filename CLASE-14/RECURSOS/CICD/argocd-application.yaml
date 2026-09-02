@@ -1,0 +1,26 @@
+# La Application de ArgoCD que despliega GRATITUD desde Git al estilo GitOps.
+# Se aplica UNA vez (kubectl apply -n argocd -f ...); a partir de ahi ArgoCD
+# reconcilia solo cada vez que cambia el repo.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gratitud
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://git.gratitud.internal/plataforma/gratitud-manifests.git
+    targetRevision: main
+    path: charts/gratitud
+    helm:
+      valueFiles:
+        - ../../envs/prod/values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gratitud
+  syncPolicy:
+    automated:
+      prune: true        # borra del cluster lo que ya no esta en Git
+      selfHeal: true      # revierte los cambios hechos a mano en el cluster
+    syncOptions:
+      - CreateNamespace=true

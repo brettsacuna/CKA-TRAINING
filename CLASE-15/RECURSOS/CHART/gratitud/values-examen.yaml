@@ -1,0 +1,13 @@
+# Overrides que usa setup-examen.sh (LAB 15.3) para desplegar GRATITUD.
+# El escenario roto se completa con 'kubectl patch' desde el propio script.
+image:
+  tag: "1.27-alpine"
+
+ingress:
+  host: gratitud.example.com
+  tls:
+    enabled: true
+    secretName: gratitud-tls
+
+persistence:
+  storageClassName: "manual"     # se apoya en un PV estatico que crea el script

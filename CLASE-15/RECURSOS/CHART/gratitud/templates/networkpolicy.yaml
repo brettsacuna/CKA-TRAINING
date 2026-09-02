@@ -1,0 +1,98 @@
+{{- if .Values.networkPolicy.enabled }}
+# Todo cerrado por defecto.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  labels:
+    {{- include "gratitud.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+# DNS para todos.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  labels:
+    {{- include "gratitud.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+      ports:
+        - {protocol: UDP, port: 53}
+        - {protocol: TCP, port: 53}
+---
+# El portal es el punto de entrada publico: acepta trafico del controlador de
+# Ingress (que vive en su propio namespace) y del propio namespace para pruebas.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-portal
+  labels:
+    {{- include "gratitud.labels" . | nindent 4 }}
+spec:
+  podSelector: {matchLabels: {tier: portal}}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: {}
+---
+# portal -> api  (egress en portal + ingress en api)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-portal-to-api
+  labels:
+    {{- include "gratitud.labels" . | nindent 4 }}
+spec:
+  podSelector: {matchLabels: {tier: portal}}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - podSelector: {matchLabels: {tier: api}}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-ingress
+  labels:
+    {{- include "gratitud.labels" . | nindent 4 }}
+spec:
+  podSelector: {matchLabels: {tier: api}}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: {matchLabels: {tier: portal}}
+---
+# api -> cache
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-to-cache
+  labels:
+    {{- include "gratitud.labels" . | nindent 4 }}
+spec:
+  podSelector: {matchLabels: {tier: api}}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - podSelector: {matchLabels: {tier: cache}}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-cache-ingress
+  labels:
+    {{- include "gratitud.labels" . | nindent 4 }}
+spec:
+  podSelector: {matchLabels: {tier: cache}}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: {matchLabels: {tier: api}}
+{{- end }}

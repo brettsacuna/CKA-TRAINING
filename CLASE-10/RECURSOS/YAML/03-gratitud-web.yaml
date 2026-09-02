@@ -1,0 +1,81 @@
+# LAB 10.2 - Frente web de GRATITUD: cuatro aplicaciones, cuatro Services,
+# todas en gratitud-web para que un unico Ingress pueda referenciarlas.
+apiVersion: v1
+kind: Namespace
+metadata: {name: gratitud-web, labels: {part-of: gratitud, tier: web}}
+---
+# ---------- portal ----------
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: portal, namespace: gratitud-web, labels: {app: gratitud-portal, part-of: gratitud}}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: gratitud-portal}}
+  template:
+    metadata: {labels: {app: gratitud-portal, part-of: gratitud}}
+    spec:
+      containers: [{name: nginx, image: "nginx:1.27-alpine", ports: [{containerPort: 80}]}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: portal, namespace: gratitud-web}
+spec:
+  selector: {app: gratitud-portal}
+  ports: [{port: 80, targetPort: 80}]
+---
+# ---------- api (escucha en 8080) ----------
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: api, namespace: gratitud-web, labels: {app: gratitud-api, part-of: gratitud}}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: gratitud-api}}
+  template:
+    metadata: {labels: {app: gratitud-api, part-of: gratitud}}
+    spec:
+      containers: [{name: api, image: "nginxinc/nginx-unprivileged:1.27-alpine", ports: [{containerPort: 8080}]}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: api, namespace: gratitud-web}
+spec:
+  selector: {app: gratitud-api}
+  ports: [{port: 80, targetPort: 8080}]
+---
+# ---------- docs ----------
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: docs, namespace: gratitud-web, labels: {app: gratitud-docs, part-of: gratitud}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: gratitud-docs}}
+  template:
+    metadata: {labels: {app: gratitud-docs, part-of: gratitud}}
+    spec:
+      containers: [{name: nginx, image: "nginx:1.27-alpine", ports: [{containerPort: 80}]}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: docs, namespace: gratitud-web}
+spec:
+  selector: {app: gratitud-docs}
+  ports: [{port: 80, targetPort: 80}]
+---
+# ---------- panel (admin) ----------
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: panel, namespace: gratitud-web, labels: {app: gratitud-panel, part-of: gratitud}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: gratitud-panel}}
+  template:
+    metadata: {labels: {app: gratitud-panel, part-of: gratitud}}
+    spec:
+      containers: [{name: nginx, image: "nginx:1.27-alpine", ports: [{containerPort: 80}]}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: panel, namespace: gratitud-web}
+spec:
+  selector: {app: gratitud-panel}
+  ports: [{port: 80, targetPort: 80}]

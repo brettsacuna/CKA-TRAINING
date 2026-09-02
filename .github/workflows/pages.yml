@@ -1,0 +1,65 @@
+name: Pages · Sesiones Especiales
+
+# Publica en GitHub Pages el sitio de las sesiones especiales (9-15).
+# El generador vive en sitio-especiales/generar.py y produce sitio-especiales/_site/.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "CLASE-09/**"
+      - "CLASE-10/**"
+      - "CLASE-11/**"
+      - "CLASE-12/**"
+      - "CLASE-13/**"
+      - "CLASE-14/**"
+      - "CLASE-15/**"
+      - "sitio-especiales/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Dependencias del generador
+        run: pip install "markdown==3.10.3" "pygments==2.19.2"
+
+      - name: Generar el sitio
+        run: python sitio-especiales/generar.py
+
+      - name: Comprobar que no se filtran SOLUCIONES/
+        run: |
+          if find sitio-especiales/_site -iname '*soluc*' | grep -q .; then
+            echo "ERROR: hay archivos de SOLUCIONES en el sitio"; exit 1
+          fi
+          echo "OK: sin archivos de SOLUCIONES en el sitio"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: sitio-especiales/_site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

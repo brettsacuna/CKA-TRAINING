@@ -7,7 +7,14 @@ venv/
 
 # Vistas previas / temporales del generador de diapositivas
 generador-diapositivas/_preview/
+generador-diapositivas/_preview*/
 generador-diapositivas/**/*.png.tmp
+
+# Copias de trabajo de laboratorio (creadas por setup-lab.sh)
+CLASE-*/RECURSOS/SCRIPTS/chart-lab/
+
+# Salida del generador del sitio de sesiones especiales (la construye el workflow)
+sitio-especiales/_site/
 
 # Sistema
 .DS_Store

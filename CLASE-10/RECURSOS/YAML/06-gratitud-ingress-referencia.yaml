@@ -1,0 +1,43 @@
+# REFERENCIA COMPLETA de la Sesion 10.
+# Frente web de GRATITUD + Ingress por host y path + terminacion TLS.
+# Usalo para comprobar, no para copiar sin entender.
+#
+# ANTES de aplicar:
+#   1) Instala el controlador:  ../SCRIPTS/install-ingress-controller.sh
+#   2) Crea los Secret TLS:
+#        CN=gratitud.example.com       NAME=gratitud-tls        NS=gratitud-web ../SCRIPTS/gen-tls-secret.sh
+#        CN=admin.gratitud.example.com NAME=admin-gratitud-tls  NS=gratitud-web ../SCRIPTS/gen-tls-secret.sh
+#   3) kubectl apply -f 03-gratitud-web.yaml
+#   4) kubectl apply -f 06-gratitud-ingress-referencia.yaml
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata: {name: strip-api, namespace: gratitud-web}
+spec:
+  stripPrefix:
+    prefixes: ["/api"]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gratitud
+  namespace: gratitud-web
+  annotations:
+    traefik.io/router.middlewares: gratitud-web-strip-api@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: ["gratitud.example.com"]
+      secretName: gratitud-tls
+    - hosts: ["admin.gratitud.example.com"]
+      secretName: admin-gratitud-tls
+  rules:
+    - host: gratitud.example.com
+      http:
+        paths:
+          - {path: /,     pathType: Prefix, backend: {service: {name: portal, port: {number: 80}}}}
+          - {path: /api,  pathType: Prefix, backend: {service: {name: api,    port: {number: 80}}}}
+          - {path: /docs, pathType: Prefix, backend: {service: {name: docs,   port: {number: 80}}}}
+    - host: admin.gratitud.example.com
+      http:
+        paths:
+          - {path: /, pathType: Prefix, backend: {service: {name: panel, port: {number: 80}}}}

@@ -1,0 +1,67 @@
+# LAB 13.2 - Los tres namespaces de GRATITUD con sus workloads, SIN NetworkPolicies.
+# Las politicas las escribe el alumno a partir de los requisitos.
+apiVersion: v1
+kind: Namespace
+metadata: {name: gratitud-frontend, labels: {part-of: gratitud, tier: frontend}}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: gratitud-api, labels: {part-of: gratitud, tier: api}}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: gratitud-datos, labels: {part-of: gratitud, tier: datos}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: frontend, namespace: gratitud-frontend, labels: {app: gratitud-frontend, part-of: gratitud}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: gratitud-frontend}}
+  template:
+    metadata: {labels: {app: gratitud-frontend, part-of: gratitud}}
+    spec:
+      containers: [{name: netshoot, image: "nicolaka/netshoot", command: ["sleep", "36000"]}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: otro, namespace: gratitud-frontend, labels: {app: otro, part-of: gratitud}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: otro}}
+  template:
+    metadata: {labels: {app: otro, part-of: gratitud}}
+    spec:
+      containers: [{name: netshoot, image: "nicolaka/netshoot", command: ["sleep", "36000"]}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: api, namespace: gratitud-api, labels: {app: gratitud-api, part-of: gratitud}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: gratitud-api}}
+  template:
+    metadata: {labels: {app: gratitud-api, part-of: gratitud}}
+    spec:
+      containers: [{name: nginx, image: "nginx:1.27-alpine", ports: [{containerPort: 80}]}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: api, namespace: gratitud-api}
+spec: {selector: {app: gratitud-api}, ports: [{port: 80, targetPort: 80}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: cache, namespace: gratitud-datos, labels: {app: gratitud-cache, part-of: gratitud}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: gratitud-cache}}
+  template:
+    metadata: {labels: {app: gratitud-cache, part-of: gratitud}}
+    spec:
+      containers: [{name: nginx, image: "nginx:1.27-alpine", ports: [{containerPort: 80}]}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: cache, namespace: gratitud-datos}
+spec: {selector: {app: gratitud-cache}, ports: [{port: 80, targetPort: 80}]}

@@ -1,0 +1,65 @@
+# LAB 9.3 - Punto de partida del programa GRATITUD.
+# Tres namespaces y tres Deployments con sus labels. SIN Services: los escribe
+# el alumno a partir de los requerimientos.
+apiVersion: v1
+kind: Namespace
+metadata: {name: gratitud-frontend, labels: {part-of: gratitud, tier: frontend}}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: gratitud-api, labels: {part-of: gratitud, tier: api}}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: gratitud-datos, labels: {part-of: gratitud, tier: datos}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portal
+  namespace: gratitud-frontend
+  labels: {app: gratitud-portal, tier: frontend, part-of: gratitud}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: gratitud-portal}}
+  template:
+    metadata: {labels: {app: gratitud-portal, tier: frontend, part-of: gratitud}}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: gratitud-api
+  labels: {app: gratitud-api, tier: api, part-of: gratitud}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: gratitud-api}}
+  template:
+    metadata: {labels: {app: gratitud-api, tier: api, part-of: gratitud}}
+    spec:
+      containers:
+        - name: api
+          image: nginxinc/nginx-unprivileged:1.27-alpine   # escucha en 8080
+          ports: [{containerPort: 8080}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache
+  namespace: gratitud-datos
+  labels: {app: gratitud-cache, tier: datos, part-of: gratitud}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: gratitud-cache}}
+  template:
+    metadata: {labels: {app: gratitud-cache, tier: datos, part-of: gratitud}}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]

@@ -1,0 +1,12 @@
+# LAB 9.1 - ClusterIP sobre el Deployment web.
+# La CLUSTER-IP es estable mientras exista el Service, aunque se recreen los Pods.
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-ci
+  namespace: c9-basico
+spec:
+  type: ClusterIP
+  selector: {app: web}      # <- esto es lo que construye el EndpointSlice
+  ports:
+    - {port: 80, targetPort: 80}

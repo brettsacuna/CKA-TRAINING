@@ -1,0 +1,19 @@
+# LAB 10.1 - Ingress minimo: un host, un path, un Service.
+# Ajusta ingressClassName al nombre que devuelva 'kubectl get ingressclass'.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web
+  namespace: c10-basico
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: web.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port: {number: 80}

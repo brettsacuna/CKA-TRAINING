@@ -1,0 +1,42 @@
+{{- if .Values.rbac.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.rbac.deployerName }}
+  labels:
+    {{- include "gratitud.labels" . | nindent 4 }}
+---
+# Minimo privilegio: la SA de despliegue actualiza Deployments y ConfigMaps de
+# GRATITUD, y NADA mas (en particular, no lee Secrets).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.rbac.deployerName }}
+  labels:
+    {{- include "gratitud.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["pods", "configmaps"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.rbac.deployerName }}
+  labels:
+    {{- include "gratitud.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Values.rbac.deployerName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.rbac.deployerName }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

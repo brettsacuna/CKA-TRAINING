@@ -1,0 +1,28 @@
+# LAB 11.3 - StorageClass de ejemplo (dinamico) + PV estatico de reserva.
+#
+# El 'provisioner' depende de tu infraestructura. Si 'kubectl get storageclass'
+# no muestra ninguno con un provisioner real, usa el PV estatico de abajo:
+# tiene storageClassName: manual, 1Gi y RWO, y satisface el PVC del LAB 11.3
+# si el PVC pide storageClassName: manual (o "").
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gratitud-standard
+  annotations: {storageclass.kubernetes.io/is-default-class: "false"}
+provisioner: rancher.io/local-path      # p.ej. ebs.csi.aws.com, pd.csi.storage.gke.io, rancher.io/local-path
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+---
+# PV estatico de reserva. Crea antes el directorio en el nodo:  mkdir -p /mnt/gratitud-uploads
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: gratitud-pv-uploads
+  labels: {app: gratitud, uso: uploads}
+spec:
+  storageClassName: manual
+  capacity: {storage: 1Gi}
+  accessModes: ["ReadWriteOnce"]
+  persistentVolumeReclaimPolicy: Retain
+  hostPath: {path: /mnt/gratitud-uploads, type: DirectoryOrCreate}

@@ -1,0 +1,36 @@
+# LAB 10.2 - Un solo Ingress, dos reglas de host, cuatro paths.
+#   gratitud.example.com/       -> portal:80
+#   gratitud.example.com/api    -> api:80   (rewrite a / con el Middleware de abajo)
+#   gratitud.example.com/docs   -> docs:80
+#   admin.gratitud.example.com/ -> panel:80
+#
+# La anotacion traefik.io/router.middlewares es PROPIETARIA de Traefik: con otro
+# controlador se hace la reescritura de otra forma. Quita la anotacion y el
+# Middleware si tu controlador no es Traefik.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata: {name: strip-api, namespace: gratitud-web}
+spec:
+  stripPrefix:
+    prefixes: ["/api"]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gratitud
+  namespace: gratitud-web
+  annotations:
+    traefik.io/router.middlewares: gratitud-web-strip-api@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: gratitud.example.com
+      http:
+        paths:
+          - {path: /,     pathType: Prefix, backend: {service: {name: portal, port: {number: 80}}}}
+          - {path: /api,  pathType: Prefix, backend: {service: {name: api,    port: {number: 80}}}}
+          - {path: /docs, pathType: Prefix, backend: {service: {name: docs,   port: {number: 80}}}}
+    - host: admin.gratitud.example.com
+      http:
+        paths:
+          - {path: /, pathType: Prefix, backend: {service: {name: panel, port: {number: 80}}}}

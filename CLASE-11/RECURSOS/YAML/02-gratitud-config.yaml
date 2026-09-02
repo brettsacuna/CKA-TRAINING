@@ -1,0 +1,35 @@
+# LAB 11.2 - Configuracion externalizada de la API de GRATITUD.
+apiVersion: v1
+kind: Namespace
+metadata: {name: gratitud-api, labels: {part-of: gratitud, tier: api}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: gratitud-config, namespace: gratitud-api}
+data:
+  LOG_LEVEL: info
+  FEATURE_GRATITUD_V2: "true"
+  UPSTREAM_CACHE: http://cache.gratitud-datos
+  app.conf: |
+    [gratitud]
+    log_level = info
+    workers = 4
+    upstream_cache = http://cache.gratitud-datos
+    partner_api = https://partners.example.com/v2
+---
+apiVersion: v1
+kind: Secret
+metadata: {name: gratitud-db, namespace: gratitud-api}
+type: Opaque
+stringData:
+  DB_USER: gratitud
+  DB_PASSWORD: r3f-c4mbi4-esto
+  DB_HOST: db.corp.example.com
+---
+apiVersion: v1
+kind: Secret
+metadata: {name: gratitud-api-tokens, namespace: gratitud-api}
+type: Opaque
+stringData:
+  PARTNER_TOKEN: pt_live_9f2c1a7b4e
+  WEBHOOK_SIGNING_KEY: whsk_3d8e0f5a19

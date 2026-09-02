@@ -1,0 +1,27 @@
+# Valores por defecto del chart gratitud.
+replicaCount: 2
+
+image:
+  repository: nginxinc/nginx-unprivileged
+  tag: "1.27-alpine"
+  pullPolicy: IfNotPresent
+  containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: false
+  className: traefik
+  host: gratitud.example.com
+  path: /
+
+config:
+  LOG_LEVEL: info
+  FEATURE_GRATITUD_V2: "true"
+
+resources:
+  requests: {cpu: 25m, memory: 32Mi}
+  limits: {cpu: 200m, memory: 128Mi}

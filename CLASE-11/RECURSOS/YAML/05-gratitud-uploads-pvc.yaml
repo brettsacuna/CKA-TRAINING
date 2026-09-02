@@ -1,0 +1,37 @@
+# LAB 11.3 - PVC de los uploads de GRATITUD + Deployment que lo monta.
+#
+# Con aprovisionamiento dinamico: pon storageClassName: gratitud-standard
+#   (o quita la linea para heredar la StorageClass por defecto del cluster).
+# Con el PV estatico de 04-storageclass.yaml: pon storageClassName: manual.
+apiVersion: v1
+kind: Namespace
+metadata: {name: gratitud-datos, labels: {part-of: gratitud, tier: datos}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: {name: gratitud-uploads, namespace: gratitud-datos}
+spec:
+  storageClassName: manual        # cambia a 'gratitud-standard' si hay provisioner
+  accessModes: ["ReadWriteOnce"]
+  resources: {requests: {storage: 1Gi}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datos
+  namespace: gratitud-datos
+  labels: {app: gratitud-datos, part-of: gratitud}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: gratitud-datos}}
+  template:
+    metadata: {labels: {app: gratitud-datos, part-of: gratitud}}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          volumeMounts:
+            - {name: data, mountPath: /data/uploads}
+      volumes:
+        - name: data
+          persistentVolumeClaim: {claimName: gratitud-uploads}

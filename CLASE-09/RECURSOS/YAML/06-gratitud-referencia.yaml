@@ -1,0 +1,119 @@
+# LAB 9.3 - REFERENCIA COMPLETA del programa GRATITUD.
+# Incluye los namespaces, los Deployments y los Services correctos.
+# Usalo para comprobar tu solucion, no para copiarla sin entenderla.
+#
+#   gratitud-frontend  portal   -> Service portal-np  (NodePort 31900)  unica entrada externa
+#   gratitud-api       api      -> Service api        (ClusterIP 80 -> 8080)
+#   gratitud-datos     cache    -> Service cache      (ClusterIP 80)
+#                               -> Service db-externa (ExternalName -> db.corp.example.com)
+apiVersion: v1
+kind: Namespace
+metadata: {name: gratitud-frontend, labels: {part-of: gratitud, tier: frontend}}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: gratitud-api, labels: {part-of: gratitud, tier: api}}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: gratitud-datos, labels: {part-of: gratitud, tier: datos}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portal
+  namespace: gratitud-frontend
+  labels: {app: gratitud-portal, tier: frontend, part-of: gratitud}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: gratitud-portal}}
+  template:
+    metadata: {labels: {app: gratitud-portal, tier: frontend, part-of: gratitud}}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portal-np
+  namespace: gratitud-frontend
+  labels: {part-of: gratitud}
+  annotations: {gratitud.io/owner: plataforma}
+spec:
+  type: NodePort
+  selector: {app: gratitud-portal}
+  ports: [{port: 80, targetPort: 80, nodePort: 31900}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: gratitud-api
+  labels: {app: gratitud-api, tier: api, part-of: gratitud}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: gratitud-api}}
+  template:
+    metadata: {labels: {app: gratitud-api, tier: api, part-of: gratitud}}
+    spec:
+      containers:
+        - name: api
+          image: nginxinc/nginx-unprivileged:1.27-alpine   # escucha en 8080
+          ports: [{containerPort: 8080}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: gratitud-api
+  labels: {part-of: gratitud}
+  annotations:
+    gratitud.io/owner: equipo-api
+    prometheus.io/scrape: "true"
+spec:
+  type: ClusterIP
+  selector: {app: gratitud-api}
+  ports: [{port: 80, targetPort: 8080}]     # <- port != targetPort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache
+  namespace: gratitud-datos
+  labels: {app: gratitud-cache, tier: datos, part-of: gratitud}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: gratitud-cache}}
+  template:
+    metadata: {labels: {app: gratitud-cache, tier: datos, part-of: gratitud}}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cache
+  namespace: gratitud-datos
+  labels: {part-of: gratitud}
+spec:
+  type: ClusterIP
+  selector: {app: gratitud-cache}
+  ports: [{port: 80, targetPort: 80}]
+---
+# ExternalName: alias interno estable a la base de datos externa.
+# No tiene ClusterIP ni endpoints: CoreDNS devuelve un CNAME.
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-externa
+  namespace: gratitud-datos
+  labels: {part-of: gratitud}
+spec:
+  type: ExternalName
+  externalName: db.corp.example.com

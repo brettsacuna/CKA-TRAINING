@@ -1,0 +1,25 @@
+# LAB 10.1 - Aplicacion de partida: un Deployment y su Service ClusterIP.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: c10-basico
+  labels: {app: web}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: web}}
+  template:
+    metadata: {labels: {app: web}}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: web, namespace: c10-basico}
+spec:
+  type: ClusterIP
+  selector: {app: web}
+  ports: [{port: 80, targetPort: 80}]

@@ -1,0 +1,30 @@
+# LAB 10.3 - El mismo Ingress del LAB 10.2 con terminacion TLS.
+# Requiere dos Secret kubernetes.io/tls en gratitud-web:
+#   gratitud-tls        -> CN=gratitud.example.com
+#   admin-gratitud-tls  -> CN=admin.gratitud.example.com
+# Crealos con ../SCRIPTS/gen-tls-secret.sh (acepta CN, NS y NAME por entorno).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gratitud
+  namespace: gratitud-web
+  annotations:
+    traefik.io/router.middlewares: gratitud-web-strip-api@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: ["gratitud.example.com"]
+      secretName: gratitud-tls
+    - hosts: ["admin.gratitud.example.com"]
+      secretName: admin-gratitud-tls
+  rules:
+    - host: gratitud.example.com
+      http:
+        paths:
+          - {path: /,     pathType: Prefix, backend: {service: {name: portal, port: {number: 80}}}}
+          - {path: /api,  pathType: Prefix, backend: {service: {name: api,    port: {number: 80}}}}
+          - {path: /docs, pathType: Prefix, backend: {service: {name: docs,   port: {number: 80}}}}
+    - host: admin.gratitud.example.com
+      http:
+        paths:
+          - {path: /, pathType: Prefix, backend: {service: {name: panel, port: {number: 80}}}}

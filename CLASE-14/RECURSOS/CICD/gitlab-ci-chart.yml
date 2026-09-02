@@ -1,0 +1,38 @@
+# .gitlab-ci.yml
+# Equivalente en GitLab CI del workflow de GitHub Actions: mismas etapas,
+# distinta sintaxis. 'publicar' solo corre en la rama por defecto.
+stages: [validar, empaquetar, publicar]
+
+default:
+  image: alpine/helm:3.19.0
+
+lint-y-render:
+  stage: validar
+  script:
+    - helm lint charts/gratitud
+    - helm template gratitud charts/gratitud --values charts/gratitud/values.yaml
+        | kubeconform -strict -summary -kubernetes-version 1.35.0
+    - helm template gratitud charts/gratitud -f envs/prod/values.yaml > /dev/null
+  rules:
+    - changes: [charts/gratitud/**/*]
+
+empaquetar:
+  stage: empaquetar
+  script:
+    - helm package charts/gratitud --destination dist/
+  artifacts:
+    paths: [dist/]
+  rules:
+    - changes: [charts/gratitud/**/*]
+
+publicar:
+  stage: publicar
+  needs: [empaquetar]
+  id_tokens:
+    REGISTRY_TOKEN:
+      aud: registry.gratitud.internal
+  script:
+    - echo "$REGISTRY_TOKEN" | helm registry login registry.gratitud.internal -u "robot$ci" --password-stdin
+    - helm push dist/gratitud-*.tgz oci://registry.gratitud.internal/charts
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

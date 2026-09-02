@@ -1,0 +1,114 @@
+# LAB 13.2 - REFERENCIA: juego completo de NetworkPolicies de GRATITUD.
+# Usalo para comprobar, no para copiar sin entender.
+#
+#   default-deny en los 3 namespaces
+#   allow-dns   en los 3 namespaces (egress UDP/TCP 53 a kube-system)
+#   frontend -> api   (egress en gratitud-frontend + ingress en gratitud-api)
+#   api      -> cache  (egress en gratitud-api      + ingress en gratitud-datos)
+#   'otro' queda aislado; nadie sale a Internet
+# ------------------------------------------------------------------ gratitud-frontend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: default-deny, namespace: gratitud-frontend}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-dns, namespace: gratitud-frontend}
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+      ports:
+        - {protocol: UDP, port: 53}
+        - {protocol: TCP, port: 53}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-frontend-egress-to-api, namespace: gratitud-frontend}
+spec:
+  podSelector: {matchLabels: {app: gratitud-frontend}}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: gratitud-api}}
+          podSelector: {matchLabels: {app: gratitud-api}}
+---
+# ------------------------------------------------------------------ gratitud-api
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: default-deny, namespace: gratitud-api}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-dns, namespace: gratitud-api}
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+      ports:
+        - {protocol: UDP, port: 53}
+        - {protocol: TCP, port: 53}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-frontend-to-api, namespace: gratitud-api}
+spec:
+  podSelector: {matchLabels: {app: gratitud-api}}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: gratitud-frontend}}
+          podSelector: {matchLabels: {app: gratitud-frontend}}     # AND: ese Pod EN ese namespace
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-api-egress-to-cache, namespace: gratitud-api}
+spec:
+  podSelector: {matchLabels: {app: gratitud-api}}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: gratitud-datos}}
+          podSelector: {matchLabels: {app: gratitud-cache}}
+---
+# ------------------------------------------------------------------ gratitud-datos
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: default-deny, namespace: gratitud-datos}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-dns, namespace: gratitud-datos}
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+      ports:
+        - {protocol: UDP, port: 53}
+        - {protocol: TCP, port: 53}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-from-api, namespace: gratitud-datos}
+spec:
+  podSelector: {matchLabels: {app: gratitud-cache}}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: gratitud-api}}
+          podSelector: {matchLabels: {app: gratitud-api}}

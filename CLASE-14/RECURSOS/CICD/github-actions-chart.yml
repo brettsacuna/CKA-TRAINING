@@ -1,0 +1,46 @@
+# .github/workflows/chart.yml
+# CI del chart de GRATITUD: valida y empaqueta en cada push; publica en el
+# registry OCI solo desde main. NO despliega: eso lo hace ArgoCD (modelo pull).
+name: chart
+
+on:
+  push:
+    branches: [main]
+    paths: ["charts/gratitud/**"]
+  pull_request:
+    paths: ["charts/gratitud/**"]
+
+permissions:
+  contents: read
+  id-token: write        # OIDC: token de corta duracion para el registry
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: Lint
+        run: helm lint charts/gratitud
+      - name: Render y validacion de esquema
+        run: |
+          helm template gratitud charts/gratitud --values charts/gratitud/values.yaml \
+            | kubeconform -strict -summary -kubernetes-version 1.35.0
+      - name: Render con values de produccion
+        run: helm template gratitud charts/gratitud -f envs/prod/values.yaml > /dev/null
+
+  publicar:
+    needs: validar
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: Empaquetar
+        run: helm package charts/gratitud --destination dist/
+      - name: Login OCI (OIDC, sin password persistente)
+        run: |
+          echo "${{ steps.oidc.outputs.token }}" \
+            | helm registry login registry.gratitud.internal -u robot$ci --password-stdin
+      - name: Push
+        run: helm push dist/gratitud-*.tgz oci://registry.gratitud.internal/charts
