@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía del curso · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+
+</head>
+<body class="">
+<header class="topbar">
+  <a class="brand" href="index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="index.html">Inicio</a><a class="on" href="guia.html">Clases</a><a href="clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="index.html">Inicio</a><span class="sep">/</span><span>Guía del curso</span></nav>
+<article class="md wide"><h1 id="cka-hands-on-training-18-horas">CKA HANDS-ON TRAINING — 18 HORAS</h1>
+<p>Entrenamiento práctico de administración de Kubernetes orientado al examen <strong>CKA (Certified Kubernetes Administrator)</strong>.</p>
+<p>Este paquete es una <strong>evolución del curso existente</strong> (<code>Kubernetes - Completo (1).pptx</code>): conserva su alcance temático, sus escenarios y sus ejercicios, pero los reorganiza, los actualiza técnicamente y los convierte en un entrenamiento hands-on con laboratorios de dificultad progresiva.</p>
+<hr>
+<h2 id="1-descripcion">1. Descripción</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Duración total</strong></td>
+<td>18 horas (6 clases × 180 minutos)</td>
+</tr>
+<tr>
+<td><strong>Formato</strong></td>
+<td>30 % explicación y demostración / 70 % laboratorio</td>
+</tr>
+<tr>
+<td><strong>Modalidad</strong></td>
+<td>Presencial o remota con cluster propio por participante o por pareja</td>
+</tr>
+<tr>
+<td><strong>Idioma</strong></td>
+<td>Español (comandos y manifiestos en inglés)</td>
+</tr>
+<tr>
+<td><strong>Versión Kubernetes</strong></td>
+<td><strong>v1.35</strong> (ver §5)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-objetivos-del-curso">2. Objetivos del curso</h2>
+<p>Al finalizar, el participante será capaz de:</p>
+<ol>
+<li>Crear, inspeccionar y exponer workloads de forma imperativa y declarativa.</li>
+<li>Controlar dónde se ejecuta un Pod mediante labels, <code>nodeSelector</code>, taints, tolerations, affinity y PriorityClass.</li>
+<li>Actualizar un cluster kubeadm (control plane y workers) sin perder disponibilidad.</li>
+<li>Respaldar y restaurar etcd, y validar la recuperación del cluster.</li>
+<li>Diseñar y depurar permisos RBAC aplicando mínimo privilegio.</li>
+<li>Administrar workloads stateless y stateful, y almacenamiento persistente (PV, PVC, StorageClass, <code>volumeClaimTemplates</code>).</li>
+<li>Ejecutar Rolling Updates y Rollbacks, escalar aplicaciones y gestionar <code>requests</code>/<code>limits</code>.</li>
+<li>Externalizar configuración con ConfigMaps y Secrets.</li>
+<li>Publicar aplicaciones (ClusterIP, NodePort, LoadBalancer, Ingress, Gateway API) y controlar el tráfico con NetworkPolicy.</li>
+<li><strong>Diagnosticar y reparar de forma autónoma</strong> fallos de scheduling, servicios, almacenamiento, configuración, permisos, DNS y red.</li>
+</ol>
+<p>La progresión metodológica del curso es:</p>
+<div class="hl"><pre><span></span><code>COMPRENDER -&gt; EJECUTAR -&gt; PRACTICAR -&gt; INTEGRAR -&gt; DIAGNOSTICAR -&gt; RESOLVER
+</code></pre></div>
+
+<h2 id="3-publico-objetivo">3. Público objetivo</h2>
+<ul>
+<li>Administradores de sistemas y SRE que operan o van a operar clusters Kubernetes.</li>
+<li>Ingenieros DevOps / plataforma que necesitan pasar de "usar" a "administrar" Kubernetes.</li>
+<li>Candidatos al examen CKA.</li>
+</ul>
+<h2 id="4-prerrequisitos">4. Prerrequisitos</h2>
+<ul>
+<li>Linux a nivel intermedio: <code>systemctl</code>, <code>journalctl</code>, <code>vim</code>, permisos, red básica.</li>
+<li>Conceptos de contenedores (imágenes, registries, runtime).</li>
+<li>Nociones de YAML.</li>
+<li>Haber levantado o tenido contacto previo con un cluster Kubernetes (no obligatorio, pero recomendable).</li>
+</ul>
+<h2 id="5-entorno-de-laboratorio">5. Entorno de laboratorio</h2>
+<h3 id="topologia-minima">Topología mínima</h3>
+<div class="hl"><pre><span></span><code>cka-master   (control plane)   2 vCPU / 4 GB RAM / 30 GB
+cka-worker1  (worker)          2 vCPU / 4 GB RAM / 30 GB
+cka-worker2  (worker, opcional pero recomendado para affinity y anti-affinity)
+</code></pre></div>
+
+<p>Cualquier proveedor sirve: VirtualBox, VMware, Proxmox, GCP, AWS, Azure o multipass.
+Las clases 2 y 6 requieren <strong>acceso root por SSH a los nodos</strong>, no solo <code>kubectl</code>.</p>
+<h3 id="software">Software</h3>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Versión utilizada en el curso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kubernetes (kubeadm, kubelet, kubectl)</td>
+<td><strong>v1.34.x → v1.35.x</strong> (LAB de upgrade en Clase 2)</td>
+</tr>
+<tr>
+<td>Container runtime</td>
+<td>containerd 2.x + <code>crictl</code></td>
+</tr>
+<tr>
+<td>cgroups</td>
+<td>v2</td>
+</tr>
+<tr>
+<td>CNI</td>
+<td>Calico o Cilium (debe soportar NetworkPolicy)</td>
+</tr>
+<tr>
+<td>etcd</td>
+<td>3.5.x / 3.6.x — <code>etcdctl</code> y <code>etcdutl</code></td>
+</tr>
+<tr>
+<td>Metrics Server</td>
+<td>v0.8.1</td>
+</tr>
+<tr>
+<td>Ingress Controller</td>
+<td>Traefik (mantenido) — ver nota</td>
+</tr>
+<tr>
+<td>Gateway API</td>
+<td>CRDs v1.x</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Nota técnica importante (2026).</strong> El controlador comunitario <code>kubernetes/ingress-nginx</code> fue <strong>retirado en marzo de 2026</strong> y su repositorio quedó archivado: no recibe parches de seguridad. El curso original lo utilizaba. Este material conserva la <strong>API Ingress</strong> (que sigue vigente y sigue en el examen), pero la implementa con un controlador mantenido y presenta <strong>Gateway API</strong> como la dirección recomendada por el proyecto. Ver <code>CLASE-05/</code>.</p>
+</blockquote>
+<h3 id="version-del-examen">Versión del examen</h3>
+<p>El currículum CKA vigente se alinea a <strong>Kubernetes v1.35</strong> con esta ponderación:</p>
+<table>
+<thead>
+<tr>
+<th>Dominio</th>
+<th>Peso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cluster Architecture, Installation &amp; Configuration</td>
+<td>25 %</td>
+</tr>
+<tr>
+<td>Workloads &amp; Scheduling</td>
+<td>15 %</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>10 %</td>
+</tr>
+<tr>
+<td>Services &amp; Networking</td>
+<td>20 %</td>
+</tr>
+<tr>
+<td><strong>Troubleshooting</strong></td>
+<td><strong>30 %</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Verifica siempre el <em>Candidate Handbook</em> de la Linux Foundation antes de rendir: la versión se actualiza con cada release.</p>
+<h2 id="6-estructura-de-las-seis-clases">6. Estructura de las seis clases</h2>
+<table>
+<thead>
+<tr>
+<th>Clase</th>
+<th>Tema</th>
+<th>Objetivo</th>
+<th>Duración</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Pods, YAML, Services y Scheduling</td>
+<td>Administrar y exponer workloads básicos y controlar dónde se ejecutan</td>
+<td>180 min</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Administración del cluster: Upgrade, ETCD y RBAC</td>
+<td>Mantener, recuperar y controlar el acceso al cluster</td>
+<td>180 min</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Workloads, Storage y StatefulSets</td>
+<td>Administrar workloads stateless/stateful y almacenamiento persistente</td>
+<td>180 min</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Application Lifecycle, ConfigMaps, Secrets y Recursos</td>
+<td>Actualizar, revertir, escalar y configurar aplicaciones</td>
+<td>180 min</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Services, Ingress, Networking, CoreDNS y NetworkPolicy</td>
+<td>Publicar aplicaciones y controlar el tráfico</td>
+<td>180 min</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Troubleshooting e Integración</td>
+<td>Diagnosticar y reparar de forma autónoma</td>
+<td>180 min</td>
+</tr>
+</tbody>
+</table>
+<p>Progresión:</p>
+<div class="hl"><pre><span></span><code>CLASE 1  Fundamentos prácticos + Scheduling
+   v
+CLASE 2  Administración + Upgrade + ETCD + RBAC
+   v
+CLASE 3  Workloads + Storage + StatefulSets
+   v
+CLASE 4  Lifecycle + Configuration + Resources
+   v
+CLASE 5  Networking + Ingress + NetworkPolicy
+   v
+CLASE 6  Troubleshooting + Integración final
+</code></pre></div>
+
+<h2 id="7-organizacion-de-carpetas">7. Organización de carpetas</h2>
+<div class="hl"><pre><span></span><code>CKA-HANDS-ON-TRAINING/
+├── README.md                     &lt;- este archivo
+├── MEJORAS-OPCIONALES.md         &lt;- contenidos fuera de las 18 h
+└── CLASE-0X/
+    ├── 00-README.md              &lt;- agenda y guía de la clase
+    ├── 01-CLASE-0X-CKA.pptx      &lt;- presentación del instructor
+    ├── LABORATORIOS/             &lt;- MATERIAL DEL ALUMNO
+    │   ├── LAB-01-BASICO.md
+    │   ├── LAB-02-INTERMEDIO.md
+    │   ├── LAB-03-AVANZADO.md
+    │   └── LAB-04-CHALLENGE.md
+    ├── SOLUCIONES/               &lt;- MATERIAL DEL INSTRUCTOR
+    └── RECURSOS/
+        ├── YAML/
+        └── SCRIPTS/
+</code></pre></div>
+
+<p>La Clase 6 añade además <code>02-CHECKLIST-CKA.md</code>, <code>03-CHEATSHEET-CKA.md</code> y el <code>LAB-05-INTEGRADOR-FINAL.md</code>.</p>
+<blockquote>
+<p><strong>Separación alumno / instructor.</strong> Entrega al alumno <code>00-README.md</code>, el <code>.pptx</code>, <code>LABORATORIOS/</code> y <code>RECURSOS/</code>. La carpeta <code>SOLUCIONES/</code> es material del instructor y <strong>no debe distribuirse antes de resolver el laboratorio</strong>.</p>
+</blockquote>
+<h2 id="8-instrucciones-generales-para-los-laboratorios">8. Instrucciones generales para los laboratorios</h2>
+<h3 id="preparacion-de-la-sesion-una-sola-vez-por-clase">Preparación de la sesión (una sola vez por clase)</h3>
+<div class="hl"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>CLASE-0X/RECURSOS/SCRIPTS
+chmod<span class="w"> </span>+x<span class="w"> </span>*.sh
+./setup-lab.sh<span class="w">          </span><span class="c1"># prepara namespaces y estado inicial</span>
+</code></pre></div>
+
+<p>Al terminar la clase:</p>
+<div class="hl"><pre><span></span><code>./reset-lab.sh<span class="w">          </span><span class="c1"># elimina todo lo creado por la clase</span>
+</code></pre></div>
+
+<p>En los laboratorios Challenge:</p>
+<div class="hl"><pre><span></span><code>./setup-lab.sh<span class="w">          </span><span class="c1"># despliega el escenario YA ROTO</span>
+./validate-lab.sh<span class="w">       </span><span class="c1"># comprueba si lo reparaste</span>
+</code></pre></div>
+
+<h3 id="convenciones">Convenciones</h3>
+<ul>
+<li>Un <strong>namespace por laboratorio</strong>. Nunca trabajes en <code>default</code> salvo indicación expresa.</li>
+<li>Los manifiestos de referencia están en <code>RECURSOS/YAML/</code>. Los nombres de recursos, namespaces y puertos coinciden exactamente entre presentación, laboratorio, YAML, script y solución.</li>
+<li>Cada laboratorio termina con una sección <strong>Validación</strong> con comandos objetivos y un <strong>checklist</strong>.</li>
+</ul>
+<h3 id="preparacion-de-tu-shell-haz-esto-en-cada-clase-y-en-el-examen">Preparación de tu shell (haz esto en cada clase y en el examen)</h3>
+<div class="hl"><pre><span></span><code><span class="nb">alias</span><span class="w"> </span><span class="nv">k</span><span class="o">=</span>kubectl
+<span class="nb">export</span><span class="w"> </span><span class="k">do</span><span class="o">=</span><span class="s1">&#39;--dry-run=client -o yaml&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">now</span><span class="o">=</span><span class="s1">&#39;--force --grace-period=0&#39;</span>
+<span class="nb">source</span><span class="w"> </span>&lt;<span class="o">(</span>kubectl<span class="w"> </span>completion<span class="w"> </span>bash<span class="o">)</span>
+<span class="nb">complete</span><span class="w"> </span>-o<span class="w"> </span>default<span class="w"> </span>-F<span class="w"> </span>__start_kubectl<span class="w"> </span>k
+</code></pre></div>
+
+<h3 id="niveles-de-laboratorio">Niveles de laboratorio</h3>
+<table>
+<thead>
+<tr>
+<th>Nivel</th>
+<th>Qué se espera</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Básico</strong></td>
+<td>Altamente guiado. Comprender sintaxis y comportamiento.</td>
+</tr>
+<tr>
+<td><strong>Intermedio</strong></td>
+<td>Se combinan varios conceptos. El alumno decide parte de la solución.</td>
+</tr>
+<tr>
+<td><strong>Avanzado</strong></td>
+<td>Solo requerimientos. El alumno decide recursos, comandos, orden y validación.</td>
+</tr>
+<tr>
+<td><strong>Challenge</strong></td>
+<td>El escenario arranca <strong>roto</strong>. IDENTIFICAR → DIAGNOSTICAR → CORREGIR → VALIDAR.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="9-metodo-de-trabajo-en-clase">9. Método de trabajo en clase</h2>
+<div class="hl"><pre><span></span><code>EXPLICAR -&gt; DEMOSTRAR -&gt; PRACTICAR -&gt; ROMPER -&gt; DIAGNOSTICAR -&gt; CORREGIR -&gt; VALIDAR
+</code></pre></div>
+
+<p>Romper deliberadamente lo que acaba de funcionar es parte del método, no un accidente. El 30 % del examen CKA es troubleshooting.</p>
+<h2 id="10-documentacion-permitida">10. Documentación permitida</h2>
+<p>Durante el examen solo se permite <code>kubernetes.io/docs</code>, <code>kubernetes.io/blog</code> y la documentación de los subproyectos oficiales. Practica desde el primer día usando únicamente esas fuentes y <code>kubectl explain</code>.</p></article>
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="assets/app.js"></script>
+</body>
+</html>

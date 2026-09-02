@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recursos · Clase 2 · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
+
+</head>
+<body class="viewerpage">
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../index.html">Inicio</a><a class="on" href="../guia.html">Clases</a><a href="../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../index.html">Inicio</a><span class="sep">/</span><a href="index.html">Clase 2</a><span class="sep">/</span><span>Recursos</span></nav>
+
+<section class="clase-head compact">
+  <div class="eyebrow">Clase 2 · Recursos</div>
+  <h1>Manifiestos y scripts</h1>
+  <p class="lead">Archivos de referencia de los laboratorios de la clase. Cópialos o descárgalos.</p>
+</section>
+<div class="viewer-layout">
+  <nav class="rl"><div class="rl-group mono">YAML/</div><a class="rl-item mono" href="#01-rbac-diseno-aprobado.yaml" data-file="01-rbac-diseno-aprobado.yaml">01-rbac-diseno-aprobado.yaml</a><a class="rl-item mono" href="#02-serviceaccount-processor.yaml" data-file="02-serviceaccount-processor.yaml">02-serviceaccount-processor.yaml</a><a class="rl-item mono" href="#03-inventario-deployment.yaml" data-file="03-inventario-deployment.yaml">03-inventario-deployment.yaml</a><div class="rl-group mono">SCRIPTS/</div><a class="rl-item mono" href="#etcd-backup.sh" data-file="etcd-backup.sh">etcd-backup.sh</a><a class="rl-item mono" href="#reset-lab.sh" data-file="reset-lab.sh">reset-lab.sh</a><a class="rl-item mono" href="#setup-lab.sh" data-file="setup-lab.sh">setup-lab.sh</a><a class="rl-item mono" href="#validate-lab.sh" data-file="validate-lab.sh">validate-lab.sh</a></nav>
+  <div class="viewer-stack">
+    <div class="viewer" data-file="01-rbac-diseno-aprobado.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">01-rbac-diseno-aprobado.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">90 líneas · 1980 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="01-rbac-diseno-aprobado.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/01-rbac-diseno-aprobado.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 2.4 - Estado CORRECTO de referencia (material del instructor).</span>
+<span class="c1"># Equivalente imperativo en SOLUCIONES/SOLUCION-LAB-04.md</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Role</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">secret-manager</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">red</span>
+<span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">resources</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;secrets&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">verbs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;get&quot;</span><span class="p p-Indicator">]</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RoleBinding</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">secret-manager</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">red</span>
+<span class="nt">roleRef</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">apiGroup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io</span>
+<span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Role</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">secret-manager</span>
+<span class="nt">subjects</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io</span>
+<span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">User</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jane</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Role</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">secret-manager</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">blue</span>
+<span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">resources</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;secrets&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">verbs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;get&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;list&quot;</span><span class="p p-Indicator">]</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RoleBinding</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">secret-manager</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">blue</span>
+<span class="nt">roleRef</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">apiGroup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io</span>
+<span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Role</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">secret-manager</span>
+<span class="nt">subjects</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io</span>
+<span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">User</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jane</span>
+<span class="nn">---</span>
+<span class="c1"># ClusterRole reutilizable: define QUE se puede hacer, no DONDE.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClusterRole</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deploy-deleter</span>
+<span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;apps&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">resources</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;deployments&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">verbs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;delete&quot;</span><span class="p p-Indicator">]</span>
+<span class="nn">---</span>
+<span class="c1"># jane: en TODOS los namespaces -&gt; ClusterRoleBinding</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClusterRoleBinding</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deploy-deleter</span>
+<span class="nt">roleRef</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">apiGroup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io</span>
+<span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClusterRole</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deploy-deleter</span>
+<span class="nt">subjects</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io</span>
+<span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">User</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jane</span>
+<span class="nn">---</span>
+<span class="c1"># jim: SOLO en red -&gt; ClusterRole + RoleBinding (la combinacion clave del CKA)</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RoleBinding</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deploy-deleter</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">red</span>
+<span class="nt">roleRef</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">apiGroup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io</span>
+<span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClusterRole</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deploy-deleter</span>
+<span class="nt">subjects</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io</span>
+<span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">User</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jim</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="02-serviceaccount-processor.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">02-serviceaccount-processor.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">31 líneas · 650 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="02-serviceaccount-processor.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/02-serviceaccount-processor.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 2.4 - ServiceAccount processor (estado correcto de referencia).</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ServiceAccount</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processor</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">project-hamster</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Role</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processor</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">project-hamster</span>
+<span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">resources</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;secrets&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;configmaps&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">verbs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;create&quot;</span><span class="p p-Indicator">]</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RoleBinding</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processor</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">project-hamster</span>
+<span class="nt">roleRef</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">apiGroup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io</span>
+<span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Role</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processor</span>
+<span class="nt">subjects</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ServiceAccount</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processor</span>
+<span class="w">    </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">project-hamster</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="03-inventario-deployment.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">03-inventario-deployment.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">25 líneas · 538 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="03-inventario-deployment.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/03-inventario-deployment.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 2.1 / 2.2 - Aplicacion testigo que debe sobrevivir al drain y al upgrade.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventario</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">c2-basico</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventario</span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">metadata</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inventario</span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">web</span>
+<span class="w">          </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:1.27-alpine</span>
+<span class="w">          </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">containerPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">          </span><span class="nt">readinessProbe</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">httpGet</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="nv">/</span><span class="p p-Indicator">,</span><span class="nt"> port</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}</span>
+<span class="w">            </span><span class="nt">initialDelaySeconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="etcd-backup.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">etcd-backup.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">35 líneas · 1095 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="etcd-backup.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/etcd-backup.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="c1"># CLASE 2 - Snapshot de etcd para cluster kubeadm de un solo control plane.</span>
+<span class="c1"># Ejecutar como root EN EL NODO DEL CONTROL PLANE.</span>
+<span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
+
+<span class="nv">PKI</span><span class="o">=</span>/etc/kubernetes/pki/etcd
+<span class="nv">DEST</span><span class="o">=</span><span class="si">${</span><span class="nv">1</span><span class="k">:-</span><span class="p">/opt/backup/etcd-</span><span class="k">$(</span>date<span class="w"> </span>+%Y%m%d-%H%M%S<span class="k">)</span><span class="p">.db</span><span class="si">}</span>
+<span class="nv">ENDPOINT</span><span class="o">=</span><span class="si">${</span><span class="nv">ENDPOINT</span><span class="k">:-</span><span class="nv">https</span><span class="p">://127.0.0.1:</span><span class="nv">2379</span><span class="si">}</span>
+
+<span class="nb">command</span><span class="w"> </span>-v<span class="w"> </span>etcdctl<span class="w"> </span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;etcdctl no esta instalado en este nodo&quot;</span><span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>dirname<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$DEST</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Endpoint : </span><span class="nv">$ENDPOINT</span><span class="s2">&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Destino  : </span><span class="nv">$DEST</span><span class="s2">&quot;</span>
+
+etcdctl<span class="w"> </span>--endpoints<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$ENDPOINT</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--cacert<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PKI</span><span class="s2">/ca.crt&quot;</span><span class="w"> </span>--cert<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PKI</span><span class="s2">/server.crt&quot;</span><span class="w"> </span>--key<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PKI</span><span class="s2">/server.key&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>endpoint<span class="w"> </span>health
+
+etcdctl<span class="w"> </span>--endpoints<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$ENDPOINT</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--cacert<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PKI</span><span class="s2">/ca.crt&quot;</span><span class="w"> </span>--cert<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PKI</span><span class="s2">/server.crt&quot;</span><span class="w"> </span>--key<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PKI</span><span class="s2">/server.key&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>snapshot<span class="w"> </span>save<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$DEST</span><span class="s2">&quot;</span>
+
+<span class="nb">echo</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Validando el snapshot (etcdutl):&quot;</span>
+<span class="k">if</span><span class="w"> </span><span class="nb">command</span><span class="w"> </span>-v<span class="w"> </span>etcdutl<span class="w"> </span>&gt;/dev/null<span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">  </span>etcdutl<span class="w"> </span>snapshot<span class="w"> </span>status<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$DEST</span><span class="s2">&quot;</span><span class="w"> </span>--write-out<span class="o">=</span>table
+<span class="k">else</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;   etcdutl no disponible; instalalo desde el release de etcd de tu cluster.&quot;</span>
+<span class="k">fi</span>
+
+<span class="nb">echo</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Snapshot listo: </span><span class="nv">$DEST</span><span class="s2">&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;   Restore:  etcdutl snapshot restore </span><span class="nv">$DEST</span><span class="s2"> --data-dir /var/lib/etcd-restore&quot;</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="reset-lab.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">reset-lab.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">10 líneas · 532 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="reset-lab.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/reset-lab.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="c1"># CLASE 2 - Limpieza.</span>
+<span class="nb">set</span><span class="w"> </span>-uo<span class="w"> </span>pipefail
+kubectl<span class="w"> </span>delete<span class="w"> </span>namespace<span class="w"> </span>red<span class="w"> </span>blue<span class="w"> </span>project-hamster<span class="w"> </span>c2-basico<span class="w"> </span>c2-etcd<span class="w"> </span>--ignore-not-found<span class="w"> </span>--wait<span class="o">=</span><span class="nb">false</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>clusterrole<span class="w"> </span>deploy-deleter<span class="w"> </span>--ignore-not-found
+kubectl<span class="w"> </span>delete<span class="w"> </span>clusterrolebinding<span class="w"> </span>deploy-deleter<span class="w"> </span>deploy-deleter-jim<span class="w"> </span>--ignore-not-found
+<span class="k">for</span><span class="w"> </span>N<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="k">$(</span>kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>-o<span class="w"> </span>name<span class="k">)</span><span class="p">;</span><span class="w"> </span><span class="k">do</span><span class="w"> </span>kubectl<span class="w"> </span>uncordon<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">N</span><span class="p">#node/</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>&gt;/dev/null<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>true<span class="p">;</span><span class="w"> </span><span class="k">done</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Reset de la Clase 2 completado.&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;   Nota: el upgrade del LAB 2.2 y el restore del LAB 2.3 NO se revierten.&quot;</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="setup-lab.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">setup-lab.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">89 líneas · 2906 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="setup-lab.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/setup-lab.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="c1"># CLASE 2 - Prepara el escenario RBAC del LAB 2.4 con una implementacion INCORRECTA.</span>
+<span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
+
+<span class="k">for</span><span class="w"> </span>NS<span class="w"> </span><span class="k">in</span><span class="w"> </span>red<span class="w"> </span>blue<span class="w"> </span>project-hamster<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">  </span>kubectl<span class="w"> </span>create<span class="w"> </span>namespace<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$NS</span><span class="s2">&quot;</span><span class="w"> </span>--dry-run<span class="o">=</span>client<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>-
+<span class="k">done</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Aplicando la implementacion RBAC actual (con defectos)...&quot;</span>
+cat<span class="w"> </span><span class="s">&lt;&lt;&#39;YAML&#39; | kubectl apply -f -</span>
+<span class="s">apiVersion: rbac.authorization.k8s.io/v1</span>
+<span class="s">kind: Role</span>
+<span class="s">metadata: {name: secret-manager, namespace: red}</span>
+<span class="s">rules:</span>
+<span class="s">  - apiGroups: [&quot;&quot;]</span>
+<span class="s">    resources: [&quot;secrets&quot;]</span>
+<span class="s">    verbs: [&quot;get&quot;, &quot;list&quot;]</span>
+<span class="s">---</span>
+<span class="s">apiVersion: rbac.authorization.k8s.io/v1</span>
+<span class="s">kind: RoleBinding</span>
+<span class="s">metadata: {name: secret-manager, namespace: red}</span>
+<span class="s">roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: secret-manager}</span>
+<span class="s">subjects:</span>
+<span class="s">  - {apiGroup: rbac.authorization.k8s.io, kind: User, name: jane}</span>
+<span class="s">---</span>
+<span class="s">apiVersion: rbac.authorization.k8s.io/v1</span>
+<span class="s">kind: Role</span>
+<span class="s">metadata: {name: secret-manager, namespace: blue}</span>
+<span class="s">rules:</span>
+<span class="s">  - apiGroups: [&quot;&quot;]</span>
+<span class="s">    resources: [&quot;secrets&quot;]</span>
+<span class="s">    verbs: [&quot;get&quot;]</span>
+<span class="s">---</span>
+<span class="s">apiVersion: rbac.authorization.k8s.io/v1</span>
+<span class="s">kind: RoleBinding</span>
+<span class="s">metadata: {name: secret-manager, namespace: blue}</span>
+<span class="s">roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: secret-manager}</span>
+<span class="s">subjects:</span>
+<span class="s">  - {apiGroup: rbac.authorization.k8s.io, kind: User, name: jane}</span>
+<span class="s">---</span>
+<span class="s">apiVersion: rbac.authorization.k8s.io/v1</span>
+<span class="s">kind: ClusterRole</span>
+<span class="s">metadata: {name: deploy-deleter}</span>
+<span class="s">rules:</span>
+<span class="s">  - apiGroups: [&quot;apps&quot;]</span>
+<span class="s">    resources: [&quot;deployments&quot;]</span>
+<span class="s">    verbs: [&quot;delete&quot;]</span>
+<span class="s">---</span>
+<span class="s">apiVersion: rbac.authorization.k8s.io/v1</span>
+<span class="s">kind: RoleBinding</span>
+<span class="s">metadata: {name: deploy-deleter, namespace: red}</span>
+<span class="s">roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: deploy-deleter}</span>
+<span class="s">subjects:</span>
+<span class="s">  - {apiGroup: rbac.authorization.k8s.io, kind: User, name: jane}</span>
+<span class="s">---</span>
+<span class="s">apiVersion: rbac.authorization.k8s.io/v1</span>
+<span class="s">kind: ClusterRoleBinding</span>
+<span class="s">metadata: {name: deploy-deleter-jim}</span>
+<span class="s">roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: deploy-deleter}</span>
+<span class="s">subjects:</span>
+<span class="s">  - {apiGroup: rbac.authorization.k8s.io, kind: User, name: jim}</span>
+<span class="s">---</span>
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: ServiceAccount</span>
+<span class="s">metadata: {name: processor, namespace: project-hamster}</span>
+<span class="s">---</span>
+<span class="s">apiVersion: rbac.authorization.k8s.io/v1</span>
+<span class="s">kind: Role</span>
+<span class="s">metadata: {name: processor, namespace: project-hamster}</span>
+<span class="s">rules:</span>
+<span class="s">  - apiGroups: [&quot;&quot;]</span>
+<span class="s">    resources: [&quot;secrets&quot;, &quot;configmaps&quot;]</span>
+<span class="s">    verbs: [&quot;create&quot;, &quot;delete&quot;]</span>
+<span class="s">---</span>
+<span class="s">apiVersion: rbac.authorization.k8s.io/v1</span>
+<span class="s">kind: RoleBinding</span>
+<span class="s">metadata: {name: processor, namespace: project-hamster}</span>
+<span class="s">roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: processor}</span>
+<span class="s">subjects:</span>
+<span class="s">  - {apiGroup: rbac.authorization.k8s.io, kind: User, name: processor}</span>
+<span class="s">YAML</span>
+
+<span class="nb">echo</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;===============================================================&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; LAB 2.4 listo. La implementacion RBAC NO coincide con el&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; diseno aprobado del laboratorio. Audita con &#39;auth can-i&#39;.&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; Hay permisos que faltan y permisos concedidos de mas.&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;===============================================================&quot;</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="validate-lab.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">validate-lab.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">37 líneas · 2067 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="validate-lab.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/validate-lab.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="c1"># CLASE 2 - Valida el LAB 2.4 (RBAC).</span>
+<span class="nb">set</span><span class="w"> </span>-uo<span class="w"> </span>pipefail
+<span class="nv">OK</span><span class="o">=</span><span class="m">0</span><span class="p">;</span><span class="w"> </span><span class="nv">FAIL</span><span class="o">=</span><span class="m">0</span>
+expect<span class="o">()</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="c1"># descripcion  esperado  comando...</span>
+<span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">d</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span><span class="w"> </span><span class="nv">e</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$2</span><span class="s2">&quot;</span><span class="p">;</span><span class="w"> </span><span class="nb">shift</span><span class="w"> </span><span class="m">2</span>
+<span class="w">  </span><span class="nb">local</span><span class="w"> </span>r<span class="p">;</span><span class="w"> </span><span class="nv">r</span><span class="o">=</span><span class="k">$(</span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-1<span class="k">)</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$r</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$e</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [OK]    </span><span class="nv">$d</span><span class="s2"> = </span><span class="nv">$e</span><span class="s2">&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">OK</span><span class="o">=</span><span class="k">$((</span><span class="nv">OK</span><span class="o">+</span><span class="m">1</span><span class="k">))</span><span class="p">;</span>
+<span class="w">  </span><span class="k">else</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [FALLA] </span><span class="nv">$d</span><span class="s2"> -&gt; obtenido &#39;</span><span class="nv">$r</span><span class="s2">&#39;, esperado &#39;</span><span class="nv">$e</span><span class="s2">&#39;&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">FAIL</span><span class="o">=</span><span class="k">$((</span><span class="nv">FAIL</span><span class="o">+</span><span class="m">1</span><span class="k">))</span><span class="p">;</span><span class="w"> </span><span class="k">fi</span>
+<span class="o">}</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;== Validando LAB 2.4 (RBAC) ==&quot;</span>
+<span class="nv">SA</span><span class="o">=</span>system:serviceaccount:project-hamster:processor
+
+expect<span class="w"> </span><span class="s2">&quot;red/jane  get secrets&quot;</span><span class="w">      </span>yes<span class="w"> </span>kubectl<span class="w"> </span>-n<span class="w"> </span>red<span class="w">  </span>auth<span class="w"> </span>can-i<span class="w"> </span>get<span class="w">    </span>secrets<span class="w"> </span>--as<span class="w"> </span>jane
+expect<span class="w"> </span><span class="s2">&quot;red/jane  list secrets&quot;</span><span class="w">     </span>no<span class="w">  </span>kubectl<span class="w"> </span>-n<span class="w"> </span>red<span class="w">  </span>auth<span class="w"> </span>can-i<span class="w"> </span>list<span class="w">   </span>secrets<span class="w"> </span>--as<span class="w"> </span>jane
+expect<span class="w"> </span><span class="s2">&quot;red/jane  delete secrets&quot;</span><span class="w">   </span>no<span class="w">  </span>kubectl<span class="w"> </span>-n<span class="w"> </span>red<span class="w">  </span>auth<span class="w"> </span>can-i<span class="w"> </span>delete<span class="w"> </span>secrets<span class="w"> </span>--as<span class="w"> </span>jane
+expect<span class="w"> </span><span class="s2">&quot;blue/jane get secrets&quot;</span><span class="w">      </span>yes<span class="w"> </span>kubectl<span class="w"> </span>-n<span class="w"> </span>blue<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>get<span class="w">    </span>secrets<span class="w"> </span>--as<span class="w"> </span>jane
+expect<span class="w"> </span><span class="s2">&quot;blue/jane list secrets&quot;</span><span class="w">     </span>yes<span class="w"> </span>kubectl<span class="w"> </span>-n<span class="w"> </span>blue<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>list<span class="w">   </span>secrets<span class="w"> </span>--as<span class="w"> </span>jane
+expect<span class="w"> </span><span class="s2">&quot;blue/jane delete secrets&quot;</span><span class="w">   </span>no<span class="w">  </span>kubectl<span class="w"> </span>-n<span class="w"> </span>blue<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>delete<span class="w"> </span>secrets<span class="w"> </span>--as<span class="w"> </span>jane
+expect<span class="w"> </span><span class="s2">&quot;jane delete deploy (-A)&quot;</span><span class="w">    </span>yes<span class="w"> </span>kubectl<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>delete<span class="w"> </span>deployments<span class="w"> </span>--as<span class="w"> </span>jane<span class="w"> </span>-A
+expect<span class="w"> </span><span class="s2">&quot;jane delete deploy default&quot;</span><span class="w"> </span>yes<span class="w"> </span>kubectl<span class="w"> </span>-n<span class="w"> </span>default<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>delete<span class="w"> </span>deployments<span class="w"> </span>--as<span class="w"> </span>jane
+expect<span class="w"> </span><span class="s2">&quot;jim  delete deploy red&quot;</span><span class="w">     </span>yes<span class="w"> </span>kubectl<span class="w"> </span>-n<span class="w"> </span>red<span class="w">     </span>auth<span class="w"> </span>can-i<span class="w"> </span>delete<span class="w"> </span>deployments<span class="w"> </span>--as<span class="w"> </span>jim
+expect<span class="w"> </span><span class="s2">&quot;jim  delete deploy default&quot;</span><span class="w"> </span>no<span class="w">  </span>kubectl<span class="w"> </span>-n<span class="w"> </span>default<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>delete<span class="w"> </span>deployments<span class="w"> </span>--as<span class="w"> </span>jim
+expect<span class="w"> </span><span class="s2">&quot;jim  delete deploy (-A)&quot;</span><span class="w">    </span>no<span class="w">  </span>kubectl<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>delete<span class="w"> </span>deployments<span class="w"> </span>--as<span class="w"> </span>jim<span class="w"> </span>-A
+expect<span class="w"> </span><span class="s2">&quot;SA create secrets&quot;</span><span class="w">          </span>yes<span class="w"> </span>kubectl<span class="w"> </span>-n<span class="w"> </span>project-hamster<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>create<span class="w"> </span>secrets<span class="w">    </span>--as<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SA</span><span class="s2">&quot;</span>
+expect<span class="w"> </span><span class="s2">&quot;SA create configmaps&quot;</span><span class="w">       </span>yes<span class="w"> </span>kubectl<span class="w"> </span>-n<span class="w"> </span>project-hamster<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>create<span class="w"> </span>configmaps<span class="w"> </span>--as<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SA</span><span class="s2">&quot;</span>
+expect<span class="w"> </span><span class="s2">&quot;SA delete secrets&quot;</span><span class="w">          </span>no<span class="w">  </span>kubectl<span class="w"> </span>-n<span class="w"> </span>project-hamster<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>delete<span class="w"> </span>secrets<span class="w">    </span>--as<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SA</span><span class="s2">&quot;</span>
+expect<span class="w"> </span><span class="s2">&quot;SA create secrets en red&quot;</span><span class="w">   </span>no<span class="w">  </span>kubectl<span class="w"> </span>-n<span class="w"> </span>red<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>create<span class="w"> </span>secrets<span class="w"> </span>--as<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SA</span><span class="s2">&quot;</span>
+
+<span class="nb">echo</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$FAIL</span><span class="s2">&quot;</span><span class="w"> </span>-eq<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;LAB 2.4 SUPERADO (</span><span class="si">${</span><span class="nv">OK</span><span class="si">}</span><span class="s2"> comprobaciones)&quot;</span><span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span>
+<span class="k">else</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;LAB 2.4 NO superado: </span><span class="si">${</span><span class="nv">FAIL</span><span class="si">}</span><span class="s2"> comprobacion(es) incorrecta(s).&quot;</span><span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+<span class="k">fi</span>
+</pre></div>
+</div>
+    </div></div>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

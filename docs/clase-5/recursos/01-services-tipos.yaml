@@ -1,0 +1,38 @@
+# LAB 5.1 - Los tipos de Service sobre el mismo Deployment.
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: web, namespace: c5-basico}
+spec:
+  replicas: 3
+  selector: {matchLabels: {app: web}}
+  template:
+    metadata: {labels: {app: web}}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: web-ci, namespace: c5-basico}
+spec:
+  type: ClusterIP
+  selector: {app: web}
+  ports: [{port: 80, targetPort: 80}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: web-np, namespace: c5-basico}
+spec:
+  type: NodePort
+  selector: {app: web}
+  ports: [{port: 80, targetPort: 80, nodePort: 31500}]
+---
+# ExternalName: no tiene ClusterIP ni endpoints. CoreDNS devuelve un CNAME.
+apiVersion: v1
+kind: Service
+metadata: {name: externo, namespace: c5-basico}
+spec:
+  type: ExternalName
+  externalName: example.com

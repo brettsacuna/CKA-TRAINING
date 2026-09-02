@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 4.3 — Recursos, QoS, escalado y métricas · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+
+</head>
+<body class="labpage">
+<header class="topbar">
+  <a class="brand" href="../../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../../index.html">Inicio</a><a class="on" href="../../guia.html">Clases</a><a href="../../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../../index.html">Inicio</a><span class="sep">/</span><a href="../index.html">Clase 4</a><span class="sep">/</span><span>LAB 4.3</span></nav>
+
+<div class="lab-layout">
+  <aside class="lab-side">
+    <details class="lab-nav" open>
+      <summary>Clase 4 · Laboratorios</summary>
+      <div class="railcard-h">Clase 4 · Laboratorios</div>
+      <div class="side-labs"><a class="" href="../lab-1/">LAB 4.1 — Rolling Update y Rollback</a><a class="" href="../lab-2/">LAB 4.2 — ConfigMaps y Secrets</a><a class="on" href="../lab-3/">LAB 4.3 — Recursos, QoS, escalado y métricas</a><a class="" href="../lab-4/">LAB 4.4 — Challenge: el despliegue que no arranca</a></div>
+      <div class="railcard-h" style="margin-top:22px">Recursos</div>
+      <a class="rlink" href="../recursos.html">Visor de recursos</a>
+      <a class="rlink" href="../../slides/01-CLASE-04-CKA.pptx" download>Presentación (.pptx)</a>
+    </details>
+  </aside>
+  <script>if(matchMedia('(max-width:900px)').matches){var _ln=document.currentScript.previousElementSibling.querySelector('.lab-nav');if(_ln)_ln.removeAttribute('open');}</script>
+  <article class="md lab-body">
+    <div class="eyebrow">LAB 4.3</div>
+    <h1>Recursos, QoS, escalado y métricas</h1>
+    <div class="chips">
+      <span class="lvl warn mono">Nivel · Avanzado</span>
+      <span class="chip mono">26 minutos</span>
+    </div>
+    <h2 id="objetivo">Objetivo</h2>
+<p>Dimensionar aplicaciones a partir de requerimientos: definir <code>requests</code> y <code>limits</code>, provocar y reconocer los dos fallos clásicos (<code>Pending</code> por requests y <code>OOMKilled</code> por limits), y medir el consumo real.</p>
+<h2 id="competencias">Competencias</h2>
+<ul>
+<li><code>resources.requests</code> y <code>resources.limits</code> de CPU y memoria.</li>
+<li>Clases de QoS.</li>
+<li>Instalar y validar Metrics Server.</li>
+<li><code>kubectl top nodes</code> y <code>kubectl top pods</code>.</li>
+<li><code>kubectl scale</code>.</li>
+<li>Distinguir un fallo por CPU de uno por memoria.</li>
+</ul>
+<h2 id="escenario">Escenario</h2>
+<p>Producción se ha quedado sin capacidad dos veces este mes porque nadie declaraba recursos. Te piden implantar una política mínima y demostrar sus efectos.</p>
+<p>Tú decides los manifiestos, los comandos y las validaciones.</p>
+<h2 id="estado-inicial">Estado inicial</h2>
+<ul>
+<li>Namespace de trabajo: <strong><code>c4-recursos</code></strong>.</li>
+<li>Metrics Server <strong>no instalado</strong> (si lo está, verifica su versión).</li>
+<li>Anota antes de empezar la capacidad asignable de tus nodos:
+  <code>bash
+  kubectl describe node &lt;worker&gt; | sed -n '/Allocatable/,/System Info/p'</code></li>
+</ul>
+<h2 id="requerimientos">Requerimientos</h2>
+<h3 id="r1-metricas">R1 — Métricas</h3>
+<ol>
+<li>Instala <strong>Metrics Server v0.8.1</strong> con el manifiesto oficial.</li>
+<li>Si los Pods no llegan a <code>Ready</code>, diagnostícalo. En clusters de laboratorio con certificados de kubelet autofirmados hay que añadir un argumento al contenedor: averigua cuál leyendo los logs, no la solución.</li>
+<li>Comprueba que <code>kubectl top nodes</code> y <code>kubectl top pods -A</code> devuelven datos.</li>
+</ol>
+<h3 id="r2-las-tres-clases-de-qos">R2 — Las tres clases de QoS</h3>
+<ol start="4">
+<li>Crea en <code>c4-recursos</code> tres Pods, cada uno de una clase de QoS distinta, usando la imagen <code>nginx:1.27-alpine</code>:<ul>
+<li><code>pod-guaranteed</code></li>
+<li><code>pod-burstable</code></li>
+<li><code>pod-besteffort</code></li>
+</ul>
+</li>
+<li>Comprueba la clase asignada a cada uno leyendo su <code>status.qosClass</code> y <strong>explica la regla</strong> que la determina.</li>
+</ol>
+<h3 id="r3-requests-que-no-caben">R3 — Requests que no caben</h3>
+<ol start="6">
+<li>Crea un Deployment <strong><code>hambriento</code></strong> con 2 réplicas de <code>nginx:1.27-alpine</code> que solicite (<code>requests</code>) <strong>más CPU de la que ofrece cualquiera de tus nodos</strong>.</li>
+<li>Observa el estado y documenta el evento exacto.</li>
+<li>Corrígelo bajando los <code>requests</code> a un valor realista y comprueba que arranca.</li>
+</ol>
+<h3 id="r4-limits-de-memoria">R4 — Limits de memoria</h3>
+<ol start="9">
+<li>Crea un Pod <strong><code>memoria</code></strong> con la imagen <code>polinux/stress</code> (o <code>busybox</code> con un bucle de asignación) que intente consumir <strong>más memoria de la que su <code>limits.memory</code> permite</strong>.
+   Sugerencia de comando: <code>stress --vm 1 --vm-bytes 250M --vm-hang 1</code> con <code>limits.memory: 100Mi</code>.</li>
+<li>Observa el estado del Pod y el motivo de terminación del contenedor. Documenta el <code>Reason</code> y el <code>Exit Code</code>.</li>
+<li>Responde: ¿por qué un exceso de <strong>CPU</strong> no mata el contenedor y un exceso de <strong>memoria</strong> sí?</li>
+</ol>
+<h3 id="r5-escalado-y-medicion">R5 — Escalado y medición</h3>
+<ol start="12">
+<li>Crea un Deployment <strong><code>medido</code></strong> con 2 réplicas, <code>requests</code> de <code>100m</code> CPU y <code>64Mi</code> de memoria, y <code>limits</code> de <code>500m</code> y <code>128Mi</code>.</li>
+<li>Escálalo a <strong>6 réplicas</strong> con un comando imperativo.</li>
+<li>Mide el consumo real con <code>kubectl top pods</code> y compáralo con lo solicitado. Responde: ¿estás sobredimensionando?</li>
+<li>Comprueba con <code>kubectl describe node</code> cuánta CPU y memoria del nodo están <strong>reservadas</strong> por <code>requests</code> frente a cuánta se usa realmente.</li>
+</ol>
+<h2 id="restricciones">Restricciones</h2>
+<ul>
+<li>Metrics Server debe instalarse desde el manifiesto oficial, no editando versiones antiguas.</li>
+<li>No uses <code>--limits</code> ni <code>--requests</code> de <code>kubectl run</code> como única solución: al menos un Pod debe definirse en YAML.</li>
+<li>No modifiques la capacidad de los nodos.</li>
+<li>El Pod <code>memoria</code> debe demostrar el fallo, no evitarlo.</li>
+</ul>
+<h2 id="validacion">Validación</h2>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>-n<span class="w"> </span>kube-system<span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>metrics-server
+kubectl<span class="w"> </span>top<span class="w"> </span>nodes
+kubectl<span class="w"> </span>top<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>c4-recursos
+kubectl<span class="w"> </span>-n<span class="w"> </span>c4-recursos<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-o<span class="w"> </span>custom-columns<span class="o">=</span><span class="se">\</span>
+NAME:.metadata.name,QOS:.status.qosClass,STATUS:.status.phase
+kubectl<span class="w"> </span>-n<span class="w"> </span>c4-recursos<span class="w"> </span>describe<span class="w"> </span>pod<span class="w"> </span>memoria<span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;/Last State/,/Ready/p&#39;</span>
+kubectl<span class="w"> </span>describe<span class="w"> </span>node<span class="w"> </span>&lt;worker&gt;<span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;/Allocated resources/,$p&#39;</span>
+</code></pre></div>
+
+<h2 id="resultado-esperado">Resultado esperado</h2>
+<ul>
+<li><code>kubectl top nodes</code> devuelve CPU y memoria por nodo.</li>
+<li><code>pod-guaranteed</code> → <code>Guaranteed</code>, <code>pod-burstable</code> → <code>Burstable</code>, <code>pod-besteffort</code> → <code>BestEffort</code>.</li>
+<li><code>hambriento</code> queda <code>Pending</code> con <code>FailedScheduling ... Insufficient cpu</code>, y arranca al corregir los requests.</li>
+<li><code>memoria</code> muestra <code>Last State: Terminated, Reason: OOMKilled, Exit Code: 137</code> y reinicios crecientes.</li>
+<li><code>describe node</code> muestra los <code>requests</code> como porcentaje reservado del nodo.</li>
+</ul>
+<h2 id="criterios-de-exito">Criterios de éxito</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Metrics Server v0.8.1 instalado y <code>Ready</code>.</li>
+<li class="task"><span class="box"></span>Diagnostiqué por mi cuenta el argumento que faltaba (si aplicaba).</li>
+<li class="task"><span class="box"></span><code>kubectl top nodes</code> y <code>kubectl top pods</code> funcionan.</li>
+<li class="task"><span class="box"></span>Los tres Pods tienen las tres clases de QoS y sé explicar la regla.</li>
+<li class="task"><span class="box"></span>Provoqué un <code>Pending</code> por <code>requests</code> y documenté el evento.</li>
+<li class="task"><span class="box"></span>Corregí los <code>requests</code> y el Deployment arrancó.</li>
+<li class="task"><span class="box"></span>Provoqué un <code>OOMKilled</code> y documenté <code>Reason</code> y <code>Exit Code</code>.</li>
+<li class="task"><span class="box"></span>Expliqué la diferencia entre CPU (comprimible) y memoria (no comprimible).</li>
+<li class="task"><span class="box"></span>Escalé <code>medido</code> a 6 réplicas y comparé consumo real vs solicitado.</li>
+<li class="task"><span class="box"></span>Leí la sección <code>Allocated resources</code> de un nodo.</li>
+</ul>
+    <div class="lab-note">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+    </div>
+    <nav class="pager"><a href="../lab-2/">← LAB 4.2</a><a href="../lab-4/">LAB 4.4 →</a></nav>
+  </article>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

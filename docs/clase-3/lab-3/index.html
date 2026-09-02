@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 3.3 — StatefulSet con identidad estable y almacenamiento por réplica · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+
+</head>
+<body class="labpage">
+<header class="topbar">
+  <a class="brand" href="../../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../../index.html">Inicio</a><a class="on" href="../../guia.html">Clases</a><a href="../../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../../index.html">Inicio</a><span class="sep">/</span><a href="../index.html">Clase 3</a><span class="sep">/</span><span>LAB 3.3</span></nav>
+
+<div class="lab-layout">
+  <aside class="lab-side">
+    <details class="lab-nav" open>
+      <summary>Clase 3 · Laboratorios</summary>
+      <div class="railcard-h">Clase 3 · Laboratorios</div>
+      <div class="side-labs"><a class="" href="../lab-1/">LAB 3.1 — Deployment, ReplicaSet y self-healing</a><a class="" href="../lab-2/">LAB 3.2 — Volúmenes: emptyDir, PersistentVolume y PersistentVolumeClaim</a><a class="on" href="../lab-3/">LAB 3.3 — StatefulSet con identidad estable y almacenamiento por réplica</a><a class="" href="../lab-4/">LAB 3.4 — Challenge: el PVC que nunca enlaza</a></div>
+      <div class="railcard-h" style="margin-top:22px">Recursos</div>
+      <a class="rlink" href="../recursos.html">Visor de recursos</a>
+      <a class="rlink" href="../../slides/01-CLASE-03-CKA.pptx" download>Presentación (.pptx)</a>
+    </details>
+  </aside>
+  <script>if(matchMedia('(max-width:900px)').matches){var _ln=document.currentScript.previousElementSibling.querySelector('.lab-nav');if(_ln)_ln.removeAttribute('open');}</script>
+  <article class="md lab-body">
+    <div class="eyebrow">LAB 3.3</div>
+    <h1>StatefulSet con identidad estable y almacenamiento por réplica</h1>
+    <div class="chips">
+      <span class="lvl warn mono">Nivel · Avanzado</span>
+      <span class="chip mono">28 minutos</span>
+    </div>
+    <h2 id="objetivo">Objetivo</h2>
+<p>Desplegar, <strong>a partir de requerimientos</strong>, una carga con estado que garantice nombre estable, orden de creación y un volumen propio por réplica, y demostrar empíricamente cada una de esas tres garantías.</p>
+<h2 id="competencias">Competencias</h2>
+<ul>
+<li>StatefulSet: <code>serviceName</code>, <code>replicas</code>, <code>volumeClaimTemplates</code>.</li>
+<li>Headless Service (<code>clusterIP: None</code>) y DNS por Pod.</li>
+<li>Aprovisionamiento dinámico o estático para un StatefulSet.</li>
+<li>Demostrar la persistencia de identidad tras eliminar un Pod.</li>
+<li>Entender por qué borrar el StatefulSet no borra los PVC.</li>
+</ul>
+<h2 id="escenario">Escenario</h2>
+<p>La plataforma necesita alojar un servicio con estado (<code>web</code>) de <strong>3 réplicas</strong>. El equipo de datos exige:</p>
+<ul>
+<li>Cada réplica debe tener <strong>un nombre estable y predecible</strong>.</li>
+<li>Cada réplica debe tener <strong>su propio volumen de 1Gi</strong>, no compartido.</li>
+<li>Cada réplica debe ser <strong>direccionable individualmente por DNS</strong>.</li>
+<li>Si una réplica se cae y vuelve, debe <strong>recuperar su nombre y sus datos</strong>.</li>
+</ul>
+<p>Tú decides los recursos, el orden y las validaciones.</p>
+<h2 id="estado-inicial">Estado inicial</h2>
+<ul>
+<li>Namespace de trabajo: <strong><code>c3-sts</code></strong>.</li>
+<li>Comprueba primero si tu cluster tiene una StorageClass por defecto:
+  <code>bash
+  kubectl get storageclass</code><ul>
+<li><strong>Si la hay</strong>, usa aprovisionamiento <strong>dinámico</strong>.</li>
+<li><strong>Si no la hay</strong>, deberás crear manualmente los PV necesarios antes de que el StatefulSet arranque. Averigua cuántos y de qué tamaño.</li>
+</ul>
+</li>
+</ul>
+<h2 id="requerimientos">Requerimientos</h2>
+<ol>
+<li>Crea el namespace <code>c3-sts</code>.</li>
+<li>Crea el almacenamiento que corresponda a tu cluster (dinámico o estático).</li>
+<li>Crea un <strong>Headless Service</strong> llamado <strong><code>nginx</code></strong> que seleccione <code>app=nginx</code> y exponga el puerto <code>80</code> con nombre <code>web</code>.</li>
+<li>Crea un <strong>StatefulSet</strong> llamado <strong><code>web</code></strong> con:<ul>
+<li>3 réplicas,</li>
+<li><code>serviceName: nginx</code>,</li>
+<li>imagen <code>registry.k8s.io/nginx-slim:0.27</code> (o <code>nginx:1.27-alpine</code>),</li>
+<li>puerto de contenedor <code>80</code> con nombre <code>web</code>,</li>
+<li><code>volumeClaimTemplates</code> que cree un PVC llamado <code>www</code> de <strong>1Gi</strong>, <code>ReadWriteOnce</code>, montado en <code>/usr/share/nginx/html</code>.</li>
+</ul>
+</li>
+<li>Observa el <strong>orden</strong> en que se crean los Pods. Documenta lo que ves.</li>
+<li>Lista los PVC creados. Explica el patrón de nombres.</li>
+<li>Escribe en cada réplica un <code>index.html</code> con su propio nombre (<code>web-0</code>, <code>web-1</code>, <code>web-2</code>).</li>
+<li>Desde un Pod temporal, resuelve por DNS y haz <code>curl</code> a:<ul>
+<li><code>nginx</code> (el Headless Service),</li>
+<li><code>web-0.nginx.c3-sts.svc.cluster.local</code>,</li>
+<li><code>web-2.nginx.c3-sts.svc.cluster.local</code>.
+   Explica en qué se diferencia la respuesta del primero respecto a los otros dos.</li>
+</ul>
+</li>
+<li><strong>Prueba de identidad</strong>: borra el Pod <code>web-1</code>. Observa:<ul>
+<li>qué nombre recibe el Pod nuevo,</li>
+<li>en qué orden se recrea,</li>
+<li>si conserva su contenido.</li>
+</ul>
+</li>
+<li>Escala el StatefulSet a <strong>5 réplicas</strong> y luego de vuelta a <strong>3</strong>. Comprueba qué pasa con los PVC de <code>web-3</code> y <code>web-4</code>. <strong>Explica por qué Kubernetes hace eso.</strong></li>
+<li>Elimina el StatefulSet <strong>sin eliminar los PVC</strong>. Vuelve a crearlo y comprueba si las réplicas recuperan sus datos.</li>
+</ol>
+<h2 id="restricciones">Restricciones</h2>
+<ul>
+<li>No uses un Deployment.</li>
+<li>Cada réplica debe tener su propio PVC: no vale un PVC compartido.</li>
+<li>El Service debe ser <strong>headless</strong> (<code>clusterIP: None</code>).</li>
+<li>No borres los PVC manualmente hasta el final del laboratorio.</li>
+</ul>
+<h2 id="validacion">Validación</h2>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>-n<span class="w"> </span>c3-sts<span class="w"> </span>get<span class="w"> </span>statefulset,pods,pvc,svc<span class="w"> </span>-o<span class="w"> </span>wide
+kubectl<span class="w"> </span>-n<span class="w"> </span>c3-sts<span class="w"> </span>get<span class="w"> </span>svc<span class="w"> </span>nginx<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.clusterIP}{&quot;\n&quot;}&#39;</span><span class="w">   </span><span class="c1"># None</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>c3-sts<span class="w"> </span>get<span class="w"> </span>pvc
+kubectl<span class="w"> </span>-n<span class="w"> </span>c3-sts<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>web-0<span class="w"> </span>--<span class="w"> </span>cat<span class="w"> </span>/usr/share/nginx/html/index.html
+kubectl<span class="w"> </span>run<span class="w"> </span>tmp<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>-n<span class="w"> </span>c3-sts<span class="w"> </span>--image<span class="o">=</span>busybox:1.36<span class="w"> </span>--restart<span class="o">=</span>Never<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>sh<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;nslookup nginx; nslookup web-0.nginx&#39;</span>
+</code></pre></div>
+
+<h2 id="resultado-esperado">Resultado esperado</h2>
+<ul>
+<li>Pods creados <strong>en orden</strong>: <code>web-0</code>, luego <code>web-1</code>, luego <code>web-2</code>.</li>
+<li>PVC llamados <code>www-web-0</code>, <code>www-web-1</code>, <code>www-web-2</code>, todos <code>Bound</code>, 1Gi cada uno.</li>
+<li>El Headless Service <strong>no tiene ClusterIP</strong>; su resolución DNS devuelve <strong>las IP de los Pods</strong>, no una VIP.</li>
+<li><code>web-1</code> recreado conserva <strong>el mismo nombre</strong>, el mismo PVC y el mismo contenido.</li>
+<li>Al bajar de 5 a 3 réplicas, los PVC <code>www-web-3</code> y <code>www-web-4</code> <strong>siguen existiendo</strong>.</li>
+<li>Tras recrear el StatefulSet, cada réplica recupera su contenido anterior.</li>
+</ul>
+<h2 id="criterios-de-exito">Criterios de éxito</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Headless Service <code>nginx</code> con <code>clusterIP: None</code>.</li>
+<li class="task"><span class="box"></span>StatefulSet <code>web</code> con <code>serviceName: nginx</code> y 3 réplicas.</li>
+<li class="task"><span class="box"></span><code>volumeClaimTemplates</code> crea un PVC de 1Gi por réplica.</li>
+<li class="task"><span class="box"></span>Documenté el orden de creación de los Pods.</li>
+<li class="task"><span class="box"></span>Expliqué el patrón de nombres de los PVC.</li>
+<li class="task"><span class="box"></span>Resolví por DNS tanto el Service como un Pod individual, y expliqué la diferencia.</li>
+<li class="task"><span class="box"></span>Al borrar <code>web-1</code>, el Pod nuevo conserva nombre, PVC y datos.</li>
+<li class="task"><span class="box"></span>Expliqué por qué los PVC sobreviven al reducir réplicas.</li>
+<li class="task"><span class="box"></span>Tras recrear el StatefulSet, los datos siguen ahí.</li>
+</ul>
+    <div class="lab-note">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+    </div>
+    <nav class="pager"><a href="../lab-2/">← LAB 3.2</a><a href="../lab-4/">LAB 3.4 →</a></nav>
+  </article>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

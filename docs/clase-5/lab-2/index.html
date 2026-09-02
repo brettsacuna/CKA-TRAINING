@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 5.2 — Ingress con HTTP, HTTPS y routing por path · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+
+</head>
+<body class="labpage">
+<header class="topbar">
+  <a class="brand" href="../../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../../index.html">Inicio</a><a class="on" href="../../guia.html">Clases</a><a href="../../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../../index.html">Inicio</a><span class="sep">/</span><a href="../index.html">Clase 5</a><span class="sep">/</span><span>LAB 5.2</span></nav>
+
+<div class="lab-layout">
+  <aside class="lab-side">
+    <details class="lab-nav" open>
+      <summary>Clase 5 · Laboratorios</summary>
+      <div class="railcard-h">Clase 5 · Laboratorios</div>
+      <div class="side-labs"><a class="" href="../lab-1/">LAB 5.1 — Services, EndpointSlice y CoreDNS</a><a class="on" href="../lab-2/">LAB 5.2 — Ingress con HTTP, HTTPS y routing por path</a><a class="" href="../lab-3/">LAB 5.3 — NetworkPolicy: aislar frontend y backend</a><a class="" href="../lab-4/">LAB 5.4 — Challenge: &quot;la red está rota&quot;</a></div>
+      <div class="railcard-h" style="margin-top:22px">Recursos</div>
+      <a class="rlink" href="../recursos.html">Visor de recursos</a>
+      <a class="rlink" href="../../slides/01-CLASE-05-CKA.pptx" download>Presentación (.pptx)</a>
+    </details>
+  </aside>
+  <script>if(matchMedia('(max-width:900px)').matches){var _ln=document.currentScript.previousElementSibling.querySelector('.lab-nav');if(_ln)_ln.removeAttribute('open');}</script>
+  <article class="md lab-body">
+    <div class="eyebrow">LAB 5.2</div>
+    <h1>Ingress con HTTP, HTTPS y routing por path</h1>
+    <div class="chips">
+      <span class="lvl blue mono">Nivel · Intermedio</span>
+      <span class="chip mono">35 minutos</span>
+    </div>
+    <h2 id="objetivo">Objetivo</h2>
+<p>Publicar dos aplicaciones distintas detrás de una sola entrada, enrutando por path, y añadir HTTPS con un certificado propio.</p>
+<h2 id="competencias">Competencias</h2>
+<ul>
+<li>Instalar un Ingress Controller mantenido.</li>
+<li>Escribir un Ingress con reglas por path y <code>pathType</code>.</li>
+<li>Generar un certificado X.509 y crear un Secret <code>kubernetes.io/tls</code>.</li>
+<li>Asociar el certificado al Ingress por host.</li>
+<li>Probar con <code>curl --resolve</code>.</li>
+</ul>
+<h2 id="escenario">Escenario</h2>
+<p>Reproduces el escenario clásico del curso: <code>/service1</code> debe llegar a una aplicación nginx y <code>/service2</code> a una aplicación httpd, ambas por el mismo punto de entrada, primero en HTTP y después en HTTPS con el host <code>secure-ingress.com</code>.</p>
+<blockquote>
+<p><strong>Contexto técnico.</strong> El controlador comunitario <code>ingress-nginx</code> fue retirado en marzo de 2026 y ya no recibe parches. Este laboratorio usa <strong>Traefik</strong>, que está mantenido y soporta la API Ingress estándar. Los manifiestos Ingress que escribas son los mismos: solo cambia el <code>ingressClassName</code>.</p>
+</blockquote>
+<h2 id="estado-inicial">Estado inicial</h2>
+<ul>
+<li>Namespace de trabajo: <strong><code>c5-ingress</code></strong>.</li>
+<li>Sin Ingress Controller instalado (o con uno que puedas identificar con <code>kubectl get ingressclass</code>).</li>
+<li>Necesitas la IP de un nodo accesible desde tu equipo.</li>
+</ul>
+<h2 id="requerimientos">Requerimientos</h2>
+<h3 id="parte-a-controlador">Parte A — Controlador</h3>
+<ol>
+<li>Instala un Ingress Controller con el script de apoyo:
+   <code>bash
+   cd CLASE-05/RECURSOS/SCRIPTS &amp;&amp; ./install-ingress-controller.sh</code></li>
+<li>Comprueba qué <code>IngressClass</code> quedó registrada y anota su nombre.</li>
+<li>Localiza el Service del controlador y anota los <code>nodePort</code> de HTTP y HTTPS.</li>
+</ol>
+<h3 id="parte-b-aplicaciones-y-services">Parte B — Aplicaciones y Services</h3>
+<ol start="4">
+<li>Crea el namespace <code>c5-ingress</code>.</li>
+<li>Crea el Pod <strong><code>pod1</code></strong> con <code>nginx:1.27-alpine</code> y el Pod <strong><code>pod2</code></strong> con <code>httpd:2.4-alpine</code>.</li>
+<li>Expón <code>pod1</code> con un Service <strong><code>service1</code></strong> en el puerto 80, y <code>pod2</code> con <strong><code>service2</code></strong> en el puerto 80.</li>
+<li>Verifica ambos Services desde un Pod temporal antes de tocar el Ingress. <strong>Si esto no funciona, el Ingress tampoco lo hará.</strong></li>
+</ol>
+<h3 id="parte-c-ingress-http">Parte C — Ingress HTTP</h3>
+<ol start="8">
+<li>Crea un Ingress <strong><code>app-ingress</code></strong> con:<ul>
+<li><code>ingressClassName</code> el que anotaste,</li>
+<li>regla <code>path: /service1</code> → <code>service1:80</code>,</li>
+<li>regla <code>path: /service2</code> → <code>service2:80</code>,</li>
+<li><code>pathType: Prefix</code> en ambos.</li>
+</ul>
+</li>
+<li>Comprueba con <code>kubectl get ingress</code> que obtiene una dirección.</li>
+<li>Prueba desde fuera:
+    <code>bash
+    curl http://&lt;IP-NODO&gt;:&lt;nodePort-http&gt;/service1
+    curl http://&lt;IP-NODO&gt;:&lt;nodePort-http&gt;/service2</code></li>
+<li>Investiga: la aplicación recibe la petición con el path <code>/service1</code> incluido. Averigua cómo hacer que el backend reciba <code>/</code> en su lugar (reescritura de path) y aplícalo.</li>
+</ol>
+<h3 id="parte-d-https">Parte D — HTTPS</h3>
+<ol start="12">
+<li>Genera un certificado autofirmado para el <code>Common Name</code> <strong><code>secure-ingress.com</code></strong>, válido 3650 días:
+    <code>bash
+    cd CLASE-05/RECURSOS/SCRIPTS &amp;&amp; ./gen-tls-secret.sh</code>
+    o hazlo a mano con <code>openssl req -x509 -newkey rsa:4096 ...</code>.</li>
+<li>Crea un Secret de tipo <strong><code>kubernetes.io/tls</code></strong> llamado <strong><code>secure-ingress</code></strong> con ese certificado y su clave.</li>
+<li>Modifica <code>app-ingress</code> para:<ul>
+<li>añadir la sección <code>tls</code> con el host <code>secure-ingress.com</code> y el Secret,</li>
+<li>añadir <code>host: secure-ingress.com</code> a la regla.</li>
+</ul>
+</li>
+<li>Prueba HTTPS sin tocar tu <code>/etc/hosts</code>:
+    <code>bash
+    curl -kv https://secure-ingress.com:&lt;nodePort-https&gt;/service2 \
+      --resolve secure-ingress.com:&lt;nodePort-https&gt;:&lt;IP-NODO&gt;</code></li>
+<li>En la salida verbose, localiza y anota:<ul>
+<li>el <code>subject</code> y el <code>issuer</code> del certificado presentado,</li>
+<li>la versión de TLS negociada,</li>
+<li>el código de estado HTTP.</li>
+</ul>
+</li>
+</ol>
+<h2 id="restricciones">Restricciones</h2>
+<ul>
+<li>No uses <code>ingress-nginx</code> de la comunidad como controlador principal (está retirado).</li>
+<li>El certificado debe tener <code>CN=secure-ingress.com</code>.</li>
+<li>No modifiques <code>/etc/hosts</code>: usa <code>curl --resolve</code>.</li>
+<li>Los Services deben seguir siendo <code>ClusterIP</code>: la única entrada desde fuera es el controlador.</li>
+</ul>
+<h2 id="validacion">Validación</h2>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>ingressclass
+kubectl<span class="w"> </span>-n<span class="w"> </span>c5-ingress<span class="w"> </span>get<span class="w"> </span>pods,svc,ingress
+kubectl<span class="w"> </span>-n<span class="w"> </span>c5-ingress<span class="w"> </span>describe<span class="w"> </span>ingress<span class="w"> </span>app-ingress
+kubectl<span class="w"> </span>-n<span class="w"> </span>c5-ingress<span class="w"> </span>get<span class="w"> </span>secret<span class="w"> </span>secure-ingress<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.type}{&quot;\n&quot;}&#39;</span><span class="w">   </span><span class="c1"># kubernetes.io/tls</span>
+curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;%{http_code}\n&#39;</span><span class="w"> </span>http://&lt;IP-NODO&gt;:&lt;np-http&gt;/service1
+curl<span class="w"> </span>-sk<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;%{http_code}\n&#39;</span><span class="w"> </span>https://secure-ingress.com:&lt;np-https&gt;/service2<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resolve<span class="w"> </span>secure-ingress.com:&lt;np-https&gt;:&lt;IP-NODO&gt;
+</code></pre></div>
+
+<h2 id="resultado-esperado">Resultado esperado</h2>
+<ul>
+<li><code>/service1</code> devuelve la página de bienvenida de nginx.</li>
+<li><code>/service2</code> devuelve <code>&lt;html&gt;&lt;body&gt;&lt;h1&gt;It works!&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;</code>.</li>
+<li>En HTTPS, el certificado presentado tiene <code>CN=secure-ingress.com</code> (no el certificado por defecto del controlador) y la respuesta es <code>200</code>.</li>
+</ul>
+<h2 id="criterios-de-exito">Criterios de éxito</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Ingress Controller instalado y su <code>IngressClass</code> identificada.</li>
+<li class="task"><span class="box"></span><code>service1</code> y <code>service2</code> verificados <strong>antes</strong> de crear el Ingress.</li>
+<li class="task"><span class="box"></span>Ingress con dos reglas de path y <code>pathType: Prefix</code>.</li>
+<li class="task"><span class="box"></span>Ambos paths responden por HTTP.</li>
+<li class="task"><span class="box"></span>Implementé la reescritura de path y comprobé el efecto.</li>
+<li class="task"><span class="box"></span>Certificado generado con <code>CN=secure-ingress.com</code>.</li>
+<li class="task"><span class="box"></span>Secret de tipo <code>kubernetes.io/tls</code> creado.</li>
+<li class="task"><span class="box"></span>El Ingress presenta mi certificado, no el del controlador.</li>
+<li class="task"><span class="box"></span>HTTPS devuelve 200 usando <code>curl --resolve</code>.</li>
+<li class="task"><span class="box"></span>Anoté subject, issuer, versión TLS y código HTTP.</li>
+</ul>
+    <div class="lab-note">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+    </div>
+    <nav class="pager"><a href="../lab-1/">← LAB 5.1</a><a href="../lab-3/">LAB 5.3 →</a></nav>
+  </article>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

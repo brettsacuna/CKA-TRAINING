@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 4.4 — Challenge: el despliegue que no arranca · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+
+</head>
+<body class="labpage">
+<header class="topbar">
+  <a class="brand" href="../../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../../index.html">Inicio</a><a class="on" href="../../guia.html">Clases</a><a href="../../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../../index.html">Inicio</a><span class="sep">/</span><a href="../index.html">Clase 4</a><span class="sep">/</span><span>LAB 4.4</span></nav>
+
+<div class="lab-layout">
+  <aside class="lab-side">
+    <details class="lab-nav" open>
+      <summary>Clase 4 · Laboratorios</summary>
+      <div class="railcard-h">Clase 4 · Laboratorios</div>
+      <div class="side-labs"><a class="" href="../lab-1/">LAB 4.1 — Rolling Update y Rollback</a><a class="" href="../lab-2/">LAB 4.2 — ConfigMaps y Secrets</a><a class="" href="../lab-3/">LAB 4.3 — Recursos, QoS, escalado y métricas</a><a class="on" href="../lab-4/">LAB 4.4 — Challenge: el despliegue que no arranca</a></div>
+      <div class="railcard-h" style="margin-top:22px">Recursos</div>
+      <a class="rlink" href="../recursos.html">Visor de recursos</a>
+      <a class="rlink" href="../../slides/01-CLASE-04-CKA.pptx" download>Presentación (.pptx)</a>
+    </details>
+  </aside>
+  <script>if(matchMedia('(max-width:900px)').matches){var _ln=document.currentScript.previousElementSibling.querySelector('.lab-nav');if(_ln)_ln.removeAttribute('open');}</script>
+  <article class="md lab-body">
+    <div class="eyebrow">LAB 4.4</div>
+    <h1>Challenge: el despliegue que no arranca</h1>
+    <div class="chips">
+      <span class="lvl danger mono">Nivel · Challenge</span>
+      <span class="chip mono">20 minutos</span>
+    </div>
+    <h2 id="objetivo">Objetivo</h2>
+<p>Diagnosticar un Deployment que no consigue levantar ninguna réplica, donde el fallo está repartido entre configuración, secretos y recursos.</p>
+<div class="hl"><pre><span></span><code>IDENTIFICAR -&gt; DIAGNOSTICAR -&gt; CORREGIR -&gt; VALIDAR
+</code></pre></div>
+
+<h2 id="competencias">Competencias</h2>
+<ul>
+<li>Distinguir <code>CreateContainerConfigError</code>, <code>CrashLoopBackOff</code>, <code>Pending</code> e <code>ImagePullBackOff</code>.</li>
+<li>Rastrear una referencia rota a un ConfigMap o a un Secret.</li>
+<li>Detectar un rollout atascado y explicar por qué no avanza.</li>
+<li>Reparar sin recrear el Deployment.</li>
+</ul>
+<h2 id="escenario">Escenario</h2>
+<p>El equipo de facturación desplegó anoche la versión nueva de <strong><code>billing</code></strong> y desde entonces <strong>ninguna réplica arranca</strong>. El servicio está caído.</p>
+<h2 id="estado-inicial">Estado inicial</h2>
+<div class="hl"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>CLASE-04/RECURSOS/SCRIPTS
+./setup-lab.sh
+</code></pre></div>
+
+<p>Crea el namespace <strong><code>c4-challenge</code></strong> con un Deployment <code>billing</code>, un Service <code>billing</code>, un ConfigMap y un Secret. <strong>No funciona.</strong></p>
+<p>Hay <strong>4 fallos</strong>. No se te dice cuáles.</p>
+<h2 id="requerimientos">Requerimientos</h2>
+<ol>
+<li>Identifica el estado real de los Pods y <strong>qué significa exactamente cada estado</strong> que veas.</li>
+<li>Encuentra las referencias rotas.</li>
+<li>Documenta, por cada fallo: síntoma, comando que lo reveló, causa raíz.</li>
+<li>Corrige hasta que <code>billing</code> tenga <strong>3/3</strong> réplicas <code>Running</code> y <code>Ready</code>.</li>
+<li>Comprueba que el Service responde.</li>
+<li>Deja registrada la causa del cambio en el historial del Deployment.</li>
+</ol>
+<h2 id="restricciones">Restricciones</h2>
+<ul>
+<li><strong>No elimines</strong> el Deployment <code>billing</code> ni el Service.</li>
+<li>No pegues valores sensibles en el manifiesto del Deployment: deben venir del Secret.</li>
+<li>No aumentes los <code>limits</code> por encima de lo que el nodo puede dar; si un <code>requests</code> es irreal, <strong>corrígelo</strong>, no amplíes el cluster.</li>
+<li>No cambies la imagen a una distinta de la familia <code>nginx</code>.</li>
+</ul>
+<h2 id="ruta-de-diagnostico-sugerida">Ruta de diagnóstico sugerida</h2>
+<div class="hl"><pre><span></span><code>get pods                      -&gt; ¿qué estado exacto?
+   |
+   +-- Pending                -&gt; describe -&gt; Events -&gt; requests / nodeSelector / taints
+   +-- ImagePullBackOff       -&gt; describe -&gt; Events -&gt; nombre y tag de la imagen
+   +-- CreateContainerConfigError -&gt; describe -&gt; Events -&gt; ConfigMap / Secret que falta
+   +-- CrashLoopBackOff       -&gt; logs / logs --previous
+   |
+rollout status                -&gt; ¿avanza o está bloqueado?
+get cm,secret                 -&gt; ¿existen los nombres referenciados?
+describe deploy               -&gt; ¿qué claves referencia exactamente?
+</code></pre></div>
+
+<h2 id="comandos-de-diagnostico">Comandos de diagnóstico</h2>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>-n<span class="w"> </span>c4-challenge<span class="w"> </span>get<span class="w"> </span>deploy,rs,pods
+kubectl<span class="w"> </span>-n<span class="w"> </span>c4-challenge<span class="w"> </span>describe<span class="w"> </span>pod<span class="w"> </span>&lt;pod&gt;<span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;/Events/,$p&#39;</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>c4-challenge<span class="w"> </span>logs<span class="w"> </span>&lt;pod&gt;<span class="w"> </span>--previous
+kubectl<span class="w"> </span>-n<span class="w"> </span>c4-challenge<span class="w"> </span>get<span class="w"> </span>cm,secret
+kubectl<span class="w"> </span>-n<span class="w"> </span>c4-challenge<span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>billing<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-A6<span class="w"> </span>-E<span class="w"> </span><span class="s1">&#39;envFrom|valueFrom|resources|volumes&#39;</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>c4-challenge<span class="w"> </span>rollout<span class="w"> </span>status<span class="w"> </span>deploy/billing<span class="w"> </span>--timeout<span class="o">=</span>20s
+kubectl<span class="w"> </span>describe<span class="w"> </span>node<span class="w"> </span>&lt;worker&gt;<span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;/Allocatable/,/Allocated/p&#39;</span>
+</code></pre></div>
+
+<h2 id="validacion">Validación</h2>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>-n<span class="w"> </span>c4-challenge<span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>billing<span class="w">         </span><span class="c1"># 3/3</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>c4-challenge<span class="w"> </span>get<span class="w"> </span>pods
+kubectl<span class="w"> </span>-n<span class="w"> </span>c4-challenge<span class="w"> </span>rollout<span class="w"> </span><span class="nb">history</span><span class="w"> </span>deploy/billing
+kubectl<span class="w"> </span>run<span class="w"> </span>tmp<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>-n<span class="w"> </span>c4-challenge<span class="w"> </span>--image<span class="o">=</span>busybox:1.36<span class="w"> </span>--restart<span class="o">=</span>Never<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>wget<span class="w"> </span>-qO-<span class="w"> </span>http://billing
+
+<span class="nb">cd</span><span class="w"> </span>CLASE-04/RECURSOS/SCRIPTS<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>./validate-lab.sh
+</code></pre></div>
+
+<h2 id="resultado-esperado">Resultado esperado</h2>
+<ul>
+<li><code>billing</code> con <strong>3/3</strong> réplicas <code>Running</code> y <code>Ready</code>.</li>
+<li>El Service <code>billing</code> responde con la página de nginx.</li>
+<li><code>rollout history</code> muestra un <code>CHANGE-CAUSE</code> describiendo la reparación.</li>
+<li><code>./validate-lab.sh</code> termina con <code>LAB 4.4 SUPERADO</code>.</li>
+</ul>
+<h2 id="criterios-de-exito">Criterios de éxito</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Identifiqué los 4 fallos sin consultar la solución.</li>
+<li class="task"><span class="box"></span>Sé explicar la diferencia entre los estados que observé.</li>
+<li class="task"><span class="box"></span>Documenté síntoma, comando y causa raíz de cada fallo.</li>
+<li class="task"><span class="box"></span>Las 3 réplicas están <code>Running</code> y <code>Ready</code>.</li>
+<li class="task"><span class="box"></span>Los valores sensibles siguen viniendo del Secret.</li>
+<li class="task"><span class="box"></span>El Service responde.</li>
+<li class="task"><span class="box"></span>Registré la causa del cambio.</li>
+<li class="task"><span class="box"></span>No eliminé el Deployment ni el Service.</li>
+<li class="task"><span class="box"></span><code>./validate-lab.sh</code> pasa.</li>
+</ul>
+    <div class="lab-note">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+    </div>
+    <nav class="pager"><a href="../lab-3/">← LAB 4.3</a><span></span></nav>
+  </article>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

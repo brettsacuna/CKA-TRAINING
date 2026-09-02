@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 6.5 — LABORATORIO INTEGRADOR FINAL · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+
+</head>
+<body class="labpage">
+<header class="topbar">
+  <a class="brand" href="../../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../../index.html">Inicio</a><a class="on" href="../../guia.html">Clases</a><a href="../../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../../index.html">Inicio</a><span class="sep">/</span><a href="../index.html">Clase 6</a><span class="sep">/</span><span>LAB 6.5</span></nav>
+
+<div class="lab-layout">
+  <aside class="lab-side">
+    <details class="lab-nav" open>
+      <summary>Clase 6 · Laboratorios</summary>
+      <div class="railcard-h">Clase 6 · Laboratorios</div>
+      <div class="side-labs"><a class="" href="../lab-1/">LAB 6.1 — Traducir estados: seis Pods, seis causas</a><a class="" href="../lab-2/">LAB 6.2 — Nodo y control plane</a><a class="" href="../lab-3/">LAB 6.3 — Cadena de fallos entre capas</a><a class="" href="../lab-4/">LAB 6.4 — Challenge contrarreloj: 15 minutos</a><a class="on" href="../lab-5/">LAB 6.5 — LABORATORIO INTEGRADOR FINAL</a></div>
+      <div class="railcard-h" style="margin-top:22px">Recursos</div>
+      <a class="rlink" href="../recursos.html">Visor de recursos</a>
+      <a class="rlink" href="../../slides/01-CLASE-06-CKA.pptx" download>Presentación (.pptx)</a>
+    </details>
+  </aside>
+  <script>if(matchMedia('(max-width:900px)').matches){var _ln=document.currentScript.previousElementSibling.querySelector('.lab-nav');if(_ln)_ln.removeAttribute('open');}</script>
+  <article class="md lab-body">
+    <div class="eyebrow">LAB 6.5</div>
+    <h1>LABORATORIO INTEGRADOR FINAL</h1>
+    <div class="chips">
+      <span class="lvl danger mono">Nivel · Integrador</span>
+      <span class="chip mono">50 minutos</span>
+    </div>
+    <h2 id="objetivo">Objetivo</h2>
+<p>Desplegar de principio a fin una arquitectura completa que use <strong>todo</strong> lo visto en las 18 horas, y después repararla cuando el instructor inyecte fallas.</p>
+<p>Este laboratorio es la evolución de la evaluación final del curso original.</p>
+<h2 id="competencias">Competencias</h2>
+<p>Todas las del curso, integradas: workloads, scheduling, storage, StatefulSets, configuración, secretos, recursos, Services, Ingress, TLS, DNS y NetworkPolicy.</p>
+<h2 id="arquitectura-a-construir">Arquitectura a construir</h2>
+<div class="hl"><pre><span></span><code>                    INTERNET
+                       |
+                     HTTPS
+                       |
+                    INGRESS
+                       |
+              +--------+--------+
+              |                 |
+          FRONTEND           BACKEND
+          (Deployment)      (Deployment)
+                                |
+                          HEADLESS SVC
+                                |
+                           STATEFULSET
+                                |
+                               PVC
+                                |
+                             STORAGE
+</code></pre></div>
+
+<h2 id="estado-inicial">Estado inicial</h2>
+<ul>
+<li>Namespace de trabajo: <strong><code>tienda</code></strong> (lo creas tú).</li>
+<li>Ingress Controller instalado (Clase 5).</li>
+<li>Metrics Server instalado (Clase 4).</li>
+<li>Cluster con al menos dos nodos programables.</li>
+</ul>
+<hr>
+<h1 id="fase-1-construccion-30-minutos">FASE 1 — CONSTRUCCIÓN (30 minutos)</h1>
+<p>Construye, a partir de estos requerimientos, sin manifiestos dados.</p>
+<h2 id="r1-namespace-y-configuracion">R1 — Namespace y configuración</h2>
+<ol>
+<li>Namespace <strong><code>tienda</code></strong>.</li>
+<li>ConfigMap <strong><code>app-config</code></strong> con:<ul>
+<li><code>APP_ENV=production</code></li>
+<li><code>BACKEND_URL=http://backend.tienda.svc.cluster.local</code></li>
+</ul>
+</li>
+<li>Secret <strong><code>db-credentials</code></strong> (tipo <code>Opaque</code>) con:<ul>
+<li><code>username=appuser</code></li>
+<li><code>password=T13nd4-2026</code></li>
+</ul>
+</li>
+</ol>
+<h2 id="r2-base-de-datos-con-estado">R2 — Base de datos con estado</h2>
+<ol start="4">
+<li><strong>Headless Service</strong> <code>db</code> (<code>clusterIP: None</code>), puerto 5432.</li>
+<li><strong>StatefulSet</strong> <code>db</code> con:<ul>
+<li><strong>3 réplicas</strong>, <code>serviceName: db</code>,</li>
+<li>imagen <code>postgres:16-alpine</code>,</li>
+<li><code>POSTGRES_USER</code> y <code>POSTGRES_PASSWORD</code> tomados del Secret <code>db-credentials</code>,</li>
+<li><code>volumeClaimTemplates</code> que cree un PVC de <strong>1Gi</strong> por réplica, modo <strong><code>ReadWriteOnce</code> (RWO)</strong>, montado en <code>/var/lib/postgresql/data</code>,</li>
+<li><code>requests</code>: <code>cpu=100m</code>, <code>memory=128Mi</code>; <code>limits</code>: <code>cpu=500m</code>, <code>memory=512Mi</code>,</li>
+<li>las réplicas deben repartirse entre nodos distintos siempre que sea posible.</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>Si tu cluster no tiene StorageClass por defecto, crea los PV necesarios antes.</p>
+</blockquote>
+<h2 id="r3-backend">R3 — Backend</h2>
+<ol start="6">
+<li><strong>Deployment</strong> <code>backend</code>, 2 réplicas, imagen <code>nginx:1.27-alpine</code>:<ul>
+<li>recibe <strong>todas</strong> las claves de <code>app-config</code> con <code>envFrom</code>,</li>
+<li>recibe <code>DB_PASSWORD</code> desde el Secret,</li>
+<li>monta el Secret completo en <code>/etc/db-credentials</code> en solo lectura,</li>
+<li><code>requests</code> <code>cpu=100m</code>, <code>memory=64Mi</code>; <code>limits</code> <code>cpu=300m</code>, <code>memory=256Mi</code>,</li>
+<li><code>readinessProbe</code> HTTP sobre <code>/</code> en el puerto 80.</li>
+</ul>
+</li>
+<li>Service <strong><code>backend</code></strong> de tipo ClusterIP, puerto 80.</li>
+</ol>
+<h2 id="r4-frontend">R4 — Frontend</h2>
+<ol start="8">
+<li><strong>Deployment</strong> <code>frontend</code>, 2 réplicas, imagen <code>nginx:1.27-alpine</code>, con los mismos criterios de recursos y readiness.</li>
+<li>Service <strong><code>frontend</code></strong> de tipo ClusterIP, puerto 80.</li>
+</ol>
+<h2 id="r5-publicacion">R5 — Publicación</h2>
+<ol start="10">
+<li>Certificado autofirmado con <code>CN=tienda.local</code> y Secret TLS <strong><code>tienda-tls</code></strong> en el namespace <code>tienda</code>.</li>
+<li><strong>Ingress</strong> <code>tienda</code> con:<ul>
+<li>el <code>ingressClassName</code> de tu controlador,</li>
+<li>host <code>tienda.local</code>,</li>
+<li><code>/</code> → <code>frontend:80</code>,</li>
+<li><code>/api</code> → <code>backend:80</code>,</li>
+<li>TLS con <code>tienda-tls</code>.</li>
+</ul>
+</li>
+</ol>
+<h2 id="r6-seguridad-de-red">R6 — Seguridad de red</h2>
+<ol start="12">
+<li>NetworkPolicy <strong><code>default-deny</code></strong> en <code>tienda</code> (Ingress y Egress para todos los Pods).</li>
+<li>Políticas adicionales que permitan <strong>exclusivamente</strong>:<ul>
+<li>DNS para todos los Pods,</li>
+<li><code>frontend</code> → <code>backend</code> (puerto 80),</li>
+<li><code>backend</code> → <code>db</code> (puerto 5432),</li>
+<li>entrada desde el namespace del Ingress Controller hacia <code>frontend</code> y <code>backend</code>.</li>
+</ul>
+</li>
+</ol>
+<h2 id="r7-verificacion-de-recursos">R7 — Verificación de recursos</h2>
+<ol start="14">
+<li>Comprueba con <code>kubectl top pods -n tienda</code> el consumo real y compáralo con lo solicitado.</li>
+<li>Revisa los eventos del namespace y confirma que no hay advertencias pendientes.</li>
+</ol>
+<h2 id="validacion-de-la-fase-1">Validación de la Fase 1</h2>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>-n<span class="w"> </span>tienda<span class="w"> </span>get<span class="w"> </span>all,pvc,cm,secret,ingress,networkpolicy
+kubectl<span class="w"> </span>-n<span class="w"> </span>tienda<span class="w"> </span>get<span class="w"> </span>sts<span class="w"> </span>db<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.serviceName}{&quot;\n&quot;}&#39;</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>tienda<span class="w"> </span>get<span class="w"> </span>pvc
+kubectl<span class="w"> </span>-n<span class="w"> </span>tienda<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-o<span class="w"> </span>wide
+kubectl<span class="w"> </span>-n<span class="w"> </span>tienda<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>deploy/backend<span class="w"> </span>--<span class="w"> </span>env<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s1">&#39;APP_ENV|BACKEND_URL|DB_PASSWORD&#39;</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>tienda<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>deploy/frontend<span class="w"> </span>--<span class="w"> </span>curl<span class="w"> </span>-s<span class="w"> </span>--max-time<span class="w"> </span><span class="m">3</span><span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;%{http_code}\n&#39;</span><span class="w"> </span>http://backend
+curl<span class="w"> </span>-sk<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;%{http_code}\n&#39;</span><span class="w"> </span>https://tienda.local:32443/<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resolve<span class="w"> </span>tienda.local:32443:&lt;IP-NODO&gt;
+kubectl<span class="w"> </span>top<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>tienda
+kubectl<span class="w"> </span>-n<span class="w"> </span>tienda<span class="w"> </span>get<span class="w"> </span>events<span class="w"> </span>--sort-by<span class="o">=</span>.lastTimestamp<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-20
+</code></pre></div>
+
+<h3 id="criterios-de-exito-de-la-fase-1">Criterios de éxito de la Fase 1</h3>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Namespace <code>tienda</code> con ConfigMap y Secret creados.</li>
+<li class="task"><span class="box"></span>StatefulSet <code>db</code> con 3/3 réplicas y 3 PVC RWO de 1Gi.</li>
+<li class="task"><span class="box"></span>Headless Service <code>db</code> con <code>clusterIP: None</code>.</li>
+<li class="task"><span class="box"></span>Las réplicas de <code>db</code> están repartidas entre nodos.</li>
+<li class="task"><span class="box"></span><code>backend</code> y <code>frontend</code> con 2/2 réplicas, readiness y recursos definidos.</li>
+<li class="task"><span class="box"></span>El Secret está montado como volumen en <code>backend</code> en solo lectura.</li>
+<li class="task"><span class="box"></span>Ingress con host, dos paths y TLS propio.</li>
+<li class="task"><span class="box"></span>HTTPS responde 200 en <code>/</code> y en <code>/api</code>.</li>
+<li class="task"><span class="box"></span><code>default-deny</code> aplicado y el tráfico autorizado sigue funcionando.</li>
+<li class="task"><span class="box"></span><code>kubectl top pods</code> devuelve datos del namespace.</li>
+</ul>
+<hr>
+<h1 id="fase-2-troubleshooting-20-minutos">FASE 2 — TROUBLESHOOTING (20 minutos)</h1>
+<p>Cuando el instructor lo indique:</p>
+<div class="hl"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>CLASE-06/RECURSOS/SCRIPTS
+./inject-failures.sh
+</code></pre></div>
+
+<p>El script inyecta <strong>entre 5 y 8 fallas</strong> en la arquitectura que acabas de construir. Las categorías posibles son:</p>
+<ol>
+<li>selector incorrecto,</li>
+<li>ConfigMap mal referenciado,</li>
+<li>Secret inexistente o clave equivocada,</li>
+<li>PVC en <code>Pending</code>,</li>
+<li>NetworkPolicy bloqueando <code>frontend</code> → <code>backend</code>,</li>
+<li>Ingress apuntando al Service o puerto incorrecto,</li>
+<li>problema de scheduling (taint, <code>nodeSelector</code> o <code>requests</code> irreales),</li>
+<li><code>targetPort</code> incorrecto.</li>
+</ol>
+<p><strong>No se te dice cuáles se han aplicado ni cuántas.</strong></p>
+<h2 id="requerimientos-de-la-fase-2">Requerimientos de la Fase 2</h2>
+<ol start="16">
+<li>Identifica <strong>todas</strong> las fallas.</li>
+<li>Documenta, por cada una: capa, síntoma, comando que la reveló, causa raíz, corrección.</li>
+<li>Repara la arquitectura hasta que vuelva a superar la validación de la Fase 1.</li>
+<li><strong>No reconstruyas desde cero</strong>: repara in situ.</li>
+</ol>
+<h2 id="restricciones-de-la-fase-2">Restricciones de la Fase 2</h2>
+<ul>
+<li>Prohibido borrar el namespace y volver a empezar.</li>
+<li>Prohibido borrar la política <code>default-deny</code>.</li>
+<li>Prohibido eliminar los PVC del StatefulSet.</li>
+<li>Prohibido usar <code>cluster-admin</code>.</li>
+<li>Los datos de la base de datos deben conservarse.</li>
+</ul>
+<h2 id="validacion-final">Validación final</h2>
+<div class="hl"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>CLASE-06/RECURSOS/SCRIPTS
+./validate-lab.sh<span class="w"> </span>final
+</code></pre></div>
+
+<h2 id="criterios-de-exito-de-la-fase-2">Criterios de éxito de la Fase 2</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Identifiqué todas las fallas inyectadas.</li>
+<li class="task"><span class="box"></span>Documenté capa, síntoma, comando, causa raíz y corrección de cada una.</li>
+<li class="task"><span class="box"></span>La arquitectura vuelve a superar la validación completa.</li>
+<li class="task"><span class="box"></span>No borré el namespace ni reconstruí desde cero.</li>
+<li class="task"><span class="box"></span><code>default-deny</code> sigue en pie.</li>
+<li class="task"><span class="box"></span>Los PVC y sus datos se conservaron.</li>
+<li class="task"><span class="box"></span><code>./validate-lab.sh final</code> termina con <code>LABORATORIO INTEGRADOR SUPERADO</code>.</li>
+</ul>
+<hr>
+<h2 id="entregables-opcional-para-evaluacion-formal">Entregables (opcional, para evaluación formal)</h2>
+<p>Si la clase se evalúa, cada participante entrega:</p>
+<ol>
+<li>Los manifiestos YAML de la Fase 1, empaquetados: <code>tar -czf tienda-&lt;apellido&gt;.tar.gz manifests/</code></li>
+<li>El host y el puerto por el que se accede al Ingress.</li>
+<li>Un documento con el desarrollo paso a paso y la tabla de diagnóstico de la Fase 2.</li>
+</ol>
+    <div class="lab-note">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+    </div>
+    <nav class="pager"><a href="../lab-4/">← LAB 6.4</a><span></span></nav>
+  </article>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

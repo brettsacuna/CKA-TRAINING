@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recursos · Clase 4 · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
+
+</head>
+<body class="viewerpage">
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../index.html">Inicio</a><a class="on" href="../guia.html">Clases</a><a href="../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../index.html">Inicio</a><span class="sep">/</span><a href="index.html">Clase 4</a><span class="sep">/</span><span>Recursos</span></nav>
+
+<section class="clase-head compact">
+  <div class="eyebrow">Clase 4 · Recursos</div>
+  <h1>Manifiestos y scripts</h1>
+  <p class="lead">Archivos de referencia de los laboratorios de la clase. Cópialos o descárgalos.</p>
+</section>
+<div class="viewer-layout">
+  <nav class="rl"><div class="rl-group mono">YAML/</div><a class="rl-item mono" href="#01-deployment-versioning.yaml" data-file="01-deployment-versioning.yaml">01-deployment-versioning.yaml</a><a class="rl-item mono" href="#02-configmap-secret.yaml" data-file="02-configmap-secret.yaml">02-configmap-secret.yaml</a><a class="rl-item mono" href="#03-deployment-web-moon.yaml" data-file="03-deployment-web-moon.yaml">03-deployment-web-moon.yaml</a><a class="rl-item mono" href="#04-qos-ejemplos.yaml" data-file="04-qos-ejemplos.yaml">04-qos-ejemplos.yaml</a><a class="rl-item mono" href="#05-oomkilled.yaml" data-file="05-oomkilled.yaml">05-oomkilled.yaml</a><a class="rl-item mono" href="#06-billing-referencia.yaml" data-file="06-billing-referencia.yaml">06-billing-referencia.yaml</a><div class="rl-group mono">SCRIPTS/</div><a class="rl-item mono" href="#install-metrics-server.sh" data-file="install-metrics-server.sh">install-metrics-server.sh</a><a class="rl-item mono" href="#reset-lab.sh" data-file="reset-lab.sh">reset-lab.sh</a><a class="rl-item mono" href="#setup-lab.sh" data-file="setup-lab.sh">setup-lab.sh</a><a class="rl-item mono" href="#validate-lab.sh" data-file="validate-lab.sh">validate-lab.sh</a></nav>
+  <div class="viewer-stack">
+    <div class="viewer" data-file="01-deployment-versioning.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">01-deployment-versioning.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">32 líneas · 928 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="01-deployment-versioning.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/01-deployment-versioning.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 4.1 - Deployment base para practicar rollout y rollback.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx-deployment</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">c4-basico</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">nginx</span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/change-cause</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Despliegue</span><span class="nv"> </span><span class="s">inicial</span><span class="nv"> </span><span class="s">nginx</span><span class="nv"> </span><span class="s">1.25&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">revisionHistoryLimit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">  </span><span class="nt">strategy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RollingUpdate</span>
+<span class="w">    </span><span class="nt">rollingUpdate</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">maxSurge</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25%</span><span class="w">          </span><span class="c1"># cuantos Pods de mas se permiten durante el rollout</span>
+<span class="w">      </span><span class="nt">maxUnavailable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25%</span><span class="w">    </span><span class="c1"># cuantos Pods pueden faltar durante el rollout</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">nginx</span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">metadata</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">labels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">nginx</span><span class="p p-Indicator">}</span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
+<span class="w">          </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:1.25-alpine</span>
+<span class="w">          </span><span class="nt">ports</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">containerPort</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}]</span>
+<span class="w">          </span><span class="nt">readinessProbe</span><span class="p">:</span><span class="w">            </span><span class="c1"># sin esto, un rollout roto tumba el servicio</span>
+<span class="w">            </span><span class="nt">httpGet</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="nv">/</span><span class="p p-Indicator">,</span><span class="nt"> port</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}</span>
+<span class="w">            </span><span class="nt">initialDelaySeconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">            </span><span class="nt">periodSeconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="02-configmap-secret.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">02-configmap-secret.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">16 líneas · 377 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="02-configmap-secret.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/02-configmap-secret.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 4.2 - Configuracion externalizada.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ConfigMap</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">app-config</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c4-config</span><span class="p p-Indicator">}</span>
+<span class="nt">data</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">APP_COLOR</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">blue</span>
+<span class="w">  </span><span class="nt">APP_MODE</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Secret</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">db-cred</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c4-config</span><span class="p p-Indicator">}</span>
+<span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Opaque</span>
+<span class="nt">stringData</span><span class="p">:</span><span class="w">            </span><span class="c1"># stringData acepta texto plano; el API server lo codifica</span>
+<span class="w">  </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">admin</span>
+<span class="w">  </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Sup3rS3cret</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="03-deployment-web-moon.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">03-deployment-web-moon.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">38 líneas · 1154 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="03-deployment-web-moon.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/03-deployment-web-moon.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 4.2 - Deployment que consume ConfigMap y Secret de las cuatro formas.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">web-moon</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c4-config</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">matchLabels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">web-moon</span><span class="p p-Indicator">}}</span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">labels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">web-moon</span><span class="p p-Indicator">}}</span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">html</span>
+<span class="w">          </span><span class="nt">configMap</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">configmap-web-moon-html</span><span class="w">   </span><span class="c1"># se actualiza solo al cambiar el CM</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cred</span>
+<span class="w">          </span><span class="nt">secret</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">secretName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">db-cred</span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
+<span class="w">          </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:1.27-alpine</span>
+<span class="w">          </span><span class="nt">ports</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">containerPort</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}]</span>
+<span class="w">          </span><span class="nt">envFrom</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">configMapRef</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">app-config</span><span class="p p-Indicator">}</span><span class="w">     </span><span class="c1"># todas las claves como variables</span>
+<span class="w">          </span><span class="nt">env</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DB_PASSWORD</span>
+<span class="w">              </span><span class="nt">valueFrom</span><span class="p">:</span>
+<span class="w">                </span><span class="nt">secretKeyRef</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">db-cred</span><span class="p p-Indicator">,</span><span class="nt"> key</span><span class="p">:</span><span class="w"> </span><span class="nv">password</span><span class="p p-Indicator">}</span>
+<span class="w">          </span><span class="nt">volumeMounts</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">html</span><span class="p p-Indicator">,</span><span class="nt"> mountPath</span><span class="p">:</span><span class="w"> </span><span class="nv">/usr/share/nginx/html</span><span class="p p-Indicator">}</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">cred</span><span class="p p-Indicator">,</span><span class="nt"> mountPath</span><span class="p">:</span><span class="w"> </span><span class="nv">/etc/db-cred</span><span class="p p-Indicator">,</span><span class="nt"> readOnly</span><span class="p">:</span><span class="w"> </span><span class="nv">true</span><span class="p p-Indicator">}</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">web-moon</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c4-config</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">web-moon</span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">,</span><span class="nt"> targetPort</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}]</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="04-qos-ejemplos.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">04-qos-ejemplos.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">34 líneas · 935 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="04-qos-ejemplos.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/04-qos-ejemplos.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 4.3 - Las tres clases de QoS.</span>
+<span class="c1"># Guaranteed: requests == limits en TODOS los recursos de TODOS los contenedores.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Pod</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">pod-guaranteed</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c4-recursos</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
+<span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:1.27-alpine</span>
+<span class="w">      </span><span class="nt">resources</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">requests</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;200m&quot;</span><span class="p p-Indicator">,</span><span class="nt"> memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;128Mi&quot;</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="nt">limits</span><span class="p">:</span><span class="w">   </span><span class="p p-Indicator">{</span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;200m&quot;</span><span class="p p-Indicator">,</span><span class="nt"> memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;128Mi&quot;</span><span class="p p-Indicator">}</span>
+<span class="nn">---</span>
+<span class="c1"># Burstable: hay requests o limits, pero no coinciden en todo.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Pod</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">pod-burstable</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c4-recursos</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
+<span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:1.27-alpine</span>
+<span class="w">      </span><span class="nt">resources</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">requests</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;100m&quot;</span><span class="p p-Indicator">,</span><span class="nt"> memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;64Mi&quot;</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="nt">limits</span><span class="p">:</span><span class="w">   </span><span class="p p-Indicator">{</span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;500m&quot;</span><span class="p p-Indicator">,</span><span class="nt"> memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;256Mi&quot;</span><span class="p p-Indicator">}</span>
+<span class="nn">---</span>
+<span class="c1"># BestEffort: sin requests ni limits. Primero en ser desalojado.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Pod</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">pod-besteffort</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c4-recursos</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
+<span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:1.27-alpine</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="05-oomkilled.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">05-oomkilled.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">14 líneas · 401 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="05-oomkilled.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/05-oomkilled.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 4.3 - Pod que supera su limite de memoria: termina OOMKilled (exit 137).</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Pod</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">memoria</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c4-recursos</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stress</span>
+<span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">polinux/stress</span>
+<span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;stress&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">args</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;--vm&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;--vm-bytes&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;250M&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;--vm-hang&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">resources</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">requests</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;50Mi&quot;</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="nt">limits</span><span class="p">:</span><span class="w">   </span><span class="p p-Indicator">{</span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;100Mi&quot;</span><span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="06-billing-referencia.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">06-billing-referencia.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">45 líneas · 1174 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="06-billing-referencia.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/06-billing-referencia.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 4.4 - Estado CORRECTO de referencia del challenge (material del instructor).</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ConfigMap</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">billing-cfg</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c4-challenge</span><span class="p p-Indicator">}</span>
+<span class="nt">data</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">APP_MODE</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod</span>
+<span class="w">  </span><span class="nt">LOG_LEVEL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">info</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Secret</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">billing-secret</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c4-challenge</span><span class="p p-Indicator">}</span>
+<span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Opaque</span>
+<span class="nt">stringData</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">db-password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">F4ctur4cion2026</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">billing</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c4-challenge</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">matchLabels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">billing</span><span class="p p-Indicator">}}</span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">labels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">billing</span><span class="p p-Indicator">}}</span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">app</span>
+<span class="w">          </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:1.27-alpine</span>
+<span class="w">          </span><span class="nt">ports</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">containerPort</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}]</span>
+<span class="w">          </span><span class="nt">envFrom</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">configMapRef</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">billing-cfg</span><span class="p p-Indicator">}</span>
+<span class="w">          </span><span class="nt">env</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DB_PASSWORD</span>
+<span class="w">              </span><span class="nt">valueFrom</span><span class="p">:</span>
+<span class="w">                </span><span class="nt">secretKeyRef</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">billing-secret</span><span class="p p-Indicator">,</span><span class="nt"> key</span><span class="p">:</span><span class="w"> </span><span class="nv">db-password</span><span class="p p-Indicator">}</span>
+<span class="w">          </span><span class="nt">resources</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">requests</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;100m&quot;</span><span class="p p-Indicator">,</span><span class="nt"> memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;64Mi&quot;</span><span class="p p-Indicator">}</span>
+<span class="w">            </span><span class="nt">limits</span><span class="p">:</span><span class="w">   </span><span class="p p-Indicator">{</span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;500m&quot;</span><span class="p p-Indicator">,</span><span class="nt"> memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;256Mi&quot;</span><span class="p p-Indicator">}</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">billing</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c4-challenge</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">billing</span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">,</span><span class="nt"> targetPort</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}]</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="install-metrics-server.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">install-metrics-server.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">27 líneas · 1186 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="install-metrics-server.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/install-metrics-server.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="c1"># CLASE 4 - Instala Metrics Server v0.8.1.</span>
+<span class="c1"># En clusters kubeadm de laboratorio, los certificados de serving del kubelet suelen</span>
+<span class="c1"># ser autofirmados; por eso se ofrece el parche --kubelet-insecure-tls (SOLO laboratorio).</span>
+<span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
+<span class="nv">VER</span><span class="o">=</span><span class="si">${</span><span class="nv">VER</span><span class="k">:-</span><span class="nv">v0</span><span class="p">.8.1</span><span class="si">}</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Instalando Metrics Server </span><span class="si">${</span><span class="nv">VER</span><span class="si">}</span><span class="s2">...&quot;</span>
+kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;https://github.com/kubernetes-sigs/metrics-server/releases/download/</span><span class="si">${</span><span class="nv">VER</span><span class="si">}</span><span class="s2">/components.yaml&quot;</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Esperando al despliegue (puede quedarse en 0/1: es el sintoma que debes diagnosticar)...&quot;</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>kube-system<span class="w"> </span>rollout<span class="w"> </span>status<span class="w"> </span>deploy/metrics-server<span class="w"> </span>--timeout<span class="o">=</span>90s<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
+
+<span class="nb">echo</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Si los Pods no llegan a Ready, revisa:&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;   kubectl -n kube-system logs deploy/metrics-server | tail -20&quot;</span>
+<span class="nb">echo</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Parche habitual en laboratorio (NO usar en produccion):&quot;</span>
+cat<span class="w"> </span><span class="s">&lt;&lt;&#39;TXT&#39;</span>
+<span class="s">   kubectl -n kube-system patch deploy metrics-server --type=json -p=&#39;[</span>
+<span class="s">     {&quot;op&quot;:&quot;add&quot;,&quot;path&quot;:&quot;/spec/template/spec/containers/0/args/-&quot;,&quot;value&quot;:&quot;--kubelet-insecure-tls&quot;},</span>
+<span class="s">     {&quot;op&quot;:&quot;add&quot;,&quot;path&quot;:&quot;/spec/template/spec/containers/0/args/-&quot;,&quot;value&quot;:&quot;--kubelet-preferred-address-types=InternalIP&quot;}</span>
+<span class="s">   ]&#39;</span>
+<span class="s">TXT</span>
+<span class="nb">echo</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Validar:  kubectl top nodes &amp;&amp; kubectl top pods -A&quot;</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="reset-lab.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">reset-lab.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">6 líneas · 253 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="reset-lab.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/reset-lab.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="nb">set</span><span class="w"> </span>-uo<span class="w"> </span>pipefail
+kubectl<span class="w"> </span>delete<span class="w"> </span>namespace<span class="w"> </span>c4-basico<span class="w"> </span>c4-config<span class="w"> </span>c4-recursos<span class="w"> </span>c4-challenge<span class="w"> </span>--ignore-not-found<span class="w"> </span>--wait<span class="o">=</span><span class="nb">false</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Reset de la Clase 4 completado.&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;   Metrics Server se deja instalado: se usa en las Clases 5 y 6.&quot;</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="setup-lab.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">setup-lab.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">59 líneas · 1657 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="setup-lab.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/setup-lab.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="c1"># CLASE 4 - Prepara el escenario del LAB 4.4 (Challenge) YA ROTO.</span>
+<span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
+<span class="nv">NS</span><span class="o">=</span>c4-challenge
+kubectl<span class="w"> </span>create<span class="w"> </span>namespace<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$NS</span><span class="s2">&quot;</span><span class="w"> </span>--dry-run<span class="o">=</span>client<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>-
+
+cat<span class="w"> </span><span class="s">&lt;&lt;&#39;YAML&#39; | kubectl apply -f -</span>
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: ConfigMap</span>
+<span class="s">metadata: {name: billing-cfg, namespace: c4-challenge}</span>
+<span class="s">data:</span>
+<span class="s">  APP_MODE: prod</span>
+<span class="s">  LOG_LEVEL: info</span>
+<span class="s">---</span>
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: Secret</span>
+<span class="s">metadata: {name: billing-secret, namespace: c4-challenge}</span>
+<span class="s">type: Opaque</span>
+<span class="s">stringData:</span>
+<span class="s">  db-password: F4ctur4cion2026</span>
+<span class="s">---</span>
+<span class="s">apiVersion: apps/v1</span>
+<span class="s">kind: Deployment</span>
+<span class="s">metadata: {name: billing, namespace: c4-challenge}</span>
+<span class="s">spec:</span>
+<span class="s">  replicas: 3</span>
+<span class="s">  selector: {matchLabels: {app: billing}}</span>
+<span class="s">  template:</span>
+<span class="s">    metadata: {labels: {app: billing}}</span>
+<span class="s">    spec:</span>
+<span class="s">      containers:</span>
+<span class="s">        - name: app</span>
+<span class="s">          image: nginx:1.99-alpine</span>
+<span class="s">          ports: [{containerPort: 80}]</span>
+<span class="s">          envFrom:</span>
+<span class="s">            - configMapRef: {name: billing-config}</span>
+<span class="s">          env:</span>
+<span class="s">            - name: DB_PASSWORD</span>
+<span class="s">              valueFrom:</span>
+<span class="s">                secretKeyRef: {name: billing-secret, key: password}</span>
+<span class="s">          resources:</span>
+<span class="s">            requests: {cpu: &quot;8&quot;, memory: &quot;64Mi&quot;}</span>
+<span class="s">            limits:   {cpu: &quot;10&quot;, memory: &quot;256Mi&quot;}</span>
+<span class="s">---</span>
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: Service</span>
+<span class="s">metadata: {name: billing, namespace: c4-challenge}</span>
+<span class="s">spec:</span>
+<span class="s">  selector: {app: billing}</span>
+<span class="s">  ports: [{port: 80, targetPort: 80}]</span>
+<span class="s">YAML</span>
+
+<span class="nb">echo</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;===============================================================&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; LAB 4.4 listo. El Deployment &#39;billing&#39; NO levanta ninguna&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; replica. Objetivo: 3/3 Running y Ready, y el Service responde.&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; No elimines el Deployment ni el Service.&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;===============================================================&quot;</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="validate-lab.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">validate-lab.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">40 líneas · 2327 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="validate-lab.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/validate-lab.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="c1"># CLASE 4 - Valida el LAB 4.4.</span>
+<span class="nb">set</span><span class="w"> </span>-uo<span class="w"> </span>pipefail
+<span class="nv">NS</span><span class="o">=</span>c4-challenge<span class="p">;</span><span class="w"> </span><span class="nv">OK</span><span class="o">=</span><span class="m">0</span><span class="p">;</span><span class="w"> </span><span class="nv">FAIL</span><span class="o">=</span><span class="m">0</span>
+chk<span class="o">(){</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$2</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$3</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [OK]    </span><span class="nv">$1</span><span class="s2">&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">OK</span><span class="o">=</span><span class="k">$((</span><span class="nv">OK</span><span class="o">+</span><span class="m">1</span><span class="k">))</span><span class="p">;</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [FALLA] </span><span class="nv">$1</span><span class="s2"> (obtenido &#39;</span><span class="nv">$2</span><span class="s2">&#39;, esperado &#39;</span><span class="nv">$3</span><span class="s2">&#39;)&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">FAIL</span><span class="o">=</span><span class="k">$((</span><span class="nv">FAIL</span><span class="o">+</span><span class="m">1</span><span class="k">))</span><span class="p">;</span><span class="w"> </span><span class="k">fi</span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;== Validando LAB 4.4 ==&quot;</span>
+
+<span class="nv">READY</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>billing<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.status.readyReplicas}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="m">0</span><span class="k">)</span>
+chk<span class="w"> </span><span class="s2">&quot;billing con 3 replicas Ready&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">READY</span><span class="k">:-</span><span class="nv">0</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;3&quot;</span>
+
+<span class="nv">IMG</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>billing<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.template.spec.containers[0].image}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="k">)</span>
+<span class="k">case</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$IMG</span><span class="s2">&quot;</span><span class="w"> </span><span class="k">in</span><span class="w"> </span>nginx:*<span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [OK]    imagen valida de la familia nginx (</span><span class="nv">$IMG</span><span class="s2">)&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">OK</span><span class="o">=</span><span class="k">$((</span><span class="nv">OK</span><span class="o">+</span><span class="m">1</span><span class="k">))</span><span class="p">;;</span>
+<span class="w">  </span>*<span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [FALLA] imagen inesperada: </span><span class="nv">$IMG</span><span class="s2">&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">FAIL</span><span class="o">=</span><span class="k">$((</span><span class="nv">FAIL</span><span class="o">+</span><span class="m">1</span><span class="k">))</span><span class="p">;;</span><span class="w"> </span><span class="k">esac</span>
+
+<span class="nv">CM</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>billing<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.template.spec.containers[0].envFrom[0].configMapRef.name}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="k">)</span>
+chk<span class="w"> </span><span class="s2">&quot;envFrom apunta al ConfigMap existente&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$CM</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;billing-cfg&quot;</span>
+
+<span class="nv">SK</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>billing<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.key}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="k">)</span>
+chk<span class="w"> </span><span class="s2">&quot;secretKeyRef usa la clave correcta&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SK</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;db-password&quot;</span>
+
+<span class="nv">CPU</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>billing<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.template.spec.containers[0].resources.requests.cpu}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="k">)</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$CPU</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">CPU</span><span class="p">%m</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$CPU</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$CPU</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$CPU</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.5&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [OK]    requests de CPU realistas (</span><span class="nv">$CPU</span><span class="s2">)&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">OK</span><span class="o">=</span><span class="k">$((</span><span class="nv">OK</span><span class="o">+</span><span class="m">1</span><span class="k">))</span>
+<span class="k">else</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [FALLA] requests de CPU siguen siendo irreales (</span><span class="nv">$CPU</span><span class="s2">)&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">FAIL</span><span class="o">=</span><span class="k">$((</span><span class="nv">FAIL</span><span class="o">+</span><span class="m">1</span><span class="k">))</span>
+<span class="k">fi</span>
+
+<span class="nv">PWD_OK</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>billing<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.template.spec.containers[0].env[0].value}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="k">)</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$PWD_OK</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [OK]    la contrasena no esta en texto plano en el Deployment&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">OK</span><span class="o">=</span><span class="k">$((</span><span class="nv">OK</span><span class="o">+</span><span class="m">1</span><span class="k">))</span><span class="p">;</span>
+<span class="k">else</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [FALLA] hay un valor en texto plano en env[0].value&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">FAIL</span><span class="o">=</span><span class="k">$((</span><span class="nv">FAIL</span><span class="o">+</span><span class="m">1</span><span class="k">))</span><span class="p">;</span><span class="w"> </span><span class="k">fi</span>
+
+<span class="nv">CAUSE</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>billing<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.metadata.annotations.kubernetes\.io/change-cause}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="k">)</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$CAUSE</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [OK]    causa del cambio registrada&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">OK</span><span class="o">=</span><span class="k">$((</span><span class="nv">OK</span><span class="o">+</span><span class="m">1</span><span class="k">))</span><span class="p">;</span>
+<span class="k">else</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [FALLA] falta la anotacion kubernetes.io/change-cause&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">FAIL</span><span class="o">=</span><span class="k">$((</span><span class="nv">FAIL</span><span class="o">+</span><span class="m">1</span><span class="k">))</span><span class="p">;</span><span class="w"> </span><span class="k">fi</span>
+
+<span class="nb">echo</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$FAIL</span><span class="s2">&quot;</span><span class="w"> </span>-eq<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;LAB 4.4 SUPERADO (</span><span class="si">${</span><span class="nv">OK</span><span class="si">}</span><span class="s2"> comprobaciones)&quot;</span><span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span>
+<span class="k">else</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;LAB 4.4 NO superado: </span><span class="si">${</span><span class="nv">FAIL</span><span class="si">}</span><span class="s2"> pendiente(s).&quot;</span><span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span><span class="p">;</span><span class="w"> </span><span class="k">fi</span>
+</pre></div>
+</div>
+    </div></div>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 6.1 — Traducir estados: seis Pods, seis causas · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+
+</head>
+<body class="labpage">
+<header class="topbar">
+  <a class="brand" href="../../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../../index.html">Inicio</a><a class="on" href="../../guia.html">Clases</a><a href="../../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../../index.html">Inicio</a><span class="sep">/</span><a href="../index.html">Clase 6</a><span class="sep">/</span><span>LAB 6.1</span></nav>
+
+<div class="lab-layout">
+  <aside class="lab-side">
+    <details class="lab-nav" open>
+      <summary>Clase 6 · Laboratorios</summary>
+      <div class="railcard-h">Clase 6 · Laboratorios</div>
+      <div class="side-labs"><a class="on" href="../lab-1/">LAB 6.1 — Traducir estados: seis Pods, seis causas</a><a class="" href="../lab-2/">LAB 6.2 — Nodo y control plane</a><a class="" href="../lab-3/">LAB 6.3 — Cadena de fallos entre capas</a><a class="" href="../lab-4/">LAB 6.4 — Challenge contrarreloj: 15 minutos</a><a class="" href="../lab-5/">LAB 6.5 — LABORATORIO INTEGRADOR FINAL</a></div>
+      <div class="railcard-h" style="margin-top:22px">Recursos</div>
+      <a class="rlink" href="../recursos.html">Visor de recursos</a>
+      <a class="rlink" href="../../slides/01-CLASE-06-CKA.pptx" download>Presentación (.pptx)</a>
+    </details>
+  </aside>
+  <script>if(matchMedia('(max-width:900px)').matches){var _ln=document.currentScript.previousElementSibling.querySelector('.lab-nav');if(_ln)_ln.removeAttribute('open');}</script>
+  <article class="md lab-body">
+    <div class="eyebrow">LAB 6.1</div>
+    <h1>Traducir estados: seis Pods, seis causas</h1>
+    <div class="chips">
+      <span class="lvl ok mono">Nivel · Básico</span>
+      <span class="chip mono">20 minutos</span>
+    </div>
+    <h2 id="objetivo">Objetivo</h2>
+<p>Convertir el estado de un Pod en una hipótesis de causa <strong>antes</strong> de investigar, y confirmarla con un solo comando.</p>
+<h2 id="competencias">Competencias</h2>
+<ul>
+<li>Reconocer <code>Pending</code>, <code>ImagePullBackOff</code>, <code>CreateContainerConfigError</code>, <code>CrashLoopBackOff</code>, <code>Running 0/1</code> y <code>OOMKilled</code>.</li>
+<li>Elegir el comando correcto para cada estado.</li>
+<li>Distinguir <code>logs</code> de <code>logs --previous</code>.</li>
+<li>Reparar cada caso.</li>
+</ul>
+<h2 id="escenario">Escenario</h2>
+<p>En el namespace <strong><code>c6-estados</code></strong> hay seis Pods, cada uno roto de una forma distinta. Tu trabajo no es solo arreglarlos: es <strong>saber decir, mirando solo <code>kubectl get pods</code>, dónde está el problema en cada caso</strong>.</p>
+<h2 id="estado-inicial">Estado inicial</h2>
+<div class="hl"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>CLASE-06/RECURSOS/SCRIPTS
+./setup-lab.sh<span class="w"> </span>basico
+</code></pre></div>
+
+<h2 id="requerimientos">Requerimientos</h2>
+<ol>
+<li>Ejecuta <code>kubectl -n c6-estados get pods</code> y, <strong>antes de investigar nada</strong>, rellena esta tabla con tu hipótesis:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Pod</th>
+<th>Estado observado</th>
+<th>Capa donde sospecho</th>
+<th>Comando que lo confirmará</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>caso-1</code></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>caso-2</code></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>caso-3</code></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>caso-4</code></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>caso-5</code></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>caso-6</code></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<ol start="2">
+<li>Confirma cada hipótesis con <strong>un solo comando</strong> por caso. Si necesitas más de dos, anótalo: significa que la hipótesis no estaba afinada.</li>
+<li>Anota la causa raíz exacta de cada uno.</li>
+<li>Repara los seis.</li>
+<li>Para el caso que reinicia en bucle, obtén los logs de la <strong>instancia anterior</strong> del contenedor, no de la actual. Anota el comando.</li>
+</ol>
+<h2 id="restricciones">Restricciones</h2>
+<ul>
+<li>No borres ningún Pod hasta haber diagnosticado su causa.</li>
+<li>No apliques los YAML de referencia por encima.</li>
+<li>Para cada caso, la reparación debe atacar la causa, no el síntoma.</li>
+</ul>
+<h2 id="tabla-de-traduccion-rellenala-tu-durante-el-laboratorio">Tabla de traducción (rellénala tú durante el laboratorio)</h2>
+<table>
+<thead>
+<tr>
+<th>Estado</th>
+<th>Significa que…</th>
+<th>Mirar en</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Pending</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ContainerCreating</code> (atascado)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ImagePullBackOff</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>CreateContainerConfigError</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>CrashLoopBackOff</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Running</code> con <code>0/1 READY</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>OOMKilled</code> en <code>Last State</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="validacion">Validación</h2>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>-n<span class="w"> </span>c6-estados<span class="w"> </span>get<span class="w"> </span>pods
+kubectl<span class="w"> </span>-n<span class="w"> </span>c6-estados<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-o<span class="w"> </span>custom-columns<span class="o">=</span><span class="se">\</span>
+NAME:.metadata.name,STATUS:.status.phase,READY:.status.containerStatuses<span class="o">[</span><span class="m">0</span><span class="o">]</span>.ready,<span class="se">\</span>
+RESTARTS:.status.containerStatuses<span class="o">[</span><span class="m">0</span><span class="o">]</span>.restartCount
+
+<span class="nb">cd</span><span class="w"> </span>CLASE-06/RECURSOS/SCRIPTS<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>./validate-lab.sh<span class="w"> </span>basico
+</code></pre></div>
+
+<h2 id="resultado-esperado">Resultado esperado</h2>
+<p>Los seis Pods en <code>Running</code> y <code>1/1 READY</code>, sin reinicios crecientes.</p>
+<h2 id="criterios-de-exito">Criterios de éxito</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Rellené la tabla de hipótesis <strong>antes</strong> de investigar.</li>
+<li class="task"><span class="box"></span>Confirmé cada caso con uno o dos comandos.</li>
+<li class="task"><span class="box"></span>Documenté las seis causas raíz.</li>
+<li class="task"><span class="box"></span>Usé <code>logs --previous</code> en el caso que corresponde.</li>
+<li class="task"><span class="box"></span>Los seis Pods están <code>Running</code> y <code>Ready</code>.</li>
+<li class="task"><span class="box"></span>Completé la tabla de traducción de estados.</li>
+</ul>
+    <div class="lab-note">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+    </div>
+    <nav class="pager"><span></span><a href="../lab-2/">LAB 6.2 →</a></nav>
+  </article>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

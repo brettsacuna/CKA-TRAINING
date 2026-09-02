@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    :root{
+      --bg:#0B1220; --panel:#131C2E; --soft:#0F1729; --line:#26354E;
+      --ink:#F3F6FC; --body:#BDC9DB; --muted:#8493AD; --faint:#4C5B75;
+      --blue:#326CE5; --blue2:#74A6FF; --code:#0A1120; --codet:#E6EDF3;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--body);
+      font-family:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;font-size:14px;line-height:1.62;-webkit-font-smoothing:antialiased}
+    h1,h2,h3{color:var(--ink);font-weight:600;margin:0;line-height:1.25}
+    a{color:var(--blue2);text-decoration:none}
+    a:hover{color:#a7c6ff}
+    .mono{font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace}
+    .k{background:rgba(50,108,229,.14);color:#cfe0ff;border-radius:4px;padding:1px 5px;font-family:"IBM Plex Mono",monospace;font-size:.88em}
+    ul,ol{margin:0;padding-left:0;list-style:none}
+  </style>
+</helmet>
+
+<div style="width:390px;min-height:844px;background:var(--bg)">
+
+  <div style="display:flex;align-items:center;gap:12px;height:54px;padding:0 16px;border-bottom:1px solid var(--line)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M15 18l-6-6 6-6"></path></svg>
+    <span style="color:var(--body);font-size:13px">Clase 1 · Laboratorios</span>
+  </div>
+
+  <div style="padding:22px 18px 0">
+    <div style="color:var(--blue2);font-weight:600;font-size:10px;letter-spacing:.18em;text-transform:uppercase">LAB 1.1</div>
+    <h1 style="font-size:23px;margin:9px 0 0;letter-spacing:-.01em">Pods, YAML e inspección</h1>
+    <div style="display:flex;gap:8px;margin-top:13px">
+      <span class="mono" style="font-size:10.5px;color:#63D178;border:1px solid rgba(63,185,80,.4);border-radius:999px;padding:3px 9px">Básico</span>
+      <span class="mono" style="font-size:10.5px;color:var(--body);border:1px solid var(--line);border-radius:999px;padding:3px 9px">25 min</span>
+    </div>
+  </div>
+
+  <div style="padding:16px 18px 0">
+    <button style="width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 14px;color:var(--body);font-size:13px;font-family:inherit">
+      <span>Índice del laboratorio</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+  </div>
+
+  <div style="padding:22px 18px 0">
+    <h2 style="font-size:17px;margin-bottom:8px">Objetivo</h2>
+    <p style="margin:0;font-size:13.5px">Crear Pods por la vía imperativa y la declarativa, generar manifiestos sin copiarlos e inspeccionar un Pod hasta entender por qué corre o no.</p>
+
+    <h2 style="font-size:17px;margin:24px 0 8px">Requerimientos</h2>
+    <ol style="display:flex;flex-direction:column;gap:10px;font-size:13.5px">
+      <li style="display:flex;gap:10px"><span class="mono" style="color:var(--blue2)">1</span><span>Prepara la shell: <span class="k">alias k=kubectl</span>.</span></li>
+      <li style="display:flex;gap:10px"><span class="mono" style="color:var(--blue2)">2</span><span>Crea el namespace <span class="k">c1-basico</span>.</span></li>
+      <li style="display:flex;gap:10px"><span class="mono" style="color:var(--blue2)">3</span><span>Pod <span class="k">web</span> imperativo con <span class="k">nginx:1.27-alpine</span>.</span></li>
+      <li style="display:flex;gap:10px"><span class="mono" style="color:var(--muted)">…</span><span style="color:var(--muted)">9 requerimientos más</span></li>
+    </ol>
+
+    <h2 style="font-size:17px;margin:24px 0 8px">Validación</h2>
+    <div style="border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--code)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-bottom:1px solid var(--line);font-size:10.5px;color:var(--muted)">
+        <span class="mono">bash</span>
+        <span style="color:var(--blue2)">Copiar</span>
+      </div>
+      <pre class="mono" style="margin:0;padding:12px;font-size:11.5px;line-height:1.8;color:var(--codet);overflow-x:auto">kubectl -n c1-basico get pods -o wide
+kubectl -n c1-basico get pods -l tier=backend
+kubectl -n c1-basico describe pod api | head -20</pre>
+    </div>
+
+    <h2 style="font-size:17px;margin:24px 0 8px">Criterios de éxito</h2>
+    <ul style="display:flex;flex-direction:column;gap:8px;font-size:13.5px">
+      <li style="display:flex;gap:10px;align-items:flex-start"><span style="width:15px;height:15px;border:1.5px solid var(--faint);border-radius:4px;flex-shrink:0;margin-top:3px"></span>Namespace <span class="k">c1-basico</span> creado.</li>
+      <li style="display:flex;gap:10px;align-items:flex-start"><span style="width:15px;height:15px;border:1.5px solid var(--faint);border-radius:4px;flex-shrink:0;margin-top:3px"></span>Pods <span class="k">web</span> y <span class="k">api</span> en <span class="k">Running</span>.</li>
+    </ul>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,33 @@
+# LAB 4.3 - Las tres clases de QoS.
+# Guaranteed: requests == limits en TODOS los recursos de TODOS los contenedores.
+apiVersion: v1
+kind: Pod
+metadata: {name: pod-guaranteed, namespace: c4-recursos}
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27-alpine
+      resources:
+        requests: {cpu: "200m", memory: "128Mi"}
+        limits:   {cpu: "200m", memory: "128Mi"}
+---
+# Burstable: hay requests o limits, pero no coinciden en todo.
+apiVersion: v1
+kind: Pod
+metadata: {name: pod-burstable, namespace: c4-recursos}
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27-alpine
+      resources:
+        requests: {cpu: "100m", memory: "64Mi"}
+        limits:   {cpu: "500m", memory: "256Mi"}
+---
+# BestEffort: sin requests ni limits. Primero en ser desalojado.
+apiVersion: v1
+kind: Pod
+metadata: {name: pod-besteffort, namespace: c4-recursos}
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27-alpine

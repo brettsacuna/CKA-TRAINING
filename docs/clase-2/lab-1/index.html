@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 2.1 — Inventario del cluster, cordon y drain · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+
+</head>
+<body class="labpage">
+<header class="topbar">
+  <a class="brand" href="../../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../../index.html">Inicio</a><a class="on" href="../../guia.html">Clases</a><a href="../../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../../index.html">Inicio</a><span class="sep">/</span><a href="../index.html">Clase 2</a><span class="sep">/</span><span>LAB 2.1</span></nav>
+
+<div class="lab-layout">
+  <aside class="lab-side">
+    <details class="lab-nav" open>
+      <summary>Clase 2 · Laboratorios</summary>
+      <div class="railcard-h">Clase 2 · Laboratorios</div>
+      <div class="side-labs"><a class="on" href="../lab-1/">LAB 2.1 — Inventario del cluster, cordon y drain</a><a class="" href="../lab-2/">LAB 2.2 — Upgrade del cluster kubeadm (v1.34 → v1.35)</a><a class="" href="../lab-3/">LAB 2.3 — ETCD: snapshot, validación y restore</a><a class="" href="../lab-4/">LAB 2.4 — Challenge: Forbidden en producción</a></div>
+      <div class="railcard-h" style="margin-top:22px">Recursos</div>
+      <a class="rlink" href="../recursos.html">Visor de recursos</a>
+      <a class="rlink" href="../../slides/01-CLASE-02-CKA.pptx" download>Presentación (.pptx)</a>
+    </details>
+  </aside>
+  <script>if(matchMedia('(max-width:900px)').matches){var _ln=document.currentScript.previousElementSibling.querySelector('.lab-nav');if(_ln)_ln.removeAttribute('open');}</script>
+  <article class="md lab-body">
+    <div class="eyebrow">LAB 2.1</div>
+    <h1>Inventario del cluster, cordon y drain</h1>
+    <div class="chips">
+      <span class="lvl ok mono">Nivel · Básico</span>
+      <span class="chip mono">20 minutos</span>
+    </div>
+    <h2 id="objetivo">Objetivo</h2>
+<p>Conocer el cluster que vas a administrar antes de tocarlo, y practicar la operación que precede a cualquier mantenimiento: vaciar un nodo y devolverlo al servicio.</p>
+<h2 id="competencias">Competencias</h2>
+<ul>
+<li>Inventariar versiones de componentes.</li>
+<li>Localizar los static Pods del control plane.</li>
+<li>Usar <code>crictl</code> en el nodo.</li>
+<li><code>cordon</code>, <code>drain</code> y <code>uncordon</code>.</li>
+<li>Interpretar <code>SchedulingDisabled</code>.</li>
+</ul>
+<h2 id="escenario">Escenario</h2>
+<p>Te acaban de entregar un cluster que no montaste tú. Antes de la ventana de mantenimiento del próximo laboratorio, necesitas un inventario fiable y comprobar que sabes vaciar un nodo sin dejar la aplicación caída.</p>
+<h2 id="estado-inicial">Estado inicial</h2>
+<ul>
+<li>Cluster kubeadm con <code>cka-master</code> y al menos un worker, todos <code>Ready</code>.</li>
+<li>Acceso <strong>root por SSH</strong> a los nodos.</li>
+<li>Namespace de trabajo: <strong><code>c2-basico</code></strong>.</li>
+</ul>
+<h2 id="requerimientos">Requerimientos</h2>
+<h3 id="parte-a-inventario">Parte A — Inventario</h3>
+<ol>
+<li>Crea el namespace <code>c2-basico</code>.</li>
+<li>Obtén y anota, en una tabla:<ul>
+<li>versión de cada nodo (<code>kubectl get nodes</code>),</li>
+<li>versión del cliente y del servidor (<code>kubectl version</code>),</li>
+<li>versión de <code>kubeadm</code> y de <code>kubelet</code> <strong>en el master</strong>,</li>
+<li>el container runtime y su versión de cada nodo.</li>
+</ul>
+</li>
+<li>En <code>cka-master</code>, lista los archivos de <code>/etc/kubernetes/manifests/</code> y di qué componente corresponde a cada uno.</li>
+<li>Lista los contenedores del control plane con <code>crictl ps</code>.</li>
+<li>Averigua dónde guarda etcd sus datos, leyendo el manifiesto <code>etcd.yaml</code>.</li>
+</ol>
+<h3 id="parte-b-vaciar-un-nodo">Parte B — Vaciar un nodo</h3>
+<ol start="6">
+<li>Despliega en <code>c2-basico</code> un Deployment <strong><code>inventario</code></strong> con <strong>4 réplicas</strong> de <code>nginx:1.27-alpine</code>.</li>
+<li>Comprueba cómo están repartidas las réplicas entre nodos.</li>
+<li>Marca un worker como <strong>no programable</strong> (<code>cordon</code>) y comprueba el cambio en <code>kubectl get nodes</code>.</li>
+<li>Crea un Pod nuevo y verifica que <strong>no</strong> se programa en ese nodo.</li>
+<li>Ahora <strong>vacía</strong> ese worker con <code>drain</code>. Deberás resolver los dos errores que <code>drain</code> te va a dar (DaemonSets y datos de <code>emptyDir</code>) leyendo el mensaje, no la solución.</li>
+<li>Comprueba dónde quedaron las 4 réplicas de <code>inventario</code>.</li>
+<li>Devuelve el nodo al servicio con <code>uncordon</code>.</li>
+<li>Responde: tras el <code>uncordon</code>, ¿vuelven las réplicas al nodo por sí solas? ¿Por qué?</li>
+</ol>
+<h2 id="restricciones">Restricciones</h2>
+<ul>
+<li>No reinicies ningún nodo.</li>
+<li>No elimines Pods del namespace <code>kube-system</code> a mano.</li>
+<li>Trabaja los recursos de aplicación exclusivamente en <code>c2-basico</code>.</li>
+</ul>
+<h2 id="validacion">Validación</h2>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>-o<span class="w"> </span>wide
+kubectl<span class="w"> </span>version
+kubectl<span class="w"> </span>-n<span class="w"> </span>c2-basico<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-o<span class="w"> </span>wide
+kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>SchedulingDisabled
+ssh<span class="w"> </span>root@cka-master<span class="w"> </span><span class="s1">&#39;ls -1 /etc/kubernetes/manifests/; crictl ps | head&#39;</span>
+</code></pre></div>
+
+<h2 id="resultado-esperado">Resultado esperado</h2>
+<ul>
+<li>Tabla de inventario completa con las versiones de los tres binarios y del servidor.</li>
+<li><code>/etc/kubernetes/manifests/</code> contiene <code>etcd.yaml</code>, <code>kube-apiserver.yaml</code>, <code>kube-controller-manager.yaml</code>, <code>kube-scheduler.yaml</code>.</li>
+<li>Tras el <code>cordon</code>, el nodo aparece como <code>Ready,SchedulingDisabled</code> y los Pods nuevos lo evitan.</li>
+<li>Tras el <code>drain</code>, ninguna réplica de <code>inventario</code> queda en ese nodo.</li>
+<li>Tras el <code>uncordon</code>, el nodo vuelve a <code>Ready</code> pero <strong>las réplicas no vuelven solas</strong>.</li>
+</ul>
+<h2 id="criterios-de-exito">Criterios de éxito</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Inventario de versiones completo (nodos, cliente, servidor, kubeadm, kubelet, runtime).</li>
+<li class="task"><span class="box"></span>Identifiqué los 4 static Pods del control plane.</li>
+<li class="task"><span class="box"></span>Sé dónde vive el data dir de etcd.</li>
+<li class="task"><span class="box"></span><code>cordon</code> aplicado y verificado.</li>
+<li class="task"><span class="box"></span>Un Pod nuevo evita el nodo cordonado.</li>
+<li class="task"><span class="box"></span><code>drain</code> completado resolviendo los dos errores por mi cuenta.</li>
+<li class="task"><span class="box"></span>Las 4 réplicas siguen <code>Running</code> tras el drain.</li>
+<li class="task"><span class="box"></span><code>uncordon</code> aplicado y el nodo vuelve a <code>Ready</code>.</li>
+<li class="task"><span class="box"></span>Puedo explicar por qué Kubernetes no reequilibra automáticamente.</li>
+</ul>
+    <div class="lab-note">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+    </div>
+    <nav class="pager"><span></span><a href="../lab-2/">LAB 2.2 →</a></nav>
+  </article>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

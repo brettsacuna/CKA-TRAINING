@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recursos · Clase 1 · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
+
+</head>
+<body class="viewerpage">
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../index.html">Inicio</a><a class="on" href="../guia.html">Clases</a><a href="../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../index.html">Inicio</a><span class="sep">/</span><a href="index.html">Clase 1</a><span class="sep">/</span><span>Recursos</span></nav>
+
+<section class="clase-head compact">
+  <div class="eyebrow">Clase 1 · Recursos</div>
+  <h1>Manifiestos y scripts</h1>
+  <p class="lead">Archivos de referencia de los laboratorios de la clase. Cópialos o descárgalos.</p>
+</section>
+<div class="viewer-layout">
+  <nav class="rl"><div class="rl-group mono">YAML/</div><a class="rl-item mono" href="#01-pod-api.yaml" data-file="01-pod-api.yaml">01-pod-api.yaml</a><a class="rl-item mono" href="#02-services.yaml" data-file="02-services.yaml">02-services.yaml</a><a class="rl-item mono" href="#03-scheduling.yaml" data-file="03-scheduling.yaml">03-scheduling.yaml</a><a class="rl-item mono" href="#04-priorityclass.yaml" data-file="04-priorityclass.yaml">04-priorityclass.yaml</a><a class="rl-item mono" href="#05-antiaffinity-deployment.yaml" data-file="05-antiaffinity-deployment.yaml">05-antiaffinity-deployment.yaml</a><a class="rl-item mono" href="#06-shop-referencia.yaml" data-file="06-shop-referencia.yaml">06-shop-referencia.yaml</a><div class="rl-group mono">SCRIPTS/</div><a class="rl-item mono" href="#reset-lab.sh" data-file="reset-lab.sh">reset-lab.sh</a><a class="rl-item mono" href="#setup-lab.sh" data-file="setup-lab.sh">setup-lab.sh</a><a class="rl-item mono" href="#validate-lab.sh" data-file="validate-lab.sh">validate-lab.sh</a></nav>
+  <div class="viewer-stack">
+    <div class="viewer" data-file="01-pod-api.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">01-pod-api.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">18 líneas · 360 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="01-pod-api.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/01-pod-api.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 1.1 - Pod declarativo de referencia.</span>
+<span class="c1"># Genéralo tú con:  kubectl run api --image=httpd:2.4-alpine $do &gt; api.yaml</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Pod</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">api</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">c1-basico</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">api</span>
+<span class="w">    </span><span class="nt">tier</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">backend</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">api</span>
+<span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">httpd:2.4-alpine</span>
+<span class="w">      </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">containerPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="02-services.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">02-services.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">32 líneas · 696 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="02-services.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/02-services.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 1.2 - Services de referencia.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">svc-dbserver</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">c1-inter</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClusterIP</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dbserver</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgres</span>
+<span class="w">      </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TCP</span>
+<span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15432</span><span class="w">        </span><span class="c1"># puerto del Service (red interna del cluster)</span>
+<span class="w">      </span><span class="nt">targetPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5432</span><span class="w">   </span><span class="c1"># puerto del contenedor</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">svc-webserver</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">c1-inter</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NodePort</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">webserver</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http</span>
+<span class="w">      </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TCP</span>
+<span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span><span class="w">         </span><span class="c1"># puerto del Service</span>
+<span class="w">      </span><span class="nt">targetPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span><span class="w">     </span><span class="c1"># puerto del contenedor</span>
+<span class="w">      </span><span class="nt">nodePort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">31100</span><span class="w">    </span><span class="c1"># puerto publicado en cada nodo (30000-32767)</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="03-scheduling.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">03-scheduling.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">57 líneas · 1260 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="03-scheduling.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/03-scheduling.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 1.3 - Fragmentos de referencia de scheduling.</span>
+<span class="c1"># NO es la solución completa del laboratorio: son los patrones sintácticos.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Pod</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod-app</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">c1-avanzado</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">nodeSelector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">production</span>
+<span class="w">  </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
+<span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:1.27-alpine</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Pod</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data-job</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">c1-avanzado</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">tolerations</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">team</span>
+<span class="w">      </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Equal</span>
+<span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+<span class="w">      </span><span class="nt">effect</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NoSchedule</span>
+<span class="w">  </span><span class="nt">nodeSelector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+<span class="w">  </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">busybox</span>
+<span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">busybox:1.36</span>
+<span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;sleep&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;3600&quot;</span><span class="p p-Indicator">]</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Pod</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">affinity-app</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">c1-avanzado</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">affinity</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">nodeAffinity</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">requiredDuringSchedulingIgnoredDuringExecution</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">nodeSelectorTerms</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">matchExpressions</span><span class="p">:</span>
+<span class="w">              </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">environment</span>
+<span class="w">                </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">In</span>
+<span class="w">                </span><span class="nt">values</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;production&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;staging&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">preferredDuringSchedulingIgnoredDuringExecution</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60</span>
+<span class="w">          </span><span class="nt">preference</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">matchExpressions</span><span class="p">:</span>
+<span class="w">              </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">disktype</span>
+<span class="w">                </span><span class="nt">operator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">In</span>
+<span class="w">                </span><span class="nt">values</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;ssd&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
+<span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:1.27-alpine</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="04-priorityclass.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">04-priorityclass.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">18 líneas · 435 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="04-priorityclass.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/04-priorityclass.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 1.3 - PriorityClasses.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scheduling.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PriorityClass</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">low-priority</span>
+<span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="nt">globalDefault</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Cargas</span><span class="nv"> </span><span class="s">de</span><span class="nv"> </span><span class="s">relleno,</span><span class="nv"> </span><span class="s">desalojables.&quot;</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scheduling.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PriorityClass</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">critical-priority</span>
+<span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100000</span>
+<span class="nt">globalDefault</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="nt">preemptionPolicy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PreemptLowerPriority</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Cargas</span><span class="nv"> </span><span class="s">criticas:</span><span class="nv"> </span><span class="s">pueden</span><span class="nv"> </span><span class="s">desalojar</span><span class="nv"> </span><span class="s">Pods</span><span class="nv"> </span><span class="s">de</span><span class="nv"> </span><span class="s">menor</span><span class="nv"> </span><span class="s">prioridad.&quot;</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="05-antiaffinity-deployment.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">05-antiaffinity-deployment.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">27 líneas · 590 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="05-antiaffinity-deployment.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/05-antiaffinity-deployment.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 1.3 - Deployment con anti-affinity obligatoria.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">spread</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">c1-avanzado</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">spread</span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">metadata</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">spread</span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">affinity</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">podAntiAffinity</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">requiredDuringSchedulingIgnoredDuringExecution</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">labelSelector</span><span class="p">:</span>
+<span class="w">                </span><span class="nt">matchLabels</span><span class="p">:</span>
+<span class="w">                  </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">spread</span>
+<span class="w">              </span><span class="nt">topologyKey</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubernetes.io/hostname</span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
+<span class="w">          </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:1.27-alpine</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="06-shop-referencia.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">06-shop-referencia.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">38 líneas · 713 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="06-shop-referencia.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/06-shop-referencia.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 1.4 - Estado CORRECTO de referencia del challenge.</span>
+<span class="c1"># Material del instructor: no lo entregues antes de resolver el laboratorio.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shop-web</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">c1-challenge</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shop-web</span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">metadata</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shop-web</span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">web</span>
+<span class="w">          </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:1.27-alpine</span>
+<span class="w">          </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">containerPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shop-svc</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">c1-challenge</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NodePort</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shop-web</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TCP</span>
+<span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">      </span><span class="nt">targetPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">      </span><span class="nt">nodePort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">31200</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="reset-lab.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">reset-lab.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">20 líneas · 754 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="reset-lab.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/reset-lab.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="c1"># CLASE 1 - Limpia todo lo creado durante la clase.</span>
+<span class="nb">set</span><span class="w"> </span>-uo<span class="w"> </span>pipefail
+<span class="k">for</span><span class="w"> </span>NS<span class="w"> </span><span class="k">in</span><span class="w"> </span>c1-basico<span class="w"> </span>c1-inter<span class="w"> </span>c1-avanzado<span class="w"> </span>c1-challenge<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Eliminando namespace </span><span class="si">${</span><span class="nv">NS</span><span class="si">}</span><span class="s2">...&quot;</span>
+<span class="w">  </span>kubectl<span class="w"> </span>delete<span class="w"> </span>namespace<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">NS</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>--ignore-not-found<span class="w"> </span>--wait<span class="o">=</span><span class="nb">false</span>
+<span class="k">done</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Retirando PriorityClasses del laboratorio...&quot;</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>priorityclass<span class="w"> </span>low-priority<span class="w"> </span>critical-priority<span class="w"> </span>--ignore-not-found
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Retirando labels y taints del laboratorio de los nodos...&quot;</span>
+<span class="k">for</span><span class="w"> </span>N<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="k">$(</span>kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>-o<span class="w"> </span>name<span class="k">)</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">  </span>kubectl<span class="w"> </span>label<span class="w">  </span><span class="s2">&quot;</span><span class="nv">$N</span><span class="s2">&quot;</span><span class="w"> </span>environment-<span class="w"> </span>disktype-<span class="w"> </span>--overwrite<span class="w"> </span>&gt;/dev/null<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
+<span class="w">  </span>kubectl<span class="w"> </span>taint<span class="w">  </span><span class="s2">&quot;</span><span class="nv">$N</span><span class="s2">&quot;</span><span class="w"> </span>team-<span class="w">        </span>&gt;/dev/null<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
+<span class="w">  </span>kubectl<span class="w"> </span>taint<span class="w">  </span><span class="s2">&quot;</span><span class="nv">$N</span><span class="s2">&quot;</span><span class="w"> </span>maintenance-<span class="w"> </span>&gt;/dev/null<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
+<span class="k">done</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Reset de la Clase 1 completado.&quot;</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="setup-lab.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">setup-lab.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">58 líneas · 1389 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="setup-lab.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/setup-lab.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="c1"># CLASE 1 - Prepara el escenario del LAB 1.4 (Challenge) YA ROTO.</span>
+<span class="c1"># Uso: ./setup-lab.sh</span>
+<span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
+<span class="nv">NS</span><span class="o">=</span>c1-challenge
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Creando namespace </span><span class="si">${</span><span class="nv">NS</span><span class="si">}</span><span class="s2">...&quot;</span>
+kubectl<span class="w"> </span>create<span class="w"> </span>namespace<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">NS</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>--dry-run<span class="o">=</span>client<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>-
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Desplegando el escenario (con fallos intencionales)...&quot;</span>
+cat<span class="w"> </span><span class="s">&lt;&lt;&#39;YAML&#39; | kubectl apply -f -</span>
+<span class="s">apiVersion: apps/v1</span>
+<span class="s">kind: Deployment</span>
+<span class="s">metadata:</span>
+<span class="s">  name: shop-web</span>
+<span class="s">  namespace: c1-challenge</span>
+<span class="s">spec:</span>
+<span class="s">  replicas: 1</span>
+<span class="s">  selector:</span>
+<span class="s">    matchLabels:</span>
+<span class="s">      app: shop-web</span>
+<span class="s">  template:</span>
+<span class="s">    metadata:</span>
+<span class="s">      labels:</span>
+<span class="s">        app: shop-web</span>
+<span class="s">    spec:</span>
+<span class="s">      nodeSelector:</span>
+<span class="s">        environment: gpu</span>
+<span class="s">      containers:</span>
+<span class="s">        - name: web</span>
+<span class="s">          image: nginx:1.27-alpine</span>
+<span class="s">          ports:</span>
+<span class="s">            - containerPort: 80</span>
+<span class="s">---</span>
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: Service</span>
+<span class="s">metadata:</span>
+<span class="s">  name: shop-svc</span>
+<span class="s">  namespace: c1-challenge</span>
+<span class="s">spec:</span>
+<span class="s">  type: NodePort</span>
+<span class="s">  selector:</span>
+<span class="s">    app: shop</span>
+<span class="s">  ports:</span>
+<span class="s">    - protocol: TCP</span>
+<span class="s">      port: 80</span>
+<span class="s">      targetPort: 8080</span>
+<span class="s">      nodePort: 31200</span>
+<span class="s">YAML</span>
+
+<span class="nb">echo</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;===============================================================&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; LAB 1.4 listo. El escenario esta ROTO a proposito.&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; Objetivo: curl http://&lt;IP-worker&gt;:31200 debe devolver HTTP 200&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;           y shop-web debe tener 3 replicas Running.&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; No elimines el Deployment ni el Service: repara in situ.&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;===============================================================&quot;</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="validate-lab.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">validate-lab.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">38 líneas · 1616 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="validate-lab.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/validate-lab.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="c1"># CLASE 1 - Valida el LAB 1.4 (Challenge).</span>
+<span class="nb">set</span><span class="w"> </span>-uo<span class="w"> </span>pipefail
+<span class="nv">NS</span><span class="o">=</span>c1-challenge
+<span class="nv">OK</span><span class="o">=</span><span class="m">0</span><span class="p">;</span><span class="w"> </span><span class="nv">FAIL</span><span class="o">=</span><span class="m">0</span>
+chk<span class="o">()</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$2</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$3</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [OK]   </span><span class="nv">$1</span><span class="s2">&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">OK</span><span class="o">=</span><span class="k">$((</span><span class="nv">OK</span><span class="o">+</span><span class="m">1</span><span class="k">))</span><span class="p">;</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [FALLA] </span><span class="nv">$1</span><span class="s2"> (esperado: </span><span class="nv">$3</span><span class="s2"> / obtenido: </span><span class="nv">$2</span><span class="s2">)&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">FAIL</span><span class="o">=</span><span class="k">$((</span><span class="nv">FAIL</span><span class="o">+</span><span class="m">1</span><span class="k">))</span><span class="p">;</span><span class="w"> </span><span class="k">fi</span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;== Validando LAB 1.4 ==&quot;</span>
+
+<span class="nv">REP</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>shop-web<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.replicas}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="k">)</span>
+chk<span class="w"> </span><span class="s2">&quot;Deployment shop-web declara 3 replicas&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$REP</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;3&quot;</span>
+
+<span class="nv">READY</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>shop-web<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.status.readyReplicas}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="k">)</span>
+chk<span class="w"> </span><span class="s2">&quot;3 replicas Ready&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">READY</span><span class="k">:-</span><span class="nv">0</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;3&quot;</span>
+
+<span class="nv">SEL</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>svc<span class="w"> </span>shop-svc<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.selector.app}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="k">)</span>
+chk<span class="w"> </span><span class="s2">&quot;Selector del Service apunta a app=shop-web&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SEL</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;shop-web&quot;</span>
+
+<span class="nv">TPORT</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>svc<span class="w"> </span>shop-svc<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.ports[0].targetPort}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="k">)</span>
+chk<span class="w"> </span><span class="s2">&quot;targetPort del Service es 80&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$TPORT</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;80&quot;</span>
+
+<span class="nv">NPORT</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>svc<span class="w"> </span>shop-svc<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.ports[0].nodePort}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="k">)</span>
+chk<span class="w"> </span><span class="s2">&quot;nodePort sigue siendo 31200&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$NPORT</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;31200&quot;</span>
+
+<span class="nv">ADDR</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>endpointslices<span class="w"> </span>-l<span class="w"> </span>kubernetes.io/service-name<span class="o">=</span>shop-svc<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{range .items[*]}{range .endpoints[*]}{.addresses[0]}{&quot;\n&quot;}{end}{end}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-c<span class="w"> </span>.<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="m">0</span><span class="k">)</span>
+chk<span class="w"> </span><span class="s2">&quot;EndpointSlice con 3 direcciones&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$ADDR</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;3&quot;</span>
+
+<span class="nb">echo</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$FAIL</span><span class="s2">&quot;</span><span class="w"> </span>-eq<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;LAB 1.4 SUPERADO  (</span><span class="si">${</span><span class="nv">OK</span><span class="si">}</span><span class="s2">/</span><span class="si">${</span><span class="nv">OK</span><span class="si">}</span><span class="s2"> comprobaciones)&quot;</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Ultimo paso manual: curl -s -o /dev/null -w &#39;%{http_code}\n&#39; http://&lt;IP-worker&gt;:31200&quot;</span>
+<span class="w">  </span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span>
+<span class="k">else</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;LAB 1.4 NO superado todavia: </span><span class="si">${</span><span class="nv">FAIL</span><span class="si">}</span><span class="s2"> comprobacion(es) pendiente(s).&quot;</span>
+<span class="w">  </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+<span class="k">fi</span>
+</pre></div>
+</div>
+    </div></div>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

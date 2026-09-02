@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 1.1 — Pods, YAML e inspección · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+
+</head>
+<body class="labpage">
+<header class="topbar">
+  <a class="brand" href="../../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../../index.html">Inicio</a><a class="on" href="../../guia.html">Clases</a><a href="../../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../../index.html">Inicio</a><span class="sep">/</span><a href="../index.html">Clase 1</a><span class="sep">/</span><span>LAB 1.1</span></nav>
+
+<div class="lab-layout">
+  <aside class="lab-side">
+    <details class="lab-nav" open>
+      <summary>Clase 1 · Laboratorios</summary>
+      <div class="railcard-h">Clase 1 · Laboratorios</div>
+      <div class="side-labs"><a class="on" href="../lab-1/">LAB 1.1 — Pods, YAML e inspección</a><a class="" href="../lab-2/">LAB 1.2 — Services, EndpointSlice y DNS</a><a class="" href="../lab-3/">LAB 1.3 — Colocación de Pods: nodeSelector, Taints, Affinity y Priority</a><a class="" href="../lab-4/">LAB 1.4 — Challenge: la aplicación shop no responde</a></div>
+      <div class="railcard-h" style="margin-top:22px">Recursos</div>
+      <a class="rlink" href="../recursos.html">Visor de recursos</a>
+      <a class="rlink" href="../../slides/01-CLASE-01-CKA.pptx" download>Presentación (.pptx)</a>
+    </details>
+  </aside>
+  <script>if(matchMedia('(max-width:900px)').matches){var _ln=document.currentScript.previousElementSibling.querySelector('.lab-nav');if(_ln)_ln.removeAttribute('open');}</script>
+  <article class="md lab-body">
+    <div class="eyebrow">LAB 1.1</div>
+    <h1>Pods, YAML e inspección</h1>
+    <div class="chips">
+      <span class="lvl ok mono">Nivel · Básico</span>
+      <span class="chip mono">25 minutos</span>
+    </div>
+    <h2 id="objetivo">Objetivo</h2>
+<p>Crear Pods por la vía imperativa y por la vía declarativa, generar manifiestos sin copiarlos de la documentación e inspeccionar un Pod hasta entender por qué está o no está corriendo.</p>
+<h2 id="competencias">Competencias</h2>
+<ul>
+<li>Crear Pods con <code>kubectl run</code> y con manifiestos YAML.</li>
+<li>Generar YAML con <code>--dry-run=client -o yaml</code>.</li>
+<li>Consultar la especificación de un objeto con <code>kubectl explain</code>.</li>
+<li>Leer <code>describe</code>, <code>logs</code> y <code>events</code>.</li>
+<li>Etiquetar y filtrar objetos por label.</li>
+</ul>
+<h2 id="escenario">Escenario</h2>
+<p>Eres el nuevo administrador de un cluster de desarrollo. Antes de tocar nada en producción, necesitas soltura absoluta con la unidad mínima de despliegue: el Pod.</p>
+<h2 id="estado-inicial">Estado inicial</h2>
+<ul>
+<li>Cluster: <code>cka-master</code> + al menos un worker, todos <code>Ready</code>.</li>
+<li>Context activo: el del cluster de laboratorio (<code>kubectl config current-context</code>).</li>
+<li>Namespace de trabajo: <strong><code>c1-basico</code></strong> (lo creas tú en el paso 1).</li>
+<li>No hay recursos previos.</li>
+</ul>
+<h2 id="requerimientos">Requerimientos</h2>
+<ol>
+<li>Prepara tu shell con <code>alias k=kubectl</code> y <code>export do='--dry-run=client -o yaml'</code>.</li>
+<li>Crea el namespace <strong><code>c1-basico</code></strong>.</li>
+<li>Crea, de forma <strong>imperativa</strong>, un Pod llamado <strong><code>web</code></strong> con la imagen <code>nginx:1.27-alpine</code> en ese namespace.</li>
+<li>Verifica en qué nodo quedó ubicado y cuál es su IP de Pod.</li>
+<li>Genera, <strong>sin escribir YAML a mano</strong>, el manifiesto de un Pod llamado <strong><code>api</code></strong> con imagen <code>httpd:2.4-alpine</code>, guárdalo en <code>api.yaml</code>, y <strong>antes de aplicarlo</strong> añádele:<ul>
+<li>el label <code>app: api</code></li>
+<li>el label <code>tier: backend</code></li>
+<li>el puerto de contenedor <code>80</code> con nombre <code>http</code></li>
+</ul>
+</li>
+<li>Aplica <code>api.yaml</code> y comprueba que el Pod está <code>Running</code>.</li>
+<li>Usa <code>kubectl explain</code> para averiguar qué campo de <code>pod.spec</code> define el tiempo de gracia al terminar el Pod, y cuál es su valor por defecto.</li>
+<li>Muestra los logs del Pod <code>api</code> y ejecuta <code>hostname</code> dentro de su contenedor.</li>
+<li>Etiqueta el Pod <code>web</code> con <code>app=web</code> y <code>tier=frontend</code> usando <code>kubectl label</code>.</li>
+<li>Lista únicamente los Pods cuyo label <code>tier</code> sea <code>backend</code>.</li>
+<li>Crea un Pod llamado <strong><code>roto</code></strong> con la imagen <strong><code>nginx:no-existe</code></strong>. Espera 60 segundos, identifica el estado del Pod y <strong>la línea exacta de los eventos</strong> que explica el problema. Anótala.</li>
+<li>Elimina el Pod <code>roto</code> de forma inmediata (sin esperar el periodo de gracia).</li>
+</ol>
+<h2 id="restricciones">Restricciones</h2>
+<ul>
+<li>Trabaja <strong>exclusivamente</strong> en el namespace <code>c1-basico</code>.</li>
+<li>En el paso 5 <strong>no se permite escribir el YAML desde cero ni copiarlo de la documentación</strong>: debe salir de <code>kubectl</code>.</li>
+<li>No uses Deployments ni ReplicaSets en este laboratorio.</li>
+</ul>
+<h2 id="validacion">Validación</h2>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>-n<span class="w"> </span>c1-basico<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-o<span class="w"> </span>wide
+kubectl<span class="w"> </span>-n<span class="w"> </span>c1-basico<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-l<span class="w"> </span><span class="nv">tier</span><span class="o">=</span>backend
+kubectl<span class="w"> </span>-n<span class="w"> </span>c1-basico<span class="w"> </span>get<span class="w"> </span>pod<span class="w"> </span>api<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.metadata.labels}{&quot;\n&quot;}&#39;</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>c1-basico<span class="w"> </span>get<span class="w"> </span>pod<span class="w"> </span>api<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.containers[0].ports}{&quot;\n&quot;}&#39;</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>c1-basico<span class="w"> </span>describe<span class="w"> </span>pod<span class="w"> </span>api<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-20
+kubectl<span class="w"> </span>-n<span class="w"> </span>c1-basico<span class="w"> </span>get<span class="w"> </span>events<span class="w"> </span>--sort-by<span class="o">=</span>.lastTimestamp<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-10
+</code></pre></div>
+
+<h2 id="resultado-esperado">Resultado esperado</h2>
+<ul>
+<li><code>web</code> y <code>api</code> en estado <code>Running</code>, cada uno con su IP y su nodo asignado.</li>
+<li><code>api</code> con los labels <code>app=api</code> y <code>tier=backend</code> y un puerto de contenedor llamado <code>http</code>.</li>
+<li><code>kubectl -n c1-basico get pods -l tier=backend</code> devuelve únicamente <code>api</code>.</li>
+<li>El Pod <code>roto</code> quedó en <code>ImagePullBackOff</code> / <code>ErrImagePull</code> y sus eventos muestran un <code>Failed to pull image</code>.</li>
+<li>Tras el paso 12, <code>roto</code> ya no existe.</li>
+</ul>
+<h2 id="criterios-de-exito">Criterios de éxito</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Namespace <code>c1-basico</code> creado.</li>
+<li class="task"><span class="box"></span>Pod <code>web</code> creado imperativamente y <code>Running</code>.</li>
+<li class="task"><span class="box"></span><code>api.yaml</code> generado con <code>--dry-run=client -o yaml</code>.</li>
+<li class="task"><span class="box"></span>Pod <code>api</code> con labels <code>app=api</code> y <code>tier=backend</code>.</li>
+<li class="task"><span class="box"></span>Pod <code>api</code> con puerto de contenedor <code>80</code> nombrado <code>http</code>.</li>
+<li class="task"><span class="box"></span>Sé qué campo controla el periodo de gracia y su valor por defecto.</li>
+<li class="task"><span class="box"></span>Obtuve logs y ejecuté un comando dentro del contenedor.</li>
+<li class="task"><span class="box"></span>El filtro por label devuelve solo el Pod esperado.</li>
+<li class="task"><span class="box"></span>Identifiqué el evento exacto que explica el fallo del Pod <code>roto</code>.</li>
+<li class="task"><span class="box"></span>Eliminé <code>roto</code> sin esperar el periodo de gracia.</li>
+</ul>
+    <div class="lab-note">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+    </div>
+    <nav class="pager"><span></span><a href="../lab-2/">LAB 1.2 →</a></nav>
+  </article>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

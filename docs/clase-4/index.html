@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clase 4 — Lifecycle, ConfigMaps, Secrets y Recursos · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
+
+</head>
+<body class="">
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../index.html">Inicio</a><a class="on" href="../guia.html">Clases</a><a href="../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../index.html">Inicio</a><span class="sep">/</span><span>Clase 4</span></nav>
+
+<section class="clase-head">
+  <div class="eyebrow">Clase 4</div>
+  <h1>Lifecycle, ConfigMaps, Secrets y Recursos</h1>
+  <p class="lead">Actualizar sin cortar, revertir sin drama, configurar desde fuera de la imagen.</p>
+  <div class="chips">
+    <span class="chip mono">180 min</span>
+    <span class="chip mono">4 laboratorios</span>
+    <span class="chip mono">Kubernetes v1.35</span>
+  </div>
+</section>
+
+<div class="two-col">
+  <article class="md"><h2 id="objetivos">Objetivos</h2>
+<ol>
+<li>Ejecutar un Rolling Update controlado y seguir su progreso.</li>
+<li>Consultar el historial de revisiones y volver a una anterior con <code>rollout undo</code>.</li>
+<li>Detectar un despliegue defectuoso <strong>antes</strong> de que afecte a todas las réplicas.</li>
+<li>Externalizar configuración con ConfigMaps: variables, <code>envFrom</code> y montaje como volumen.</li>
+<li>Gestionar datos sensibles con Secrets, y explicar con precisión qué protegen y qué no.</li>
+<li>Definir <code>requests</code> y <code>limits</code>, entender las clases de QoS y el comportamiento ante presión de recursos.</li>
+<li>Instalar Metrics Server y usar <code>kubectl top</code>.</li>
+</ol>
+<h2 id="contenidos">Contenidos</h2>
+<ul>
+<li>Estrategias de Deployment: <code>RollingUpdate</code> (<code>maxSurge</code>, <code>maxUnavailable</code>) y <code>Recreate</code>.</li>
+<li><code>kubectl rollout status | history | undo | pause | resume | restart</code>.</li>
+<li><code>revisionHistoryLimit</code>. Anotación <code>kubernetes.io/change-cause</code>.</li>
+<li><code>kubectl set image</code>, <code>kubectl scale</code>, <code>kubectl patch</code>.</li>
+<li><code>readinessProbe</code> como red de seguridad del rollout: por qué un rollout se detiene solo.</li>
+<li>ConfigMap: <code>--from-literal</code>, <code>--from-file</code>, <code>--from-env-file</code>. Consumo por <code>env</code>/<code>configMapKeyRef</code>, <code>envFrom</code> y volumen.</li>
+<li>Secret: tipos (<code>Opaque</code>, <code>kubernetes.io/tls</code>, <code>docker-registry</code>). Consumo por <code>secretKeyRef</code>, <code>envFrom</code> y volumen.</li>
+<li>Base64 <strong>no es cifrado</strong>. Qué protege realmente un Secret (RBAC, cifrado en reposo de etcd, no aparecer en la imagen).</li>
+<li>Diferencia práctica: un ConfigMap montado como volumen <strong>se actualiza solo</strong>; una variable de entorno <strong>no</strong>.</li>
+<li><code>resources.requests</code> vs <code>resources.limits</code>. CPU comprimible, memoria no. <code>OOMKilled</code>.</li>
+<li>Clases de QoS: <code>Guaranteed</code>, <code>Burstable</code>, <code>BestEffort</code>.</li>
+<li>Metrics Server, <code>kubectl top nodes</code>, <code>kubectl top pods</code>.</li>
+</ul>
+<h2 id="actualizaciones-tecnicas-respecto-al-material-original">Actualizaciones técnicas respecto al material original</h2>
+<table>
+<thead>
+<tr>
+<th>Tema</th>
+<th>Estado</th>
+<th>Cambio aplicado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--record=true</code></td>
+<td><strong>ELIMINADO</strong></td>
+<td>Retirado de kubectl. Se usa la anotación <code>kubernetes.io/change-cause</code></td>
+</tr>
+<tr>
+<td>Metrics Server v0.3.6 + edición manual de la línea 42 (<code>apiregistration v1beta1</code>)</td>
+<td><strong>LEGACY</strong></td>
+<td>Se instala <strong>v0.8.1</strong> con el manifiesto oficial; el arreglo de <code>v1beta1</code> ya no aplica</td>
+</tr>
+<tr>
+<td><code>kubectl edit deployment --record</code></td>
+<td><strong>REQUIERE ACTUALIZACIÓN</strong></td>
+<td>Sustituido por <code>set image</code> + <code>annotate</code></td>
+</tr>
+<tr>
+<td>Imagen <code>nginx:1.7.9</code></td>
+<td><strong>REQUIERE ACTUALIZACIÓN</strong></td>
+<td>Se usan versiones vigentes de nginx</td>
+</tr>
+<tr>
+<td>Secrets "encriptados"</td>
+<td><strong>CORRECCIÓN CONCEPTUAL</strong></td>
+<td>Se aclara que el contenido está <strong>codificado</strong> en base64, no cifrado</td>
+</tr>
+<tr>
+<td><code>kubectl top</code> sin readiness</td>
+<td><strong>MEJORA</strong></td>
+<td>Se añade <code>readinessProbe</code> para demostrar rollouts que se detienen solos</td>
+</tr>
+</tbody>
+</table>
+<h2 id="agenda-180-min">Agenda (180 min)</h2>
+<table>
+<thead>
+<tr>
+<th>Tiempo</th>
+<th>Actividad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>00–12</td>
+<td>Repaso Clase 3 y objetivos</td>
+</tr>
+<tr>
+<td>12–32</td>
+<td>Conceptos: rollout, revisiones, rollback, estrategias</td>
+</tr>
+<tr>
+<td>32–48</td>
+<td><strong>Demo</strong>: rollout con imagen rota y <code>rollout undo</code> en vivo</td>
+</tr>
+<tr>
+<td>48–72</td>
+<td><strong>LAB 4.1 — Básico</strong>: Rolling Update y Rollback</td>
+</tr>
+<tr>
+<td>72–90</td>
+<td>Conceptos: ConfigMaps y Secrets</td>
+</tr>
+<tr>
+<td>90–120</td>
+<td><strong>LAB 4.2 — Intermedio</strong>: configuración externalizada</td>
+</tr>
+<tr>
+<td>120–132</td>
+<td>Conceptos: requests, limits, QoS y Metrics Server</td>
+</tr>
+<tr>
+<td>132–158</td>
+<td><strong>LAB 4.3 — Avanzado</strong>: recursos, escalado y métricas</td>
+</tr>
+<tr>
+<td>158–176</td>
+<td><strong>LAB 4.4 — Challenge</strong>: el despliegue que no arranca</td>
+</tr>
+<tr>
+<td>176–180</td>
+<td>Cierre y CKA Tips</td>
+</tr>
+</tbody>
+</table>
+<h2 id="checklist-final-de-la-clase">Checklist final de la clase</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Ejecuto un Rolling Update y sigo su progreso con <code>rollout status</code>.</li>
+<li class="task"><span class="box"></span>Consulto <code>rollout history</code> y el detalle de una revisión concreta.</li>
+<li class="task"><span class="box"></span>Registro la causa del cambio sin usar <code>--record</code>.</li>
+<li class="task"><span class="box"></span>Hago rollback a una revisión concreta.</li>
+<li class="task"><span class="box"></span>Explico <code>maxSurge</code> y <code>maxUnavailable</code>.</li>
+<li class="task"><span class="box"></span>Creo un ConfigMap de tres formas distintas.</li>
+<li class="task"><span class="box"></span>Consumo un ConfigMap como variable y como volumen.</li>
+<li class="task"><span class="box"></span>Creo un Secret y lo consumo como variable y como volumen.</li>
+<li class="task"><span class="box"></span>Explico por qué base64 no es cifrado.</li>
+<li class="task"><span class="box"></span>Defino <code>requests</code> y <code>limits</code> y sé decir la QoS resultante.</li>
+<li class="task"><span class="box"></span>Instalo Metrics Server y uso <code>kubectl top</code>.</li>
+</ul></article>
+  <aside class="rail">
+    <div class="railcard">
+      <div class="railcard-h">Presentación</div>
+      <div class="slide-row"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M8 8h8M8 12h8M8 16h5"></path></svg><div><div class="mono fn">01-CLASE-04-CKA.pptx</div></div></div>
+      <a class="btn primary" href="../slides/01-CLASE-04-CKA.pptx" download>Descargar .pptx</a>
+    </div>
+    <div class="railcard">
+      <div class="railcard-h">Laboratorios</div>
+      <div class="lab-list"><a href="lab-1/"><span>LAB 4.1 — Rolling Update y Rollback</span><span class="lvl ok mono">Básico</span></a><a href="lab-2/"><span>LAB 4.2 — ConfigMaps y Secrets</span><span class="lvl blue mono">Intermedio</span></a><a href="lab-3/"><span>LAB 4.3 — Recursos, QoS, escalado y métricas</span><span class="lvl warn mono">Avanzado</span></a><a href="lab-4/"><span>LAB 4.4 — Challenge: el despliegue que no arranca</span><span class="lvl danger mono">Challenge</span></a></div>
+    </div>
+    <div class="railcard">
+      <div class="railcard-h">Recursos · YAML</div>
+      <div class="rlist"><div class="rrow mono"><span>01-deployment-versioning.yaml</span><span class="acts"><a href="recursos.html#01-deployment-versioning.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/01-deployment-versioning.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>02-configmap-secret.yaml</span><span class="acts"><a href="recursos.html#02-configmap-secret.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/02-configmap-secret.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>03-deployment-web-moon.yaml</span><span class="acts"><a href="recursos.html#03-deployment-web-moon.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/03-deployment-web-moon.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>04-qos-ejemplos.yaml</span><span class="acts"><a href="recursos.html#04-qos-ejemplos.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/04-qos-ejemplos.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>05-oomkilled.yaml</span><span class="acts"><a href="recursos.html#05-oomkilled.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/05-oomkilled.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>06-billing-referencia.yaml</span><span class="acts"><a href="recursos.html#06-billing-referencia.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/06-billing-referencia.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div></div>
+      <div class="railcard-h" style="margin-top:16px">Scripts</div>
+      <div class="rlist"><div class="rrow mono"><span>install-metrics-server.sh</span><span class="acts"><a href="recursos.html#install-metrics-server.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/install-metrics-server.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>reset-lab.sh</span><span class="acts"><a href="recursos.html#reset-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/reset-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>setup-lab.sh</span><span class="acts"><a href="recursos.html#setup-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/setup-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>validate-lab.sh</span><span class="acts"><a href="recursos.html#validate-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/validate-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div></div>
+      <a class="btn" href="recursos.html">Abrir visor de recursos</a>
+    </div>
+    
+  </aside>
+</div>
+
+<nav class="pager"><a href="../clase-3/">← Clase 3</a><a href="../clase-5/">Clase 5 →</a></nav>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

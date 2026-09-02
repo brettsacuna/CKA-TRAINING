@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 3.2 — Volúmenes: emptyDir, PersistentVolume y PersistentVolumeClaim · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+
+</head>
+<body class="labpage">
+<header class="topbar">
+  <a class="brand" href="../../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../../index.html">Inicio</a><a class="on" href="../../guia.html">Clases</a><a href="../../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../../index.html">Inicio</a><span class="sep">/</span><a href="../index.html">Clase 3</a><span class="sep">/</span><span>LAB 3.2</span></nav>
+
+<div class="lab-layout">
+  <aside class="lab-side">
+    <details class="lab-nav" open>
+      <summary>Clase 3 · Laboratorios</summary>
+      <div class="railcard-h">Clase 3 · Laboratorios</div>
+      <div class="side-labs"><a class="" href="../lab-1/">LAB 3.1 — Deployment, ReplicaSet y self-healing</a><a class="on" href="../lab-2/">LAB 3.2 — Volúmenes: emptyDir, PersistentVolume y PersistentVolumeClaim</a><a class="" href="../lab-3/">LAB 3.3 — StatefulSet con identidad estable y almacenamiento por réplica</a><a class="" href="../lab-4/">LAB 3.4 — Challenge: el PVC que nunca enlaza</a></div>
+      <div class="railcard-h" style="margin-top:22px">Recursos</div>
+      <a class="rlink" href="../recursos.html">Visor de recursos</a>
+      <a class="rlink" href="../../slides/01-CLASE-03-CKA.pptx" download>Presentación (.pptx)</a>
+    </details>
+  </aside>
+  <script>if(matchMedia('(max-width:900px)').matches){var _ln=document.currentScript.previousElementSibling.querySelector('.lab-nav');if(_ln)_ln.removeAttribute('open');}</script>
+  <article class="md lab-body">
+    <div class="eyebrow">LAB 3.2</div>
+    <h1>Volúmenes: emptyDir, PersistentVolume y PersistentVolumeClaim</h1>
+    <div class="chips">
+      <span class="lvl blue mono">Nivel · Intermedio</span>
+      <span class="chip mono">30 minutos</span>
+    </div>
+    <h2 id="objetivo">Objetivo</h2>
+<p>Compartir datos entre contenedores de un Pod y aprovisionar almacenamiento persistente de forma estática, entendiendo por qué un PVC enlaza con un PV concreto y no con otro.</p>
+<h2 id="competencias">Competencias</h2>
+<ul>
+<li><code>emptyDir</code> entre dos contenedores del mismo Pod.</li>
+<li>Crear PV con <code>capacity</code>, <code>accessModes</code>, <code>storageClassName</code> y <code>persistentVolumeReclaimPolicy</code>.</li>
+<li>Crear PVC y comprobar el binding.</li>
+<li>Consumir un PVC desde un Pod con <code>volumeMounts</code>.</li>
+<li>Forzar el enlace a un PV concreto mediante labels y <code>selector</code>.</li>
+</ul>
+<h2 id="escenario">Escenario</h2>
+<p>Un equipo de contenido despliega un sitio estático. Un contenedor descarga el contenido; otro lo sirve. Además, el sitio necesita un directorio que <strong>sobreviva</strong> a la eliminación del Pod.</p>
+<h2 id="estado-inicial">Estado inicial</h2>
+<ul>
+<li>Namespace de trabajo: <strong><code>c3-inter</code></strong>.</li>
+<li>Al menos un worker con acceso para crear directorios (<code>/mnt/data-*</code>).</li>
+<li>Sin PV ni PVC previos del laboratorio.</li>
+</ul>
+<h2 id="requerimientos">Requerimientos</h2>
+<h3 id="parte-a-emptydir-entre-dos-contenedores">Parte A — emptyDir entre dos contenedores</h3>
+<ol>
+<li>Crea el namespace <code>c3-inter</code>.</li>
+<li>Crea un Pod <strong><code>sitio</code></strong> con <strong>dos contenedores</strong> que comparten un volumen <code>emptyDir</code> llamado <code>www</code>:<ul>
+<li><code>writer</code>: imagen <code>busybox:1.36</code>, escribe <code>&lt;h1&gt;Hola CKA&lt;/h1&gt;</code> en <code>/data/index.html</code> y luego duerme.</li>
+<li><code>web</code>: imagen <code>nginx:1.27-alpine</code>, monta el mismo volumen en <code>/usr/share/nginx/html</code>.</li>
+</ul>
+</li>
+<li>Verifica desde un <code>curl</code> interno que el sitio responde con el contenido escrito por <code>writer</code>.</li>
+<li>Borra el Pod y vuelve a crearlo. Comprueba si el contenido persiste y <strong>explica el resultado</strong>.</li>
+</ol>
+<h3 id="parte-b-pv-y-pvc-estaticos">Parte B — PV y PVC estáticos</h3>
+<ol start="5">
+<li>En <strong>un worker concreto</strong>, crea los directorios <code>/mnt/data-a</code> y <code>/mnt/data-b</code> y escribe dentro de cada uno un <code>index.html</code> distinguible.</li>
+<li>Crea <strong>dos PersistentVolumes</strong>, ambos de <strong>2Gi</strong>, <code>ReadWriteOnce</code>, <code>storageClassName: manual</code>, <code>persistentVolumeReclaimPolicy: Retain</code>:<ul>
+<li><code>pv-a</code>, con label <code>contenido=alfa</code>, apuntando a <code>/mnt/data-a</code>.</li>
+<li><code>pv-b</code>, con label <code>contenido=beta</code>, apuntando a <code>/mnt/data-b</code>.</li>
+</ul>
+</li>
+<li>Crea un PVC <strong><code>pvc-sitio</code></strong> que pida <strong>1Gi</strong>, <code>ReadWriteOnce</code>, <code>storageClassName: manual</code> y que enlace <strong>exactamente con <code>pv-b</code></strong>, usando un <code>selector</code> por label.</li>
+<li>Comprueba el estado de ambos PV y del PVC.</li>
+<li>Crea un Pod <strong><code>web-persistente</code></strong> que monte <code>pvc-sitio</code> en <code>/usr/share/nginx/html</code> y sirva su contenido. Comprueba con <code>curl</code> que responde el <code>index.html</code> de <code>/mnt/data-b</code>.</li>
+<li>Borra el Pod y vuelve a crearlo. Comprueba que el contenido <strong>sigue ahí</strong>.</li>
+<li>Borra el PVC. Observa en qué estado queda <code>pv-b</code> y <strong>explica qué significa</strong> y qué hay que hacer para poder reutilizarlo.</li>
+</ol>
+<h2 id="restricciones">Restricciones</h2>
+<ul>
+<li>Trabaja en <code>c3-inter</code> (los PV no tienen namespace: nómbralos con el prefijo del laboratorio).</li>
+<li>En el paso 7 <strong>no vale</strong> que el PVC enlace por casualidad: debe hacerlo por <code>selector</code>, y hay que poder demostrarlo.</li>
+<li>No uses una StorageClass dinámica en este laboratorio.</li>
+<li>Si tu cluster tiene una StorageClass por defecto, asegúrate de que no interfiere.</li>
+</ul>
+<h2 id="validacion">Validación</h2>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>-n<span class="w"> </span>c3-inter<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-o<span class="w"> </span>wide
+kubectl<span class="w"> </span>get<span class="w"> </span>pv<span class="w"> </span>-o<span class="w"> </span>wide
+kubectl<span class="w"> </span>-n<span class="w"> </span>c3-inter<span class="w"> </span>get<span class="w"> </span>pvc
+kubectl<span class="w"> </span>get<span class="w"> </span>pv<span class="w"> </span>pv-b<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.status.phase} {.spec.claimRef.name}{&quot;\n&quot;}&#39;</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>c3-inter<span class="w"> </span>describe<span class="w"> </span>pvc<span class="w"> </span>pvc-sitio<span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;/Events/,$p&#39;</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>c3-inter<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>web-persistente<span class="w"> </span>--<span class="w"> </span>cat<span class="w"> </span>/usr/share/nginx/html/index.html
+</code></pre></div>
+
+<h2 id="resultado-esperado">Resultado esperado</h2>
+<ul>
+<li>Parte A: <code>curl</code> devuelve <code>&lt;h1&gt;Hola CKA&lt;/h1&gt;</code>; tras recrear el Pod el contenido <strong>se pierde</strong>, porque <code>emptyDir</code> vive y muere con el Pod.</li>
+<li>Parte B: <code>pv-a</code> en <code>Available</code>, <code>pv-b</code> en <code>Bound</code> a <code>pvc-sitio</code>, PVC en <code>Bound</code> con <code>CAPACITY 2Gi</code>.</li>
+<li><code>web-persistente</code> sirve el <code>index.html</code> de <code>/mnt/data-b</code>, y sigue haciéndolo tras recrearse.</li>
+<li>Tras borrar el PVC, <code>pv-b</code> queda en <strong><code>Released</code></strong> (no <code>Available</code>), porque <code>reclaimPolicy: Retain</code> conserva los datos y el <code>claimRef</code>.</li>
+</ul>
+<h2 id="criterios-de-exito">Criterios de éxito</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Pod <code>sitio</code> con dos contenedores compartiendo <code>emptyDir</code>.</li>
+<li class="task"><span class="box"></span>Demostré que <code>emptyDir</code> no persiste al recrear el Pod.</li>
+<li class="task"><span class="box"></span><code>pv-a</code> y <code>pv-b</code> creados con capacidad, modo de acceso, clase y política correctos.</li>
+<li class="task"><span class="box"></span><code>pvc-sitio</code> enlaza con <code>pv-b</code> por <code>selector</code>, no por azar.</li>
+<li class="task"><span class="box"></span><code>pv-a</code> permanece <code>Available</code>.</li>
+<li class="task"><span class="box"></span>El PVC muestra <code>CAPACITY 2Gi</code> aunque pidió 1Gi, y sé explicar por qué.</li>
+<li class="task"><span class="box"></span>El Pod monta el PVC y sirve el contenido correcto.</li>
+<li class="task"><span class="box"></span>El contenido persiste tras recrear el Pod.</li>
+<li class="task"><span class="box"></span><code>pv-b</code> queda <code>Released</code> y sé qué hacer para reutilizarlo.</li>
+</ul>
+    <div class="lab-note">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+    </div>
+    <nav class="pager"><a href="../lab-1/">← LAB 3.1</a><a href="../lab-3/">LAB 3.3 →</a></nav>
+  </article>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

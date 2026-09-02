@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cheat Sheet CKA · Clase 6 · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
+
+</head>
+<body class="">
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../index.html">Inicio</a><a href="../guia.html">Clases</a><a class="on" href="../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../index.html">Inicio</a><span class="sep">/</span><a href="index.html">Clase 6</a><span class="sep">/</span><span>Cheat Sheet CKA</span></nav>
+<article class="md wide"><h1 id="cheat-sheet-cka">CHEAT SHEET CKA</h1>
+<p>Comandos limitados a los temas trabajados en este curso.</p>
+<hr>
+<h2 id="preparacion-del-entorno">Preparación del entorno</h2>
+<div class="hl"><pre><span></span><code><span class="nb">alias</span><span class="w"> </span><span class="nv">k</span><span class="o">=</span>kubectl
+<span class="nb">export</span><span class="w"> </span><span class="k">do</span><span class="o">=</span><span class="s1">&#39;--dry-run=client -o yaml&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">now</span><span class="o">=</span><span class="s1">&#39;--force --grace-period=0&#39;</span>
+<span class="nb">source</span><span class="w"> </span>&lt;<span class="o">(</span>kubectl<span class="w"> </span>completion<span class="w"> </span>bash<span class="o">)</span>
+<span class="nb">complete</span><span class="w"> </span>-o<span class="w"> </span>default<span class="w"> </span>-F<span class="w"> </span>__start_kubectl<span class="w"> </span>k
+</code></pre></div>
+
+<h2 id="context-y-namespace">Context y namespace</h2>
+<div class="hl"><pre><span></span><code>k<span class="w"> </span>config<span class="w"> </span>get-contexts
+k<span class="w"> </span>config<span class="w"> </span>current-context
+k<span class="w"> </span>config<span class="w"> </span>use-context<span class="w"> </span>&lt;ctx&gt;
+k<span class="w"> </span>config<span class="w"> </span>set-context<span class="w"> </span>--current<span class="w"> </span>--namespace<span class="o">=</span>&lt;ns&gt;
+k<span class="w"> </span>get<span class="w"> </span>ns
+k<span class="w"> </span>create<span class="w"> </span>ns<span class="w"> </span>&lt;ns&gt;
+k<span class="w"> </span>api-resources<span class="w">                        </span><span class="c1"># recursos y si son namespaced</span>
+k<span class="w"> </span>explain<span class="w"> </span>&lt;recurso&gt;.&lt;campo&gt;<span class="w"> </span>--recursive
+</code></pre></div>
+
+<h2 id="pods">Pods</h2>
+<div class="hl"><pre><span></span><code>k<span class="w"> </span>run<span class="w"> </span>&lt;p&gt;<span class="w"> </span>--image<span class="o">=</span>&lt;img&gt;
+k<span class="w"> </span>run<span class="w"> </span>&lt;p&gt;<span class="w"> </span>--image<span class="o">=</span>&lt;img&gt;<span class="w"> </span>--port<span class="o">=</span><span class="m">80</span><span class="w"> </span>-l<span class="w"> </span><span class="nv">app</span><span class="o">=</span>web<span class="w"> </span><span class="nv">$do</span><span class="w"> </span>&gt;<span class="w"> </span>pod.yaml
+k<span class="w"> </span>run<span class="w"> </span>tmp<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>--image<span class="o">=</span>busybox:1.36<span class="w"> </span>--restart<span class="o">=</span>Never<span class="w"> </span>--<span class="w"> </span>sh
+k<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-o<span class="w"> </span>wide<span class="w"> </span>--show-labels
+k<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-A<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-vE<span class="w"> </span><span class="s1">&#39;Running|Completed&#39;</span>
+k<span class="w"> </span>describe<span class="w"> </span>pod<span class="w"> </span>&lt;p&gt;
+k<span class="w"> </span>logs<span class="w"> </span>&lt;p&gt;<span class="w"> </span><span class="o">[</span>-c<span class="w"> </span>&lt;cont&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--previous<span class="o">]</span><span class="w"> </span><span class="o">[</span>-f<span class="o">]</span>
+k<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;p&gt;<span class="w"> </span><span class="o">[</span>-c<span class="w"> </span>&lt;cont&gt;<span class="o">]</span><span class="w"> </span>--<span class="w"> </span>sh
+k<span class="w"> </span>delete<span class="w"> </span>pod<span class="w"> </span>&lt;p&gt;<span class="w"> </span><span class="nv">$now</span>
+k<span class="w"> </span>label<span class="w"> </span>pod<span class="w"> </span>&lt;p&gt;<span class="w"> </span><span class="nv">key</span><span class="o">=</span>value<span class="w"> </span>--overwrite
+k<span class="w"> </span>get<span class="w"> </span>pod<span class="w"> </span>&lt;p&gt;<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.containers[*].name}{&quot;\n&quot;}&#39;</span>
+</code></pre></div>
+
+<h2 id="deployments-y-replicasets">Deployments y ReplicaSets</h2>
+<div class="hl"><pre><span></span><code>k<span class="w"> </span>create<span class="w"> </span>deployment<span class="w"> </span>&lt;d&gt;<span class="w"> </span>--image<span class="o">=</span>&lt;img&gt;<span class="w"> </span>--replicas<span class="o">=</span><span class="m">3</span>
+k<span class="w"> </span>get<span class="w"> </span>deploy,rs,pods<span class="w"> </span>-o<span class="w"> </span>wide
+k<span class="w"> </span>scale<span class="w"> </span>deployment<span class="w"> </span>&lt;d&gt;<span class="w"> </span>--replicas<span class="o">=</span><span class="m">5</span>
+k<span class="w"> </span><span class="nb">set</span><span class="w"> </span>image<span class="w"> </span>deploy/&lt;d&gt;<span class="w"> </span>&lt;cont&gt;<span class="o">=</span>&lt;img&gt;:&lt;tag&gt;
+k<span class="w"> </span><span class="nb">set</span><span class="w"> </span>resources<span class="w"> </span>deploy/&lt;d&gt;<span class="w"> </span>--requests<span class="o">=</span><span class="nv">cpu</span><span class="o">=</span>100m,memory<span class="o">=</span>64Mi<span class="w"> </span>--limits<span class="o">=</span><span class="nv">cpu</span><span class="o">=</span>500m,memory<span class="o">=</span>256Mi
+k<span class="w"> </span>annotate<span class="w"> </span>deploy/&lt;d&gt;<span class="w"> </span>kubernetes.io/change-cause<span class="o">=</span><span class="s2">&quot;motivo&quot;</span><span class="w"> </span>--overwrite
+k<span class="w"> </span>rollout<span class="w"> </span>status<span class="w">  </span>deploy/&lt;d&gt;
+k<span class="w"> </span>rollout<span class="w"> </span><span class="nb">history</span><span class="w"> </span>deploy/&lt;d&gt;<span class="w"> </span><span class="o">[</span>--revision<span class="o">=</span>N<span class="o">]</span>
+k<span class="w"> </span>rollout<span class="w"> </span>undo<span class="w">    </span>deploy/&lt;d&gt;<span class="w"> </span><span class="o">[</span>--to-revision<span class="o">=</span>N<span class="o">]</span>
+k<span class="w"> </span>rollout<span class="w"> </span>restart<span class="w"> </span>deploy/&lt;d&gt;
+k<span class="w"> </span>rollout<span class="w"> </span>pause<span class="p">|</span>resume<span class="w"> </span>deploy/&lt;d&gt;
+k<span class="w"> </span>expose<span class="w"> </span>deployment<span class="w"> </span>&lt;d&gt;<span class="w"> </span>--port<span class="o">=</span><span class="m">80</span><span class="w"> </span>--target-port<span class="o">=</span><span class="m">8080</span><span class="w"> </span>--name<span class="o">=</span>&lt;svc&gt;
+</code></pre></div>
+
+<h2 id="scheduling">Scheduling</h2>
+<div class="hl"><pre><span></span><code>k<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>--show-labels
+k<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>-L<span class="w"> </span>environment,disktype
+k<span class="w"> </span>label<span class="w"> </span>node<span class="w"> </span>&lt;n&gt;<span class="w"> </span><span class="nv">environment</span><span class="o">=</span>production
+k<span class="w"> </span>label<span class="w"> </span>node<span class="w"> </span>&lt;n&gt;<span class="w"> </span>environment-
+k<span class="w"> </span>taint<span class="w"> </span>node<span class="w"> </span>&lt;n&gt;<span class="w"> </span><span class="nv">key</span><span class="o">=</span>value:NoSchedule
+k<span class="w"> </span>taint<span class="w"> </span>node<span class="w"> </span>&lt;n&gt;<span class="w"> </span>key-
+k<span class="w"> </span>describe<span class="w"> </span>nodes<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>-A1<span class="w"> </span>taint
+k<span class="w"> </span>get<span class="w"> </span>priorityclass
+k<span class="w"> </span>describe<span class="w"> </span>pod<span class="w"> </span>&lt;p&gt;<span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;/Events/,$p&#39;</span>
+</code></pre></div>
+
+<p>Fragmentos:</p>
+<div class="hl"><pre><span></span><code><span class="nt">nodeSelector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">environment</span><span class="p">:</span><span class="w"> </span><span class="nv">production</span><span class="p p-Indicator">}</span>
+
+<span class="nt">tolerations</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="nv">team</span><span class="p p-Indicator">,</span><span class="nt"> operator</span><span class="p">:</span><span class="w"> </span><span class="nv">Equal</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">data</span><span class="p p-Indicator">,</span><span class="nt"> effect</span><span class="p">:</span><span class="w"> </span><span class="nv">NoSchedule</span><span class="p p-Indicator">}</span>
+
+<span class="nt">affinity</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">nodeAffinity</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">requiredDuringSchedulingIgnoredDuringExecution</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">nodeSelectorTerms</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">matchExpressions</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="nv">environment</span><span class="p p-Indicator">,</span><span class="nt"> operator</span><span class="p">:</span><span class="w"> </span><span class="nv">In</span><span class="p p-Indicator">,</span><span class="nt"> values</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;production&quot;</span><span class="p p-Indicator">]}</span>
+<span class="w">    </span><span class="nt">preferredDuringSchedulingIgnoredDuringExecution</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60</span>
+<span class="w">        </span><span class="nt">preference</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">matchExpressions</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="nv">disktype</span><span class="p p-Indicator">,</span><span class="nt"> operator</span><span class="p">:</span><span class="w"> </span><span class="nv">In</span><span class="p p-Indicator">,</span><span class="nt"> values</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;ssd&quot;</span><span class="p p-Indicator">]}</span>
+<span class="w">  </span><span class="nt">podAntiAffinity</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">requiredDuringSchedulingIgnoredDuringExecution</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">labelSelector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">matchLabels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">web</span><span class="p p-Indicator">}}</span>
+<span class="w">        </span><span class="nt">topologyKey</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubernetes.io/hostname</span>
+</code></pre></div>
+
+<h2 id="administracion-del-cluster">Administración del cluster</h2>
+<div class="hl"><pre><span></span><code>k<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>-o<span class="w"> </span>wide
+k<span class="w"> </span>describe<span class="w"> </span>node<span class="w"> </span>&lt;n&gt;<span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;/Conditions/,/Addresses/p&#39;</span>
+k<span class="w"> </span>describe<span class="w"> </span>node<span class="w"> </span>&lt;n&gt;<span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;/Allocated resources/,$p&#39;</span>
+k<span class="w"> </span>cordon<span class="w"> </span>&lt;n&gt;
+k<span class="w"> </span>drain<span class="w"> </span>&lt;n&gt;<span class="w"> </span>--ignore-daemonsets<span class="w"> </span>--delete-emptydir-data
+k<span class="w"> </span>uncordon<span class="w"> </span>&lt;n&gt;
+
+<span class="c1"># En el nodo</span>
+systemctl<span class="w"> </span>status<span class="w"> </span>kubelet
+journalctl<span class="w"> </span>-u<span class="w"> </span>kubelet<span class="w"> </span>-n<span class="w"> </span><span class="m">80</span><span class="w"> </span>--no-pager
+crictl<span class="w"> </span>ps<span class="w"> </span>-a
+crictl<span class="w"> </span>logs<span class="w"> </span>&lt;id&gt;<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-40
+ls<span class="w"> </span>-l<span class="w"> </span>/etc/kubernetes/manifests/
+</code></pre></div>
+
+<h3 id="upgrade-una-minor-cada-vez">Upgrade (una minor cada vez)</h3>
+<div class="hl"><pre><span></span><code><span class="c1"># Control plane</span>
+sed<span class="w"> </span>-i<span class="w"> </span><span class="s1">&#39;s#/v1.34/#/v1.35/#&#39;</span><span class="w"> </span>/etc/apt/sources.list.d/kubernetes.list
+apt<span class="w"> </span>update
+apt-mark<span class="w"> </span>unhold<span class="w"> </span>kubeadm<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span><span class="nv">kubeadm</span><span class="o">=</span>&lt;v&gt;<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-mark<span class="w"> </span>hold<span class="w"> </span>kubeadm
+kubeadm<span class="w"> </span>upgrade<span class="w"> </span>plan
+kubeadm<span class="w"> </span>upgrade<span class="w"> </span>apply<span class="w"> </span>v&lt;v&gt;
+kubectl<span class="w"> </span>drain<span class="w"> </span>&lt;n&gt;<span class="w"> </span>--ignore-daemonsets<span class="w"> </span>--delete-emptydir-data
+apt-mark<span class="w"> </span>unhold<span class="w"> </span>kubelet<span class="w"> </span>kubectl<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span><span class="nv">kubelet</span><span class="o">=</span>&lt;v&gt;<span class="w"> </span><span class="nv">kubectl</span><span class="o">=</span>&lt;v&gt;<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-mark<span class="w"> </span>hold<span class="w"> </span>kubelet<span class="w"> </span>kubectl
+systemctl<span class="w"> </span>daemon-reload<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>kubelet
+kubectl<span class="w"> </span>uncordon<span class="w"> </span>&lt;n&gt;
+
+<span class="c1"># Worker: igual, pero  kubeadm upgrade node</span>
+</code></pre></div>
+
+<h2 id="etcd">ETCD</h2>
+<div class="hl"><pre><span></span><code>grep<span class="w"> </span>etcd<span class="w"> </span>/etc/kubernetes/manifests/kube-apiserver.yaml
+grep<span class="w"> </span>-A3<span class="w"> </span><span class="s1">&#39;name: etcd-data&#39;</span><span class="w"> </span>/etc/kubernetes/manifests/etcd.yaml
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">E</span><span class="o">=</span><span class="s2">&quot;--endpoints=https://127.0.0.1:2379 \</span>
+<span class="s2">  --cacert=/etc/kubernetes/pki/etcd/ca.crt \</span>
+<span class="s2">  --cert=/etc/kubernetes/pki/etcd/server.crt \</span>
+<span class="s2">  --key=/etc/kubernetes/pki/etcd/server.key&quot;</span>
+
+etcdctl<span class="w"> </span><span class="nv">$E</span><span class="w"> </span>endpoint<span class="w"> </span>health
+etcdctl<span class="w"> </span><span class="nv">$E</span><span class="w"> </span>endpoint<span class="w"> </span>status<span class="w"> </span>--write-out<span class="o">=</span>table
+etcdctl<span class="w"> </span><span class="nv">$E</span><span class="w"> </span>snapshot<span class="w"> </span>save<span class="w"> </span>/opt/backup/etcd.db
+
+etcdutl<span class="w"> </span>snapshot<span class="w"> </span>status<span class="w">  </span>/opt/backup/etcd.db<span class="w"> </span>--write-out<span class="o">=</span>table
+etcdutl<span class="w"> </span>snapshot<span class="w"> </span>restore<span class="w"> </span>/opt/backup/etcd.db<span class="w"> </span>--data-dir<span class="w"> </span>/var/lib/etcd-restore
+</code></pre></div>
+
+<p><code>etcdctl</code> = cluster vivo (necesita certificados). <code>etcdutl</code> = archivo (no los necesita).</p>
+<h2 id="rbac">RBAC</h2>
+<div class="hl"><pre><span></span><code>k<span class="w"> </span>create<span class="w"> </span>role<span class="w"> </span>&lt;r&gt;<span class="w"> </span>--verb<span class="o">=</span>get,list<span class="w"> </span>--resource<span class="o">=</span>pods<span class="w"> </span>-n<span class="w"> </span>&lt;ns&gt;
+k<span class="w"> </span>create<span class="w"> </span>rolebinding<span class="w"> </span>&lt;rb&gt;<span class="w"> </span>--role<span class="o">=</span>&lt;r&gt;<span class="w"> </span>--user<span class="o">=</span>&lt;u&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;ns&gt;
+k<span class="w"> </span>create<span class="w"> </span>clusterrole<span class="w"> </span>&lt;cr&gt;<span class="w"> </span>--verb<span class="o">=</span>delete<span class="w"> </span>--resource<span class="o">=</span>deployments
+k<span class="w"> </span>create<span class="w"> </span>clusterrolebinding<span class="w"> </span>&lt;crb&gt;<span class="w"> </span>--clusterrole<span class="o">=</span>&lt;cr&gt;<span class="w"> </span>--user<span class="o">=</span>&lt;u&gt;
+k<span class="w"> </span>create<span class="w"> </span>rolebinding<span class="w"> </span>&lt;rb&gt;<span class="w"> </span>--clusterrole<span class="o">=</span>&lt;cr&gt;<span class="w"> </span>--user<span class="o">=</span>&lt;u&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;ns&gt;<span class="w">   </span><span class="c1"># alcance limitado</span>
+k<span class="w"> </span>create<span class="w"> </span>sa<span class="w"> </span>&lt;sa&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;ns&gt;
+k<span class="w"> </span>create<span class="w"> </span>rolebinding<span class="w"> </span>&lt;rb&gt;<span class="w"> </span>--role<span class="o">=</span>&lt;r&gt;<span class="w"> </span>--serviceaccount<span class="o">=</span>&lt;ns&gt;:&lt;sa&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;ns&gt;
+
+k<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>&lt;verb&gt;<span class="w"> </span>&lt;resource&gt;<span class="w"> </span>--as<span class="w"> </span>&lt;user&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;ns&gt;
+k<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>&lt;verb&gt;<span class="w"> </span>&lt;resource&gt;<span class="w"> </span>--as<span class="w"> </span>system:serviceaccount:&lt;ns&gt;:&lt;sa&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;ns&gt;
+k<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>--list<span class="w"> </span>--as<span class="w"> </span>&lt;user&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;ns&gt;
+</code></pre></div>
+
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Binding</th>
+<th>Alcance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Role</td>
+<td>RoleBinding</td>
+<td>un namespace</td>
+</tr>
+<tr>
+<td>ClusterRole</td>
+<td>ClusterRoleBinding</td>
+<td>todo el cluster</td>
+</tr>
+<tr>
+<td>ClusterRole</td>
+<td>RoleBinding</td>
+<td>un namespace, definición reutilizada</td>
+</tr>
+</tbody>
+</table>
+<h2 id="storage">Storage</h2>
+<div class="hl"><pre><span></span><code>k<span class="w"> </span>get<span class="w"> </span>pv<span class="w"> </span>-o<span class="w"> </span>custom-columns<span class="o">=</span>NAME:.metadata.name,CAP:.spec.capacity.storage,<span class="se">\</span>
+MODES:.spec.accessModes,SC:.spec.storageClassName,PHASE:.status.phase,CLAIM:.spec.claimRef.name
+k<span class="w"> </span>get<span class="w"> </span>pvc<span class="w"> </span>-A
+k<span class="w"> </span>describe<span class="w"> </span>pvc<span class="w"> </span>&lt;pvc&gt;<span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;/Events/,$p&#39;</span>
+k<span class="w"> </span>get<span class="w"> </span>storageclass
+k<span class="w"> </span>patch<span class="w"> </span>pv<span class="w"> </span>&lt;pv&gt;<span class="w"> </span>--type<span class="o">=</span>json<span class="w"> </span>-p<span class="o">=</span><span class="s1">&#39;[{&quot;op&quot;:&quot;remove&quot;,&quot;path&quot;:&quot;/spec/claimRef&quot;}]&#39;</span><span class="w">   </span><span class="c1"># Released -&gt; Available</span>
+</code></pre></div>
+
+<p>Modos: <code>ReadWriteOnce</code> (RWO) · <code>ReadOnlyMany</code> (ROX) · <code>ReadWriteMany</code> (RWX) · <code>ReadWriteOncePod</code> (RWOP).
+<code>reclaimPolicy</code>: solo <code>Retain</code> y <code>Delete</code>.</p>
+<h2 id="configmaps-y-secrets">ConfigMaps y Secrets</h2>
+<div class="hl"><pre><span></span><code>k<span class="w"> </span>create<span class="w"> </span>configmap<span class="w"> </span>&lt;cm&gt;<span class="w"> </span>--from-literal<span class="o">=</span><span class="nv">K</span><span class="o">=</span>V
+k<span class="w"> </span>create<span class="w"> </span>configmap<span class="w"> </span>&lt;cm&gt;<span class="w"> </span>--from-file<span class="o">=</span>index.html<span class="o">=</span>archivo.html
+k<span class="w"> </span>create<span class="w"> </span>configmap<span class="w"> </span>&lt;cm&gt;<span class="w"> </span>--from-env-file<span class="o">=</span>vars.env
+k<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>&lt;s&gt;<span class="w"> </span>--from-literal<span class="o">=</span><span class="nv">password</span><span class="o">=</span>x
+k<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>tls<span class="w"> </span>&lt;s&gt;<span class="w"> </span>--cert<span class="o">=</span>cert.pem<span class="w"> </span>--key<span class="o">=</span>key.pem
+k<span class="w"> </span>get<span class="w"> </span>secret<span class="w"> </span>&lt;s&gt;<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.data.password}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>base64<span class="w"> </span>-d<span class="p">;</span><span class="w"> </span><span class="nb">echo</span>
+k<span class="w"> </span>get<span class="w"> </span>secret<span class="w"> </span>&lt;s&gt;<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.data}{&quot;\n&quot;}&#39;</span><span class="w">          </span><span class="c1"># nombres de las claves</span>
+</code></pre></div>
+
+<div class="hl"><pre><span></span><code><span class="nt">envFrom</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">configMapRef</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">app-config</span><span class="p p-Indicator">}}]</span>
+<span class="nt">env</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DB_PASSWORD</span>
+<span class="w">    </span><span class="nt">valueFrom</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">secretKeyRef</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">db-cred</span><span class="p p-Indicator">,</span><span class="nt"> key</span><span class="p">:</span><span class="w"> </span><span class="nv">password</span><span class="p p-Indicator">}}</span>
+<span class="nt">volumes</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">cred</span><span class="p p-Indicator">,</span><span class="nt"> secret</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">secretName</span><span class="p">:</span><span class="w"> </span><span class="nv">db-cred</span><span class="p p-Indicator">}}</span>
+<span class="nt">volumeMounts</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">cred</span><span class="p p-Indicator">,</span><span class="nt"> mountPath</span><span class="p">:</span><span class="w"> </span><span class="nv">/etc/cred</span><span class="p p-Indicator">,</span><span class="nt"> readOnly</span><span class="p">:</span><span class="w"> </span><span class="nv">true</span><span class="p p-Indicator">}</span>
+</code></pre></div>
+
+<p>Volumen → se actualiza en caliente. Variable de entorno → requiere <code>rollout restart</code>.</p>
+<h2 id="services">Services</h2>
+<div class="hl"><pre><span></span><code>k<span class="w"> </span>expose<span class="w"> </span>pod<span class="w"> </span>&lt;p&gt;<span class="w">        </span>--name<span class="o">=</span>&lt;svc&gt;<span class="w"> </span>--port<span class="o">=</span><span class="m">80</span><span class="w"> </span>--target-port<span class="o">=</span><span class="m">8080</span>
+k<span class="w"> </span>expose<span class="w"> </span>deployment<span class="w"> </span>&lt;d&gt;<span class="w"> </span>--name<span class="o">=</span>&lt;svc&gt;<span class="w"> </span>--type<span class="o">=</span>NodePort<span class="w"> </span>--port<span class="o">=</span><span class="m">80</span>
+k<span class="w"> </span>get<span class="w"> </span>svc,endpointslices
+k<span class="w"> </span>get<span class="w"> </span>endpointslices<span class="w"> </span>-l<span class="w"> </span>kubernetes.io/service-name<span class="o">=</span>&lt;svc&gt;
+k<span class="w"> </span>get<span class="w"> </span>svc<span class="w"> </span>&lt;svc&gt;<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.selector}{&quot;\n&quot;}&#39;</span>
+k<span class="w"> </span>patch<span class="w"> </span>svc<span class="w"> </span>&lt;svc&gt;<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;{&quot;spec&quot;:{&quot;selector&quot;:{&quot;app&quot;:&quot;web&quot;}}}&#39;</span>
+</code></pre></div>
+
+<p><code>nodePort</code> no se puede fijar con <code>expose</code>: genera el YAML y edítalo.</p>
+<h2 id="dns">DNS</h2>
+<div class="hl"><pre><span></span><code>k<span class="w"> </span>-n<span class="w"> </span>kube-system<span class="w"> </span>get<span class="w"> </span>svc<span class="w"> </span>kube-dns
+k<span class="w"> </span>-n<span class="w"> </span>kube-system<span class="w"> </span>get<span class="w"> </span>cm<span class="w"> </span>coredns<span class="w"> </span>-o<span class="w"> </span>yaml
+k<span class="w"> </span>-n<span class="w"> </span>kube-system<span class="w"> </span>logs<span class="w"> </span>deploy/coredns<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail
+k<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>&lt;p&gt;<span class="w"> </span>--<span class="w"> </span>cat<span class="w"> </span>/etc/resolv.conf
+k<span class="w"> </span>run<span class="w"> </span>tmp<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>--image<span class="o">=</span>busybox:1.36<span class="w"> </span>--restart<span class="o">=</span>Never<span class="w"> </span>--<span class="w"> </span>nslookup<span class="w"> </span>&lt;svc&gt;.&lt;ns&gt;
+</code></pre></div>
+
+<p><code>&lt;svc&gt;.&lt;ns&gt;.svc.cluster.local</code> · <code>&lt;pod&gt;.&lt;svc&gt;.&lt;ns&gt;.svc.cluster.local</code> (StatefulSet).</p>
+<h2 id="ingress">Ingress</h2>
+<div class="hl"><pre><span></span><code>k<span class="w"> </span>get<span class="w"> </span>ingressclass
+k<span class="w"> </span>create<span class="w"> </span>ingress<span class="w"> </span>&lt;ing&gt;<span class="w"> </span>--class<span class="o">=</span>&lt;class&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--rule<span class="o">=</span><span class="s2">&quot;/service1=service1:80&quot;</span><span class="w"> </span>--rule<span class="o">=</span><span class="s2">&quot;/service2=service2:80&quot;</span>
+k<span class="w"> </span>create<span class="w"> </span>ingress<span class="w"> </span>&lt;ing&gt;<span class="w"> </span>--class<span class="o">=</span>&lt;class&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--rule<span class="o">=</span><span class="s2">&quot;host.com/*=svc:80,tls=&lt;secret-tls&gt;&quot;</span>
+k<span class="w"> </span>describe<span class="w"> </span>ingress<span class="w"> </span>&lt;ing&gt;
+curl<span class="w"> </span>-kv<span class="w"> </span>https://host.com:&lt;np&gt;/path<span class="w"> </span>--resolve<span class="w"> </span>host.com:&lt;np&gt;:&lt;IP-NODO&gt;
+</code></pre></div>
+
+<h2 id="networkpolicy">NetworkPolicy</h2>
+<div class="hl"><pre><span></span><code>k<span class="w"> </span>get<span class="w"> </span>networkpolicy<span class="w"> </span>-n<span class="w"> </span>&lt;ns&gt;
+k<span class="w"> </span>describe<span class="w"> </span>networkpolicy<span class="w"> </span>&lt;np&gt;
+k<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>&lt;p&gt;<span class="w"> </span>--<span class="w"> </span>curl<span class="w"> </span>-s<span class="w"> </span>--max-time<span class="w"> </span><span class="m">3</span><span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;%{http_code}\n&#39;</span><span class="w"> </span>http://&lt;svc&gt;
+</code></pre></div>
+
+<div class="hl"><pre><span></span><code><span class="c1"># default deny</span>
+<span class="nt">spec</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">podSelector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{},</span><span class="nt"> policyTypes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Ingress</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Egress</span><span class="p p-Indicator">]}</span>
+
+<span class="c1"># permitir DNS (imprescindible tras un default deny)</span>
+<span class="nt">egress</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">namespaceSelector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">matchLabels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">kubernetes.io/metadata.name</span><span class="p">:</span><span class="w"> </span><span class="nv">kube-system</span><span class="p p-Indicator">}}}]</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="nv">UDP</span><span class="p p-Indicator">,</span><span class="nt"> port</span><span class="p">:</span><span class="w"> </span><span class="nv">53</span><span class="p p-Indicator">},</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="nv">TCP</span><span class="p p-Indicator">,</span><span class="nt"> port</span><span class="p">:</span><span class="w"> </span><span class="nv">53</span><span class="p p-Indicator">}]</span>
+</code></pre></div>
+
+<p>AND (un elemento) frente a OR (dos elementos):</p>
+<div class="hl"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">namespaceSelector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">...</span><span class="p p-Indicator">},</span><span class="nt"> podSelector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">...</span><span class="p p-Indicator">}}]</span><span class="w">   </span><span class="c1"># AND</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">namespaceSelector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">...</span><span class="p p-Indicator">}},</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">podSelector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">...</span><span class="p p-Indicator">}}]</span><span class="w"> </span><span class="c1"># OR</span>
+</code></pre></div>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+<div class="hl"><pre><span></span><code>k<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-A<span class="w"> </span>-o<span class="w"> </span>wide<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-vE<span class="w"> </span><span class="s1">&#39;Running|Completed&#39;</span>
+k<span class="w"> </span>describe<span class="w"> </span>pod<span class="w"> </span>&lt;p&gt;<span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;/Events/,$p&#39;</span>
+k<span class="w"> </span>logs<span class="w"> </span>&lt;p&gt;<span class="w"> </span>--previous
+k<span class="w"> </span>get<span class="w"> </span>events<span class="w"> </span>-n<span class="w"> </span>&lt;ns&gt;<span class="w"> </span>--sort-by<span class="o">=</span>.lastTimestamp<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-30
+k<span class="w"> </span>get<span class="w"> </span>all,pvc,ingress,networkpolicy<span class="w"> </span>-n<span class="w"> </span>&lt;ns&gt;
+k<span class="w"> </span>top<span class="w"> </span>nodes<span class="w"> </span><span class="p">;</span><span class="w"> </span>k<span class="w"> </span>top<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>&lt;ns&gt;<span class="w"> </span>--sort-by<span class="o">=</span>cpu
+k<span class="w"> </span>describe<span class="w"> </span>pod<span class="w"> </span>&lt;p&gt;<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-A5<span class="w"> </span><span class="s1">&#39;Last State&#39;</span>
+</code></pre></div>
+
+<table>
+<thead>
+<tr>
+<th>Estado</th>
+<th>Capa</th>
+<th>Primer comando</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Pending</code></td>
+<td>scheduler</td>
+<td><code>describe pod</code> → Events</td>
+</tr>
+<tr>
+<td><code>ContainerCreating</code> atascado</td>
+<td>volumen o red del Pod</td>
+<td><code>describe pod</code> → Events</td>
+</tr>
+<tr>
+<td><code>ImagePullBackOff</code></td>
+<td>registry</td>
+<td><code>describe pod</code> → Events</td>
+</tr>
+<tr>
+<td><code>CreateContainerConfigError</code></td>
+<td>ConfigMap / Secret</td>
+<td><code>describe pod</code> + <code>get cm,secret</code></td>
+</tr>
+<tr>
+<td><code>CrashLoopBackOff</code></td>
+<td>aplicación</td>
+<td><code>logs --previous</code></td>
+</tr>
+<tr>
+<td><code>Running 0/1</code></td>
+<td>readinessProbe</td>
+<td><code>describe pod</code> → Conditions</td>
+</tr>
+<tr>
+<td><code>OOMKilled</code> (exit 137)</td>
+<td><code>limits.memory</code></td>
+<td><code>describe pod</code> → Last State</td>
+</tr>
+<tr>
+<td>Nodo <code>NotReady</code></td>
+<td>kubelet / runtime / disco</td>
+<td><code>journalctl -u kubelet</code></td>
+</tr>
+<tr>
+<td><code>kubectl</code> no responde</td>
+<td>static Pod del API server</td>
+<td><code>crictl ps -a</code></td>
+</tr>
+</tbody>
+</table></article>
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

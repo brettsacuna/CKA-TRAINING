@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clase 2 — Administración del Cluster: Upgrade, ETCD y RBAC · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
+
+</head>
+<body class="">
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../index.html">Inicio</a><a class="on" href="../guia.html">Clases</a><a href="../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../index.html">Inicio</a><span class="sep">/</span><span>Clase 2</span></nav>
+
+<section class="clase-head">
+  <div class="eyebrow">Clase 2</div>
+  <h1>Administración del Cluster: Upgrade, ETCD y RBAC</h1>
+  <p class="lead">Mantener, recuperar y controlar el acceso al cluster.</p>
+  <div class="chips">
+    <span class="chip mono">180 min</span>
+    <span class="chip mono">4 laboratorios</span>
+    <span class="chip mono">Kubernetes v1.35</span>
+  </div>
+</section>
+
+<div class="two-col">
+  <article class="md"><h2 id="objetivos">Objetivos</h2>
+<ol>
+<li>Inventariar los componentes de un cluster kubeadm y sus versiones.</li>
+<li>Vaciar y devolver un nodo al servicio con <code>cordon</code>, <code>drain</code> y <code>uncordon</code>.</li>
+<li>Actualizar un cluster kubeadm completo: control plane primero, workers después.</li>
+<li>Localizar la configuración, los certificados y el endpoint de etcd a partir del manifiesto estático del API server.</li>
+<li>Crear y <strong>validar</strong> un snapshot de etcd, y restaurarlo.</li>
+<li>Diseñar permisos RBAC con Role, RoleBinding, ClusterRole y ClusterRoleBinding.</li>
+<li>Diagnosticar un <code>Forbidden</code> con <code>kubectl auth can-i</code>.</li>
+</ol>
+<h2 id="contenidos">Contenidos</h2>
+<ul>
+<li>Arquitectura kubeadm: static Pods en <code>/etc/kubernetes/manifests</code>, <code>kubelet</code>, <code>kubeadm</code>, <code>kubectl</code>, <code>crictl</code>.</li>
+<li>Version skew: qué se actualiza antes que qué y por qué.</li>
+<li><code>cordon</code> / <code>drain --ignore-daemonsets --delete-emptydir-data</code> / <code>uncordon</code>.</li>
+<li>Repositorios <code>pkgs.k8s.io</code> por minor version. <code>apt-mark hold</code> / <code>unhold</code>.</li>
+<li><code>kubeadm upgrade plan</code>, <code>kubeadm upgrade apply</code>, <code>kubeadm upgrade node</code>.</li>
+<li>etcd: <code>--etcd-servers</code>, <code>--etcd-cafile</code>, <code>--etcd-certfile</code>, <code>--etcd-keyfile</code>. <code>/var/lib/etcd</code>.</li>
+<li><code>etcdctl snapshot save</code>, <code>etcdctl endpoint status</code>, <strong><code>etcdutl snapshot status</code></strong>, <strong><code>etcdutl snapshot restore</code></strong>.</li>
+<li>RBAC: whitelisting, permisos aditivos, mínimo privilegio.</li>
+<li>Role vs ClusterRole; RoleBinding vs ClusterRoleBinding; la combinación ClusterRole + RoleBinding.</li>
+<li>Users, Groups y ServiceAccounts. <code>kubectl auth can-i --as</code>, <code>--as-group</code>, <code>-A</code>.</li>
+</ul>
+<h2 id="actualizaciones-tecnicas-respecto-al-material-original">Actualizaciones técnicas respecto al material original</h2>
+<table>
+<thead>
+<tr>
+<th>Tema</th>
+<th>Estado</th>
+<th>Cambio aplicado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Repositorio <code>apt.kubernetes.io</code> / <code>packages.cloud.google.com</code></td>
+<td><strong>LEGACY</strong></td>
+<td>Sustituido por <code>pkgs.k8s.io</code>, con repositorio distinto por cada minor</td>
+</tr>
+<tr>
+<td><code>etcdctl snapshot restore</code></td>
+<td><strong>REQUIERE ACTUALIZACIÓN</strong></td>
+<td>Deprecado en favor de <strong><code>etcdutl snapshot restore</code></strong></td>
+</tr>
+<tr>
+<td><code>ETCDCTL_API=3</code></td>
+<td><strong>LEGACY</strong></td>
+<td>v3 es el valor por defecto; se mantiene solo como nota histórica</td>
+</tr>
+<tr>
+<td><code>--record</code> en cambios</td>
+<td><strong>ELIMINADO</strong></td>
+<td>Sustituido por la anotación <code>kubernetes.io/change-cause</code></td>
+</tr>
+<tr>
+<td><code>crictl ps</code> con Docker</td>
+<td><strong>LEGACY</strong></td>
+<td>El runtime es containerd; <code>crictl</code> es la herramienta correcta</td>
+</tr>
+<tr>
+<td>Versiones 1.23 / 1.26 / 1.27</td>
+<td><strong>REQUIERE ACTUALIZACIÓN</strong></td>
+<td>El curso trabaja <strong>v1.34.x → v1.35.x</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="agenda-180-min">Agenda (180 min)</h2>
+<table>
+<thead>
+<tr>
+<th>Tiempo</th>
+<th>Actividad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>00–12</td>
+<td>Repaso de la Clase 1 y objetivos</td>
+</tr>
+<tr>
+<td>12–35</td>
+<td>Conceptos: arquitectura kubeadm, static Pods, version skew</td>
+</tr>
+<tr>
+<td>35–50</td>
+<td><strong>Demo</strong>: <code>drain</code> en vivo, ver a dónde se mueven los Pods, <code>uncordon</code></td>
+</tr>
+<tr>
+<td>50–70</td>
+<td><strong>LAB 2.1 — Básico</strong>: inventario, cordon, drain, uncordon</td>
+</tr>
+<tr>
+<td>70–105</td>
+<td><strong>LAB 2.2 — Intermedio</strong>: upgrade del control plane y del worker</td>
+</tr>
+<tr>
+<td>105–118</td>
+<td>Conceptos: etcd, certificados y estrategia de backup</td>
+</tr>
+<tr>
+<td>118–145</td>
+<td><strong>LAB 2.3 — Avanzado</strong>: snapshot, validación y restore de etcd</td>
+</tr>
+<tr>
+<td>145–158</td>
+<td>Conceptos: RBAC en 10 minutos (los 4 objetos y las 3 combinaciones)</td>
+</tr>
+<tr>
+<td>158–176</td>
+<td><strong>LAB 2.4 — Challenge</strong>: <code>Forbidden</code> en producción</td>
+</tr>
+<tr>
+<td>176–180</td>
+<td>Cierre y CKA Tips</td>
+</tr>
+</tbody>
+</table>
+<h2 id="checklist-final-de-la-clase">Checklist final de la clase</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Sé listar las versiones de <code>kubeadm</code>, <code>kubelet</code>, <code>kubectl</code> y del servidor.</li>
+<li class="task"><span class="box"></span>Vacío un nodo con <code>drain</code> y entiendo por qué necesita <code>--ignore-daemonsets</code>.</li>
+<li class="task"><span class="box"></span>Actualizo el control plane con <code>kubeadm upgrade apply</code>.</li>
+<li class="task"><span class="box"></span>Actualizo un worker con <code>kubeadm upgrade node</code>.</li>
+<li class="task"><span class="box"></span>Sé en qué orden van <code>kubeadm</code>, <code>kubelet</code> y <code>kubectl</code>.</li>
+<li class="task"><span class="box"></span>Localizo el endpoint y los certificados de etcd sin buscar en Google.</li>
+<li class="task"><span class="box"></span>Creo un snapshot y lo valido con <code>etcdutl snapshot status</code>.</li>
+<li class="task"><span class="box"></span>Restauro etcd y recupero el estado del cluster.</li>
+<li class="task"><span class="box"></span>Distingo Role de ClusterRole y RoleBinding de ClusterRoleBinding.</li>
+<li class="task"><span class="box"></span>Diagnostico un <code>Forbidden</code> con <code>kubectl auth can-i --as</code>.</li>
+</ul></article>
+  <aside class="rail">
+    <div class="railcard">
+      <div class="railcard-h">Presentación</div>
+      <div class="slide-row"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M8 8h8M8 12h8M8 16h5"></path></svg><div><div class="mono fn">01-CLASE-02-CKA.pptx</div></div></div>
+      <a class="btn primary" href="../slides/01-CLASE-02-CKA.pptx" download>Descargar .pptx</a>
+    </div>
+    <div class="railcard">
+      <div class="railcard-h">Laboratorios</div>
+      <div class="lab-list"><a href="lab-1/"><span>LAB 2.1 — Inventario del cluster, cordon y drain</span><span class="lvl ok mono">Básico</span></a><a href="lab-2/"><span>LAB 2.2 — Upgrade del cluster kubeadm (v1.34 → v1.35)</span><span class="lvl blue mono">Intermedio</span></a><a href="lab-3/"><span>LAB 2.3 — ETCD: snapshot, validación y restore</span><span class="lvl warn mono">Avanzado</span></a><a href="lab-4/"><span>LAB 2.4 — Challenge: Forbidden en producción</span><span class="lvl danger mono">Challenge</span></a></div>
+    </div>
+    <div class="railcard">
+      <div class="railcard-h">Recursos · YAML</div>
+      <div class="rlist"><div class="rrow mono"><span>01-rbac-diseno-aprobado.yaml</span><span class="acts"><a href="recursos.html#01-rbac-diseno-aprobado.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/01-rbac-diseno-aprobado.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>02-serviceaccount-processor.yaml</span><span class="acts"><a href="recursos.html#02-serviceaccount-processor.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/02-serviceaccount-processor.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>03-inventario-deployment.yaml</span><span class="acts"><a href="recursos.html#03-inventario-deployment.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/03-inventario-deployment.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div></div>
+      <div class="railcard-h" style="margin-top:16px">Scripts</div>
+      <div class="rlist"><div class="rrow mono"><span>etcd-backup.sh</span><span class="acts"><a href="recursos.html#etcd-backup.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/etcd-backup.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>reset-lab.sh</span><span class="acts"><a href="recursos.html#reset-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/reset-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>setup-lab.sh</span><span class="acts"><a href="recursos.html#setup-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/setup-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>validate-lab.sh</span><span class="acts"><a href="recursos.html#validate-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/validate-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div></div>
+      <a class="btn" href="recursos.html">Abrir visor de recursos</a>
+    </div>
+    
+  </aside>
+</div>
+
+<nav class="pager"><a href="../clase-1/">← Clase 1</a><a href="../clase-3/">Clase 3 →</a></nav>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

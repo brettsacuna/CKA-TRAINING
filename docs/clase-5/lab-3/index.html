@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 5.3 — NetworkPolicy: aislar frontend y backend · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+
+</head>
+<body class="labpage">
+<header class="topbar">
+  <a class="brand" href="../../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../../index.html">Inicio</a><a class="on" href="../../guia.html">Clases</a><a href="../../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../../index.html">Inicio</a><span class="sep">/</span><a href="../index.html">Clase 5</a><span class="sep">/</span><span>LAB 5.3</span></nav>
+
+<div class="lab-layout">
+  <aside class="lab-side">
+    <details class="lab-nav" open>
+      <summary>Clase 5 · Laboratorios</summary>
+      <div class="railcard-h">Clase 5 · Laboratorios</div>
+      <div class="side-labs"><a class="" href="../lab-1/">LAB 5.1 — Services, EndpointSlice y CoreDNS</a><a class="" href="../lab-2/">LAB 5.2 — Ingress con HTTP, HTTPS y routing por path</a><a class="on" href="../lab-3/">LAB 5.3 — NetworkPolicy: aislar frontend y backend</a><a class="" href="../lab-4/">LAB 5.4 — Challenge: &quot;la red está rota&quot;</a></div>
+      <div class="railcard-h" style="margin-top:22px">Recursos</div>
+      <a class="rlink" href="../recursos.html">Visor de recursos</a>
+      <a class="rlink" href="../../slides/01-CLASE-05-CKA.pptx" download>Presentación (.pptx)</a>
+    </details>
+  </aside>
+  <script>if(matchMedia('(max-width:900px)').matches){var _ln=document.currentScript.previousElementSibling.querySelector('.lab-nav');if(_ln)_ln.removeAttribute('open');}</script>
+  <article class="md lab-body">
+    <div class="eyebrow">LAB 5.3</div>
+    <h1>NetworkPolicy: aislar frontend y backend</h1>
+    <div class="chips">
+      <span class="lvl warn mono">Nivel · Avanzado</span>
+      <span class="chip mono">27 minutos</span>
+    </div>
+    <h2 id="objetivo">Objetivo</h2>
+<p>Partir de un cluster totalmente abierto y llegar, <strong>solo a partir de requerimientos de seguridad</strong>, a un modelo de red donde únicamente el tráfico autorizado circula.</p>
+<h2 id="competencias">Competencias</h2>
+<ul>
+<li>Escribir NetworkPolicies de <code>Ingress</code> y de <code>Egress</code>.</li>
+<li>Aplicar <code>default deny</code> sin dejar el cluster inutilizable.</li>
+<li>Usar <code>podSelector</code>, <code>namespaceSelector</code> e <code>ipBlock</code>.</li>
+<li>Entender por qué las políticas son aditivas.</li>
+<li>Diagnosticar el efecto colateral más frecuente: romper el DNS.</li>
+</ul>
+<h2 id="escenario">Escenario</h2>
+<p>Seguridad audita la plataforma y emite estos requisitos para el namespace <strong><code>c5-netpol</code></strong>:</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Requisito</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R1</td>
+<td>Por defecto, <strong>ningún</strong> Pod del namespace puede recibir ni enviar tráfico</td>
+</tr>
+<tr>
+<td>R2</td>
+<td>Los Pods <code>frontend</code> pueden <strong>enviar</strong> tráfico a los Pods <code>backend</code>, y solo a ellos</td>
+</tr>
+<tr>
+<td>R3</td>
+<td>Los Pods <code>backend</code> pueden <strong>recibir</strong> tráfico solo de los Pods <code>frontend</code></td>
+</tr>
+<tr>
+<td>R4</td>
+<td>Los Pods <code>backend</code> pueden <strong>enviar</strong> tráfico al namespace <code>c5-datos</code> (etiquetado <code>ns=datos</code>), y solo ahí</td>
+</tr>
+<tr>
+<td>R5</td>
+<td>Todos los Pods deben poder <strong>resolver DNS</strong></td>
+</tr>
+<tr>
+<td>R6</td>
+<td>Ningún Pod puede alcanzar Internet</td>
+</tr>
+</tbody>
+</table>
+<p>Tú decides los manifiestos, el orden de aplicación y las pruebas.</p>
+<h2 id="estado-inicial">Estado inicial</h2>
+<ul>
+<li>Verifica <strong>antes de nada</strong> que tu CNI soporta NetworkPolicy:
+  <code>bash
+  kubectl -n kube-system get pods | grep -iE 'calico|cilium|weave'</code>
+  Si no lo soporta, las políticas se aplicarán pero no bloquearán nada, y el laboratorio no tiene sentido.</li>
+<li>Namespaces: <strong><code>c5-netpol</code></strong> y <strong><code>c5-datos</code></strong> (los creas tú).</li>
+</ul>
+<h2 id="requerimientos">Requerimientos</h2>
+<ol>
+<li>Crea ambos namespaces y etiqueta <code>c5-datos</code> con <code>ns=datos</code>.</li>
+<li>En <code>c5-netpol</code> crea tres Pods con la imagen <code>nicolaka/netshoot</code> (o <code>busybox:1.36</code>) y <code>sleep 3600</code>:<ul>
+<li><code>frontend</code> con label <code>run=frontend</code></li>
+<li><code>backend</code> con label <code>run=backend</code></li>
+<li><code>otro</code> con label <code>run=otro</code></li>
+</ul>
+</li>
+<li>En <code>c5-datos</code> crea un Pod <code>db</code> con label <code>run=db</code> y un Service <code>db</code> en el puerto 80 (usa <code>nginx:1.27-alpine</code> para poder hacer <code>curl</code>).</li>
+<li><strong>Antes de aplicar ninguna política</strong>, documenta la conectividad de partida: quién alcanza a quién. Todo debe funcionar.</li>
+<li>Implementa R1.</li>
+<li>Comprueba qué se ha roto. Documenta explícitamente el efecto sobre el DNS.</li>
+<li>Implementa R5 y verifica que la resolución vuelve.</li>
+<li>Implementa R2 y R3.</li>
+<li>Implementa R4.</li>
+<li>Verifica R6.</li>
+<li>Comprueba que <code>otro</code> <strong>no</strong> puede hablar con <code>backend</code> ni con <code>frontend</code>.</li>
+<li>Añade una <strong>segunda</strong> política que permita a <code>otro</code> recibir tráfico de <code>frontend</code>. Sin borrar ninguna política anterior, comprueba el resultado y <strong>explica por qué funciona</strong>: qué significa que las políticas sean aditivas.</li>
+</ol>
+<h2 id="restricciones">Restricciones</h2>
+<ul>
+<li>No uses <code>podSelector: {}</code> con <code>policyTypes</code> vacío para "desactivar" el aislamiento.</li>
+<li>La política de <code>default deny</code> no puede eliminarse en ningún momento tras el paso 5.</li>
+<li>No abras el egress a <code>0.0.0.0/0</code>.</li>
+<li>Debes permitir DNS de forma explícita, no desactivando el egress.</li>
+</ul>
+<h2 id="pistas-de-metodo-no-de-solucion">Pistas de método (no de solución)</h2>
+<ul>
+<li><code>kubectl explain networkpolicy.spec.egress.to</code> te dice qué combinaciones existen.</li>
+<li>CoreDNS escucha en el puerto <strong>53</strong> UDP y TCP, en el namespace <code>kube-system</code>.</li>
+<li>Cuidado con la diferencia entre estas dos formas, que <strong>no</strong> significan lo mismo:</li>
+</ul>
+<div class="hl"><pre><span></span><code><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">namespaceSelector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">...</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="nt">podSelector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">...</span><span class="p p-Indicator">}</span><span class="w">        </span><span class="c1"># AND: ese Pod en ese namespace</span>
+</code></pre></div>
+
+<div class="hl"><pre><span></span><code><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">namespaceSelector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">...</span><span class="p p-Indicator">}</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">podSelector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">...</span><span class="p p-Indicator">}</span><span class="w">        </span><span class="c1"># OR: ese namespace  O  ese Pod</span>
+</code></pre></div>
+
+<h2 id="validacion">Validación</h2>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>-n<span class="w"> </span>c5-netpol<span class="w"> </span>get<span class="w"> </span>networkpolicy
+kubectl<span class="w"> </span>-n<span class="w"> </span>c5-netpol<span class="w"> </span>describe<span class="w"> </span>networkpolicy<span class="w"> </span>default-deny
+
+<span class="c1"># matriz de conectividad</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>c5-netpol<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>frontend<span class="w"> </span>--<span class="w"> </span>nslookup<span class="w"> </span>backend
+kubectl<span class="w"> </span>-n<span class="w"> </span>c5-netpol<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>frontend<span class="w"> </span>--<span class="w"> </span>curl<span class="w"> </span>-s<span class="w"> </span>--max-time<span class="w"> </span><span class="m">3</span><span class="w"> </span>http://backend<span class="w">  </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>OK<span class="w">  </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>BLOQUEADO
+kubectl<span class="w"> </span>-n<span class="w"> </span>c5-netpol<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>otro<span class="w">     </span>--<span class="w"> </span>curl<span class="w"> </span>-s<span class="w"> </span>--max-time<span class="w"> </span><span class="m">3</span><span class="w"> </span>http://backend<span class="w">  </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>OK<span class="w">  </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>BLOQUEADO
+kubectl<span class="w"> </span>-n<span class="w"> </span>c5-netpol<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w">  </span>--<span class="w"> </span>curl<span class="w"> </span>-s<span class="w"> </span>--max-time<span class="w"> </span><span class="m">3</span><span class="w"> </span>http://db.c5-datos<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>OK<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>BLOQUEADO
+kubectl<span class="w"> </span>-n<span class="w"> </span>c5-netpol<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>frontend<span class="w"> </span>--<span class="w"> </span>curl<span class="w"> </span>-s<span class="w"> </span>--max-time<span class="w"> </span><span class="m">3</span><span class="w"> </span>http://example.com<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>OK<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>BLOQUEADO
+</code></pre></div>
+
+<h2 id="resultado-esperado">Resultado esperado</h2>
+<table>
+<thead>
+<tr>
+<th>Origen</th>
+<th>Destino</th>
+<th>Resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>frontend</code></td>
+<td><code>backend</code></td>
+<td>permitido</td>
+</tr>
+<tr>
+<td><code>frontend</code></td>
+<td>Internet</td>
+<td>bloqueado</td>
+</tr>
+<tr>
+<td><code>otro</code></td>
+<td><code>backend</code></td>
+<td>bloqueado</td>
+</tr>
+<tr>
+<td><code>backend</code></td>
+<td><code>db.c5-datos</code></td>
+<td>permitido</td>
+</tr>
+<tr>
+<td><code>backend</code></td>
+<td>Internet</td>
+<td>bloqueado</td>
+</tr>
+<tr>
+<td>cualquiera</td>
+<td>DNS (CoreDNS)</td>
+<td>permitido</td>
+</tr>
+</tbody>
+</table>
+<p>Tras el paso 12, <code>frontend -&gt; otro</code> queda permitido <strong>sin haber modificado</strong> ninguna política previa.</p>
+<h2 id="criterios-de-exito">Criterios de éxito</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Verifiqué que el CNI soporta NetworkPolicy.</li>
+<li class="task"><span class="box"></span>Documenté la conectividad de partida antes de aplicar políticas.</li>
+<li class="task"><span class="box"></span><code>default deny</code> aplicado con <code>podSelector: {}</code> y ambos <code>policyTypes</code>.</li>
+<li class="task"><span class="box"></span>Documenté que el DNS dejó de funcionar y por qué.</li>
+<li class="task"><span class="box"></span>Permití DNS de forma explícita (puerto 53 UDP y TCP).</li>
+<li class="task"><span class="box"></span><code>frontend -&gt; backend</code> funciona en ambas direcciones de la política.</li>
+<li class="task"><span class="box"></span><code>backend -&gt; c5-datos</code> funciona por <code>namespaceSelector</code>.</li>
+<li class="task"><span class="box"></span><code>otro</code> está aislado.</li>
+<li class="task"><span class="box"></span>Ningún Pod alcanza Internet.</li>
+<li class="task"><span class="box"></span>Expliqué el carácter aditivo de las políticas con la prueba del paso 12.</li>
+</ul>
+    <div class="lab-note">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+    </div>
+    <nav class="pager"><a href="../lab-2/">← LAB 5.2</a><a href="../lab-4/">LAB 5.4 →</a></nav>
+  </article>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clase 5 — Services, Ingress, CoreDNS y NetworkPolicy · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
+
+</head>
+<body class="">
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../index.html">Inicio</a><a class="on" href="../guia.html">Clases</a><a href="../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../index.html">Inicio</a><span class="sep">/</span><span>Clase 5</span></nav>
+
+<section class="clase-head">
+  <div class="eyebrow">Clase 5</div>
+  <h1>Services, Ingress, CoreDNS y NetworkPolicy</h1>
+  <p class="lead">Publicar aplicaciones y decidir quién puede hablar con quién.</p>
+  <div class="chips">
+    <span class="chip mono">180 min</span>
+    <span class="chip mono">4 laboratorios</span>
+    <span class="chip mono">Kubernetes v1.35</span>
+  </div>
+</section>
+
+<div class="two-col">
+  <article class="md"><h2 id="objetivos">Objetivos</h2>
+<ol>
+<li>Elegir el tipo de Service correcto para cada necesidad de publicación.</li>
+<li>Explicar el modelo de red de Kubernetes: Pod-to-Pod, Pod-to-Service y entrada desde fuera.</li>
+<li>Resolver nombres con CoreDNS y diagnosticar un fallo de resolución.</li>
+<li>Publicar varias aplicaciones tras una sola entrada con Ingress, incluyendo HTTPS con un TLS Secret.</li>
+<li>Conocer el estado actual del ecosistema de Ingress Controllers y la posición de Gateway API.</li>
+<li>Escribir NetworkPolicies de Ingress y Egress, incluyendo <code>default deny</code>.</li>
+<li>Diagnosticar tráfico bloqueado distinguiendo DNS, Service, NetworkPolicy e Ingress.</li>
+</ol>
+<h2 id="contenidos">Contenidos</h2>
+<ul>
+<li>Tipos de Service: <code>ClusterIP</code>, <code>NodePort</code>, <code>LoadBalancer</code>, <code>ExternalName</code>. Headless.</li>
+<li><code>kube-proxy</code>, EndpointSlice y cómo llega realmente un paquete a un Pod.</li>
+<li>CoreDNS: <code>&lt;svc&gt;.&lt;ns&gt;.svc.cluster.local</code>, registros por Pod de StatefulSet, <code>/etc/resolv.conf</code> del Pod, <code>ndots</code>.</li>
+<li>Diagnóstico DNS: <code>nslookup</code>, <code>dig</code>, logs de CoreDNS, ConfigMap <code>coredns</code>.</li>
+<li>Ingress: API, reglas por host y por path, <code>pathType</code>, <code>ingressClassName</code>, <code>defaultBackend</code>.</li>
+<li>Ingress Controller = reverse proxy L7. TLS Secret (<code>kubernetes.io/tls</code>).</li>
+<li><strong>Gateway API</strong>: <code>GatewayClass</code>, <code>Gateway</code>, <code>HTTPRoute</code>. Separación de responsabilidades.</li>
+<li>NetworkPolicy: <code>podSelector</code>, <code>policyTypes</code>, <code>ingress</code>, <code>egress</code>, <code>namespaceSelector</code>, <code>ipBlock</code>.</li>
+<li>Default deny. Políticas aditivas: la unión de todas las que seleccionan un Pod.</li>
+<li>Por qué una NetworkPolicy de Egress rompe el DNS si no se permite el puerto 53.</li>
+</ul>
+<h2 id="actualizaciones-tecnicas-respecto-al-material-original">Actualizaciones técnicas respecto al material original</h2>
+<table>
+<thead>
+<tr>
+<th>Tema</th>
+<th>Estado</th>
+<th>Cambio aplicado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kubernetes/ingress-nginx</code></td>
+<td><strong>RETIRADO (marzo 2026)</strong></td>
+<td>Repositorio archivado, sin parches de seguridad. Los laboratorios usan un controlador mantenido (<strong>Traefik</strong>)</td>
+</tr>
+<tr>
+<td>Manifiesto <code>cks-course-environment/.../nginx-ingress-controller.yaml</code></td>
+<td><strong>LEGACY</strong></td>
+<td>URL obsoleta. Se instala el controlador desde su fuente oficial actual</td>
+</tr>
+<tr>
+<td>Ingress como única forma de publicar</td>
+<td><strong>AMPLIADO</strong></td>
+<td>Se añade <strong>Gateway API</strong>, presente en el currículum CKA vigente</td>
+</tr>
+<tr>
+<td><code>kubectl get ep</code></td>
+<td><strong>REQUIERE ACTUALIZACIÓN</strong></td>
+<td>Se usa <code>kubectl get endpointslices</code></td>
+</tr>
+<tr>
+<td>Certificado autofirmado con <code>openssl</code></td>
+<td><strong>VIGENTE</strong></td>
+<td>Se conserva; sigue siendo lo que se pide en el examen</td>
+</tr>
+<tr>
+<td>NetworkPolicy <code>backend.yml</code> del material original</td>
+<td><strong>CONTENÍA UN ERROR</strong></td>
+<td>El <code>podSelector</code> decía <code>run: frontend</code> cuando debía decir <code>run: backend</code>. Corregido y usado como ejercicio de diagnóstico</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Aviso.</strong> Si tu cluster tiene instalado <code>ingress-nginx</code>, sigue funcionando, pero no recibe parches desde marzo de 2026. Este curso lo trata como deuda técnica, no como opción por defecto.</p>
+</blockquote>
+<h2 id="agenda-180-min">Agenda (180 min)</h2>
+<table>
+<thead>
+<tr>
+<th>Tiempo</th>
+<th>Actividad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>00–10</td>
+<td>Repaso Clase 4 y objetivos</td>
+</tr>
+<tr>
+<td>10–30</td>
+<td>Conceptos: modelo de red, tipos de Service, EndpointSlice</td>
+</tr>
+<tr>
+<td>30–45</td>
+<td>Conceptos: CoreDNS y resolución de nombres</td>
+</tr>
+<tr>
+<td>45–68</td>
+<td><strong>LAB 5.1 — Básico</strong>: Services y DNS</td>
+</tr>
+<tr>
+<td>68–85</td>
+<td>Conceptos: Ingress, Ingress Controller, TLS y Gateway API</td>
+</tr>
+<tr>
+<td>85–120</td>
+<td><strong>LAB 5.2 — Intermedio</strong>: Ingress con HTTP y HTTPS</td>
+</tr>
+<tr>
+<td>120–133</td>
+<td>Conceptos: NetworkPolicy</td>
+</tr>
+<tr>
+<td>133–160</td>
+<td><strong>LAB 5.3 — Avanzado</strong>: aislar frontend y backend</td>
+</tr>
+<tr>
+<td>160–176</td>
+<td><strong>LAB 5.4 — Challenge</strong>: tráfico bloqueado</td>
+</tr>
+<tr>
+<td>176–180</td>
+<td>Cierre y CKA Tips</td>
+</tr>
+</tbody>
+</table>
+<h2 id="checklist-final-de-la-clase">Checklist final de la clase</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Elijo el tipo de Service adecuado y sé qué hace cada uno.</li>
+<li class="task"><span class="box"></span>Explico la cadena <code>Service -&gt; EndpointSlice -&gt; Pod</code>.</li>
+<li class="task"><span class="box"></span>Resuelvo un Service por su FQDN y sé leer <code>/etc/resolv.conf</code> de un Pod.</li>
+<li class="task"><span class="box"></span>Diagnostico un fallo de DNS distinguiéndolo de un fallo de endpoints.</li>
+<li class="task"><span class="box"></span>Publico dos aplicaciones por path con un solo Ingress.</li>
+<li class="task"><span class="box"></span>Creo un TLS Secret y lo asocio a un Ingress.</li>
+<li class="task"><span class="box"></span>Explico qué es Gateway API y por qué existe.</li>
+<li class="task"><span class="box"></span>Escribo una NetworkPolicy <code>default deny</code>.</li>
+<li class="task"><span class="box"></span>Permito tráfico frontend → backend con Ingress y Egress.</li>
+<li class="task"><span class="box"></span>Sé por qué una política de Egress puede romper el DNS y cómo evitarlo.</li>
+</ul></article>
+  <aside class="rail">
+    <div class="railcard">
+      <div class="railcard-h">Presentación</div>
+      <div class="slide-row"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M8 8h8M8 12h8M8 16h5"></path></svg><div><div class="mono fn">01-CLASE-05-CKA.pptx</div></div></div>
+      <a class="btn primary" href="../slides/01-CLASE-05-CKA.pptx" download>Descargar .pptx</a>
+    </div>
+    <div class="railcard">
+      <div class="railcard-h">Laboratorios</div>
+      <div class="lab-list"><a href="lab-1/"><span>LAB 5.1 — Services, EndpointSlice y CoreDNS</span><span class="lvl ok mono">Básico</span></a><a href="lab-2/"><span>LAB 5.2 — Ingress con HTTP, HTTPS y routing por path</span><span class="lvl blue mono">Intermedio</span></a><a href="lab-3/"><span>LAB 5.3 — NetworkPolicy: aislar frontend y backend</span><span class="lvl warn mono">Avanzado</span></a><a href="lab-4/"><span>LAB 5.4 — Challenge: &quot;la red está rota&quot;</span><span class="lvl danger mono">Challenge</span></a></div>
+    </div>
+    <div class="railcard">
+      <div class="railcard-h">Recursos · YAML</div>
+      <div class="rlist"><div class="rrow mono"><span>01-services-tipos.yaml</span><span class="acts"><a href="recursos.html#01-services-tipos.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/01-services-tipos.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>02-ingress-http.yaml</span><span class="acts"><a href="recursos.html#02-ingress-http.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/02-ingress-http.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>03-ingress-tls.yaml</span><span class="acts"><a href="recursos.html#03-ingress-tls.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/03-ingress-tls.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>04-gateway-api.yaml</span><span class="acts"><a href="recursos.html#04-gateway-api.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/04-gateway-api.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>05-networkpolicies.yaml</span><span class="acts"><a href="recursos.html#05-networkpolicies.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/05-networkpolicies.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>06-portal-referencia.yaml</span><span class="acts"><a href="recursos.html#06-portal-referencia.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/06-portal-referencia.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div></div>
+      <div class="railcard-h" style="margin-top:16px">Scripts</div>
+      <div class="rlist"><div class="rrow mono"><span>gen-tls-secret.sh</span><span class="acts"><a href="recursos.html#gen-tls-secret.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/gen-tls-secret.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>install-ingress-controller.sh</span><span class="acts"><a href="recursos.html#install-ingress-controller.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/install-ingress-controller.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>reset-lab.sh</span><span class="acts"><a href="recursos.html#reset-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/reset-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>setup-lab.sh</span><span class="acts"><a href="recursos.html#setup-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/setup-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>validate-lab.sh</span><span class="acts"><a href="recursos.html#validate-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/validate-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div></div>
+      <a class="btn" href="recursos.html">Abrir visor de recursos</a>
+    </div>
+    
+  </aside>
+</div>
+
+<nav class="pager"><a href="../clase-4/">← Clase 4</a><a href="../clase-6/">Clase 6 →</a></nav>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

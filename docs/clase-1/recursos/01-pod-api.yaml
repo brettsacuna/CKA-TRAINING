@@ -1,0 +1,17 @@
+# LAB 1.1 - Pod declarativo de referencia.
+# Genéralo tú con:  kubectl run api --image=httpd:2.4-alpine $do > api.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api
+  namespace: c1-basico
+  labels:
+    app: api
+    tier: backend
+spec:
+  containers:
+    - name: api
+      image: httpd:2.4-alpine
+      ports:
+        - containerPort: 80
+          name: http

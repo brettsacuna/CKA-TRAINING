@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    :root{
+      --bg:#0B1220; --panel:#131C2E; --soft:#0F1729; --line:#26354E;
+      --ink:#F3F6FC; --body:#BDC9DB; --muted:#8493AD; --faint:#4C5B75;
+      --blue:#326CE5; --blue2:#74A6FF; --ok:#3FB950; --code:#0A1120; --codet:#E6EDF3; --comment:#7C8AA5;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--body);
+      font-family:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;font-size:15px;line-height:1.68;-webkit-font-smoothing:antialiased}
+    h1,h2,h3{color:var(--ink);font-weight:600;line-height:1.25;margin:0}
+    a{color:var(--blue2);text-decoration:none}
+    a:hover{color:#a7c6ff}
+    .mono{font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace}
+    .k{background:rgba(50,108,229,.14);color:#cfe0ff;border-radius:4px;padding:1px 6px;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.9em}
+    ol,ul{margin:0;padding-left:0;list-style:none}
+  </style>
+</helmet>
+
+<div style="min-height:100%;background:var(--bg);padding-bottom:72px">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 48px;border-bottom:1px solid var(--line);background:rgba(15,23,41,.6)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle>
+        <path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path>
+      </svg>
+      <span style="color:var(--ink);font-weight:600;letter-spacing:.14em;font-size:13px">CKA HANDS-ON TRAINING</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:28px;font-size:14px">
+      <a href="#" style="color:var(--muted)">Inicio</a>
+      <a href="#" style="color:var(--ink)">Clases</a>
+      <a href="#" style="color:var(--muted)">Cheatsheet</a>
+      <span style="border:1px solid var(--line);border-radius:999px;padding:4px 12px;color:var(--blue2);font-size:12px;font-weight:600" class="mono">v1.35</span>
+    </div>
+  </div>
+
+  <div style="max-width:1200px;margin:0 auto;padding:28px 48px 0;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center">
+    <a href="#" style="color:var(--muted)">Inicio</a><span>/</span><a href="#" style="color:var(--muted)">Clase 1</a><span>/</span><span style="color:var(--body)">LAB 1.1</span>
+  </div>
+
+  <div style="max-width:1200px;margin:20px auto 0;padding:0 48px;display:grid;grid-template-columns:262px minmax(0,1fr);gap:44px;align-items:start">
+
+    <!-- sidebar -->
+    <div style="display:flex;flex-direction:column;gap:22px;position:sticky;top:20px">
+      <div>
+        <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px">Clase 1 · Laboratorios</div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;background:rgba(50,108,229,.14);color:var(--ink);font-size:13.5px;font-weight:500;border-left:2px solid var(--blue)">LAB 1.1 — Pods, YAML e inspección</a>
+          <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13.5px;border-left:2px solid transparent">LAB 1.2 — Services y DNS</a>
+          <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13.5px;border-left:2px solid transparent">LAB 1.3 — Colocación de Pods</a>
+          <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13.5px;border-left:2px solid transparent">LAB 1.4 — Challenge: shop</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px">Recursos de la clase</div>
+        <div style="display:flex;flex-direction:column;gap:4px" class="mono">
+          <a href="#" style="font-size:12.5px;color:var(--body);padding:4px 12px">YAML/ · 6 archivos</a>
+          <a href="#" style="font-size:12.5px;color:var(--body);padding:4px 12px">SCRIPTS/ · 3 archivos</a>
+        </div>
+      </div>
+      <a href="#" style="display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12.5px;color:var(--body)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg>
+        Presentación (.pptx)
+      </a>
+    </div>
+
+    <!-- content -->
+    <article style="max-width:800px">
+      <div style="color:var(--blue2);font-weight:600;font-size:12px;letter-spacing:.18em;text-transform:uppercase">LAB 1.1</div>
+      <h1 style="font-size:32px;margin:12px 0 0;letter-spacing:-.01em">Pods, YAML e inspección</h1>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <span class="mono" style="font-size:11.5px;color:#63D178;border:1px solid rgba(63,185,80,.4);border-radius:999px;padding:3px 10px">Nivel · Básico</span>
+        <span class="mono" style="font-size:11.5px;color:var(--body);border:1px solid var(--line);border-radius:999px;padding:3px 10px">25 minutos</span>
+      </div>
+
+      <h2 style="font-size:19px;margin:34px 0 10px">Objetivo</h2>
+      <p style="margin:0">Crear Pods por la vía imperativa y por la vía declarativa, generar manifiestos sin copiarlos de la documentación e inspeccionar un Pod hasta entender por qué está o no está corriendo.</p>
+
+      <h2 style="font-size:19px;margin:30px 0 10px">Competencias</h2>
+      <ul style="display:flex;flex-direction:column;gap:8px">
+        <li style="display:flex;gap:12px"><span style="color:var(--blue2)">•</span>Crear Pods con <span class="k">kubectl run</span> y con manifiestos YAML.</li>
+        <li style="display:flex;gap:12px"><span style="color:var(--blue2)">•</span>Generar YAML con <span class="k">--dry-run=client -o yaml</span>.</li>
+        <li style="display:flex;gap:12px"><span style="color:var(--blue2)">•</span>Consultar la especificación de un objeto con <span class="k">kubectl explain</span>.</li>
+        <li style="display:flex;gap:12px"><span style="color:var(--blue2)">•</span>Leer <span class="k">describe</span>, <span class="k">logs</span> y <span class="k">events</span>.</li>
+        <li style="display:flex;gap:12px"><span style="color:var(--blue2)">•</span>Etiquetar y filtrar objetos por label.</li>
+      </ul>
+
+      <h2 style="font-size:19px;margin:30px 0 10px">Escenario</h2>
+      <p style="margin:0">Eres el nuevo administrador de un cluster de desarrollo. Antes de tocar nada en producción, necesitas soltura absoluta con la unidad mínima de despliegue: el Pod.</p>
+
+      <h2 style="font-size:19px;margin:30px 0 10px">Estado inicial</h2>
+      <ul style="display:flex;flex-direction:column;gap:8px">
+        <li style="display:flex;gap:12px"><span style="color:var(--blue2)">•</span>Cluster <span class="k">cka-master</span> + al menos un worker, todos <span class="k">Ready</span>.</li>
+        <li style="display:flex;gap:12px"><span style="color:var(--blue2)">•</span>Namespace de trabajo: <span class="k">c1-basico</span> (lo creas tú en el paso 1).</li>
+        <li style="display:flex;gap:12px"><span style="color:var(--blue2)">•</span>No hay recursos previos.</li>
+      </ul>
+
+      <h2 style="font-size:19px;margin:30px 0 10px">Requerimientos</h2>
+      <ol style="display:flex;flex-direction:column;gap:12px">
+        <li style="display:flex;gap:14px"><span class="mono" style="color:var(--blue2);min-width:18px">1</span><span>Prepara tu shell con <span class="k">alias k=kubectl</span> y <span class="k">export do='--dry-run=client -o yaml'</span>.</span></li>
+        <li style="display:flex;gap:14px"><span class="mono" style="color:var(--blue2);min-width:18px">2</span><span>Crea el namespace <span class="k">c1-basico</span>.</span></li>
+        <li style="display:flex;gap:14px"><span class="mono" style="color:var(--blue2);min-width:18px">3</span><span>Crea, de forma <strong style="color:var(--ink)">imperativa</strong>, un Pod <span class="k">web</span> con la imagen <span class="k">nginx:1.27-alpine</span>.</span></li>
+        <li style="display:flex;gap:14px"><span class="mono" style="color:var(--blue2);min-width:18px">4</span><span>Verifica en qué nodo quedó ubicado y cuál es su IP de Pod.</span></li>
+        <li style="display:flex;gap:14px"><span class="mono" style="color:var(--blue2);min-width:18px">5</span><span>Genera, <strong style="color:var(--ink)">sin escribir YAML a mano</strong>, el manifiesto de un Pod <span class="k">api</span> (imagen <span class="k">httpd:2.4-alpine</span>) y añádele los labels <span class="k">app: api</span>, <span class="k">tier: backend</span> y el puerto <span class="k">80</span> con nombre <span class="k">http</span>.</span></li>
+        <li style="display:flex;gap:14px"><span class="mono" style="color:var(--blue2);min-width:18px">6</span><span>Usa <span class="k">kubectl explain</span> para averiguar qué campo de <span class="k">pod.spec</span> define el periodo de gracia al terminar, y su valor por defecto.</span></li>
+        <li style="display:flex;gap:14px"><span class="mono" style="color:var(--muted);min-width:18px">…</span><span style="color:var(--muted)">6 requerimientos más (labels, filtros, un Pod con imagen inexistente).</span></li>
+      </ol>
+
+      <h2 style="font-size:19px;margin:30px 0 10px">Validación</h2>
+      <div style="border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--code)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--line);font-size:11px;color:var(--muted)">
+          <span class="mono">bash</span>
+          <span style="display:flex;align-items:center;gap:6px;color:var(--blue2)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg>Copiar</span>
+        </div>
+        <pre class="mono" style="margin:0;padding:16px;font-size:12.5px;line-height:1.8;color:var(--codet);overflow-x:auto">kubectl -n c1-basico get pods -o wide
+kubectl -n c1-basico get pods -l tier=backend
+kubectl -n c1-basico get pod api -o jsonpath='{.metadata.labels}{"\n"}'
+kubectl -n c1-basico describe pod api | head -20
+kubectl -n c1-basico get events --sort-by=.lastTimestamp | tail -10</pre>
+      </div>
+
+      <h2 style="font-size:19px;margin:30px 0 10px">Criterios de éxito</h2>
+      <ul style="display:flex;flex-direction:column;gap:9px">
+        <li style="display:flex;gap:12px;align-items:flex-start"><span style="width:16px;height:16px;border:1.5px solid var(--faint);border-radius:4px;flex-shrink:0;margin-top:3px"></span>Namespace <span class="k">c1-basico</span> creado.</li>
+        <li style="display:flex;gap:12px;align-items:flex-start"><span style="width:16px;height:16px;border:1.5px solid var(--faint);border-radius:4px;flex-shrink:0;margin-top:3px"></span>Pod <span class="k">web</span> creado imperativamente y <span class="k">Running</span>.</li>
+        <li style="display:flex;gap:12px;align-items:flex-start"><span style="width:16px;height:16px;border:1.5px solid var(--faint);border-radius:4px;flex-shrink:0;margin-top:3px"></span>Pod <span class="k">api</span> con labels y puerto nombrado.</li>
+        <li style="display:flex;gap:12px;align-items:flex-start"><span style="width:16px;height:16px;border:1.5px solid var(--faint);border-radius:4px;flex-shrink:0;margin-top:3px"></span>Identifiqué el evento exacto que explica el fallo del Pod <span class="k">roto</span>.</li>
+      </ul>
+
+      <div style="margin-top:34px;border:1px solid var(--line);border-radius:10px;background:var(--soft);padding:14px 18px;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:10px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+        La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+      </div>
+
+    </article>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

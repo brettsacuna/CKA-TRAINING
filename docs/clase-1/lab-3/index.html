@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 1.3 — Colocación de Pods: nodeSelector, Taints, Affinity y Priority · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+
+</head>
+<body class="labpage">
+<header class="topbar">
+  <a class="brand" href="../../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../../index.html">Inicio</a><a class="on" href="../../guia.html">Clases</a><a href="../../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../../index.html">Inicio</a><span class="sep">/</span><a href="../index.html">Clase 1</a><span class="sep">/</span><span>LAB 1.3</span></nav>
+
+<div class="lab-layout">
+  <aside class="lab-side">
+    <details class="lab-nav" open>
+      <summary>Clase 1 · Laboratorios</summary>
+      <div class="railcard-h">Clase 1 · Laboratorios</div>
+      <div class="side-labs"><a class="" href="../lab-1/">LAB 1.1 — Pods, YAML e inspección</a><a class="" href="../lab-2/">LAB 1.2 — Services, EndpointSlice y DNS</a><a class="on" href="../lab-3/">LAB 1.3 — Colocación de Pods: nodeSelector, Taints, Affinity y Priority</a><a class="" href="../lab-4/">LAB 1.4 — Challenge: la aplicación shop no responde</a></div>
+      <div class="railcard-h" style="margin-top:22px">Recursos</div>
+      <a class="rlink" href="../recursos.html">Visor de recursos</a>
+      <a class="rlink" href="../../slides/01-CLASE-01-CKA.pptx" download>Presentación (.pptx)</a>
+    </details>
+  </aside>
+  <script>if(matchMedia('(max-width:900px)').matches){var _ln=document.currentScript.previousElementSibling.querySelector('.lab-nav');if(_ln)_ln.removeAttribute('open');}</script>
+  <article class="md lab-body">
+    <div class="eyebrow">LAB 1.3</div>
+    <h1>Colocación de Pods: nodeSelector, Taints, Affinity y Priority</h1>
+    <div class="chips">
+      <span class="lvl warn mono">Nivel · Avanzado</span>
+      <span class="chip mono">27 minutos</span>
+    </div>
+    <h2 id="objetivo">Objetivo</h2>
+<p>Resolver, <strong>únicamente a partir de requerimientos</strong>, un escenario de colocación de workloads: forzar nodos concretos, reservar un nodo, repartir réplicas y garantizar que un workload crítico desplaza a uno prescindible.</p>
+<h2 id="competencias">Competencias</h2>
+<ul>
+<li>Etiquetar nodos y usar <code>nodeSelector</code>.</li>
+<li>Aplicar y retirar taints; escribir tolerations.</li>
+<li>Escribir <code>nodeAffinity</code> <code>required</code> y <code>preferred</code> con <code>weight</code>.</li>
+<li>Usar <code>podAntiAffinity</code> con <code>topologyKey</code>.</li>
+<li>Crear PriorityClass y observar la preemption.</li>
+<li>Diagnosticar <code>FailedScheduling</code>.</li>
+</ul>
+<h2 id="escenario">Escenario</h2>
+<p>La plataforma va a alojar tres tipos de carga en un cluster con varios workers:</p>
+<ul>
+<li>Cargas <strong>de producción</strong>, que solo pueden ejecutarse en nodos marcados como tales.</li>
+<li>Un nodo <strong>reservado para el equipo de datos</strong>, donde nadie más debe aterrizar por accidente.</li>
+<li>Un servicio <strong>crítico</strong> que, si no hay capacidad, tiene derecho a desplazar cargas de relleno.</li>
+</ul>
+<p>Tú decides los recursos, los comandos, el orden y las validaciones.</p>
+<h2 id="estado-inicial">Estado inicial</h2>
+<ul>
+<li>Namespace de trabajo: <strong><code>c1-avanzado</code></strong> (lo creas tú).</li>
+<li>Al menos <strong>dos workers</strong>. Si solo tienes uno, retira el taint del control plane para usarlo como segundo nodo programable (y anótalo como desviación).</li>
+<li>Ningún nodo tiene labels personalizados ni taints adicionales.</li>
+</ul>
+<p>Comprueba el punto de partida:</p>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>--show-labels
+kubectl<span class="w"> </span>describe<span class="w"> </span>nodes<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>-A1<span class="w"> </span>taint
+</code></pre></div>
+
+<h2 id="requerimientos">Requerimientos</h2>
+<h3 id="r1-nodos">R1 — Nodos</h3>
+<ol>
+<li>Etiqueta un worker con <code>environment=production</code> y otro con <code>environment=data</code>.</li>
+<li>El nodo <code>environment=data</code> debe quedar <strong>reservado</strong>: ningún Pod debe programarse allí salvo que lo declare explícitamente. Usa el taint <code>team=data:NoSchedule</code>.</li>
+</ol>
+<h3 id="r2-carga-de-produccion-con-nodeselector">R2 — Carga de producción con nodeSelector</h3>
+<ol start="3">
+<li>Crea un Pod <strong><code>prod-app</code></strong> (imagen <code>nginx:1.27-alpine</code>) que <strong>solo</strong> pueda ejecutarse en el nodo de producción, usando <code>nodeSelector</code>.</li>
+<li>Verifica en qué nodo aterrizó.</li>
+</ol>
+<h3 id="r3-carga-del-equipo-de-datos">R3 — Carga del equipo de datos</h3>
+<ol start="5">
+<li>Crea un Pod <strong><code>data-job</code></strong> (imagen <code>busybox:1.36</code>, comando <code>sleep 3600</code>) que <strong>sí</strong> pueda ejecutarse en el nodo reservado.</li>
+<li>Verifica que aterrizó en el nodo <code>environment=data</code> y no en otro.</li>
+</ol>
+<h3 id="r4-node-affinity">R4 — Node Affinity</h3>
+<ol start="7">
+<li>Crea un Pod <strong><code>affinity-app</code></strong> (imagen <code>nginx:1.27-alpine</code>) con estas reglas:<ul>
+<li><strong>Obligatoria</strong>: el nodo debe tener el label <code>environment</code> con valor <code>production</code> <strong>o</strong> <code>staging</code>.</li>
+<li><strong>Preferida</strong> con <code>weight: 60</code>: el nodo debe tener <code>disktype=ssd</code>.</li>
+</ul>
+</li>
+<li>Etiqueta el nodo de producción con <code>disktype=ssd</code> y comprueba que la preferencia se cumple.</li>
+<li>Explica por qué el Pod se habría programado igualmente aunque ningún nodo tuviera <code>disktype=ssd</code>.</li>
+</ol>
+<h3 id="r5-pod-anti-affinity">R5 — Pod Anti-Affinity</h3>
+<ol start="10">
+<li>Crea un <strong>Deployment</strong> llamado <strong><code>spread</code></strong> con <strong>2 réplicas</strong> de <code>nginx:1.27-alpine</code>, label <code>app=spread</code>, de modo que <strong>dos réplicas nunca compartan nodo</strong> (regla obligatoria, <code>topologyKey: kubernetes.io/hostname</code>).</li>
+<li>Comprueba que quedaron en nodos distintos.</li>
+<li>Escala <code>spread</code> a <strong>3 réplicas</strong> en un cluster con 2 nodos programables. Observa el estado de la tercera réplica y <strong>explica el evento</strong> que aparece.</li>
+</ol>
+<h3 id="r6-priority-y-preemption">R6 — Priority y Preemption</h3>
+<ol start="13">
+<li>Crea dos PriorityClass:<ul>
+<li><code>low-priority</code> con valor <code>1000</code>.</li>
+<li><code>critical-priority</code> con valor <code>100000</code>, <code>preemptionPolicy: PreemptLowerPriority</code> y <code>globalDefault: false</code>.</li>
+</ul>
+</li>
+<li>Crea un Pod <strong><code>filler</code></strong> con <code>low-priority</code> que solicite (<code>requests</code>) una cantidad de CPU suficientemente grande como para ocupar prácticamente todo el nodo de producción.</li>
+<li>Crea un Pod <strong><code>critical</code></strong> con <code>critical-priority</code> que solicite una cantidad similar de CPU y que solo pueda ir a ese mismo nodo.</li>
+<li>Observa qué le ocurre a <code>filler</code>. Documenta el evento de preemption.</li>
+</ol>
+<h2 id="restricciones">Restricciones</h2>
+<ul>
+<li>No elimines ni reinicies nodos.</li>
+<li>No modifiques el control plane más allá de retirar su taint si necesitas un segundo nodo programable.</li>
+<li><code>data-job</code> debe ser el <strong>único</strong> Pod del laboratorio capaz de ejecutarse en el nodo reservado.</li>
+<li>Al terminar, <strong>retira el taint <code>team=data</code></strong> y los labels que hayas añadido.</li>
+</ul>
+<h2 id="validacion">Validación</h2>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>-L<span class="w"> </span>environment,disktype
+kubectl<span class="w"> </span>describe<span class="w"> </span>nodes<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>-A1<span class="w"> </span>taint
+kubectl<span class="w"> </span>-n<span class="w"> </span>c1-avanzado<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-o<span class="w"> </span>wide
+kubectl<span class="w"> </span>-n<span class="w"> </span>c1-avanzado<span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>spread<span class="w"> </span>-o<span class="w"> </span>wide
+kubectl<span class="w"> </span>-n<span class="w"> </span>c1-avanzado<span class="w"> </span>describe<span class="w"> </span>pod<span class="w"> </span>&lt;pod-pending&gt;<span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;/Events/,$p&#39;</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>priorityclass
+kubectl<span class="w"> </span>-n<span class="w"> </span>c1-avanzado<span class="w"> </span>get<span class="w"> </span>events<span class="w"> </span>--sort-by<span class="o">=</span>.lastTimestamp<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>-E<span class="w"> </span><span class="s1">&#39;preempt|FailedScheduling&#39;</span>
+</code></pre></div>
+
+<h2 id="resultado-esperado">Resultado esperado</h2>
+<ul>
+<li><code>prod-app</code> en el nodo con <code>environment=production</code>.</li>
+<li><code>data-job</code> en el nodo con <code>environment=data</code>, y ningún otro Pod allí.</li>
+<li><code>affinity-app</code> en un nodo que cumple la regla obligatoria y, preferentemente, el que tiene <code>disktype=ssd</code>.</li>
+<li>Las 2 réplicas de <code>spread</code> en nodos distintos; la tercera queda <code>Pending</code> con un <code>FailedScheduling</code> que menciona las reglas de anti-affinity.</li>
+<li><code>filler</code> es desalojado (<code>Terminating</code> / recreado como <code>Pending</code>) y aparece un evento de preemption; <code>critical</code> queda <code>Running</code>.</li>
+</ul>
+<h2 id="criterios-de-exito">Criterios de éxito</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Los dos workers tienen los labels pedidos.</li>
+<li class="task"><span class="box"></span>El nodo de datos tiene el taint <code>team=data:NoSchedule</code>.</li>
+<li class="task"><span class="box"></span><code>prod-app</code> usa <code>nodeSelector</code> y aterrizó donde debía.</li>
+<li class="task"><span class="box"></span><code>data-job</code> tiene la toleration correcta y aterrizó en el nodo reservado.</li>
+<li class="task"><span class="box"></span><code>affinity-app</code> tiene una regla <code>required</code> con operador <code>In</code> y dos valores.</li>
+<li class="task"><span class="box"></span><code>affinity-app</code> tiene una regla <code>preferred</code> con <code>weight: 60</code>.</li>
+<li class="task"><span class="box"></span><code>spread</code> usa <code>podAntiAffinity</code> obligatoria con <code>topologyKey: kubernetes.io/hostname</code>.</li>
+<li class="task"><span class="box"></span>Expliqué el <code>FailedScheduling</code> de la tercera réplica leyendo los eventos.</li>
+<li class="task"><span class="box"></span>Las dos PriorityClass existen con los valores indicados.</li>
+<li class="task"><span class="box"></span>Documenté el evento de preemption.</li>
+<li class="task"><span class="box"></span>Dejé los nodos limpios (sin el taint ni los labels del laboratorio).</li>
+</ul>
+    <div class="lab-note">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+    </div>
+    <nav class="pager"><a href="../lab-2/">← LAB 1.2</a><a href="../lab-4/">LAB 1.4 →</a></nav>
+  </article>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

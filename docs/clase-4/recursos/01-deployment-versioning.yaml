@@ -1,0 +1,31 @@
+# LAB 4.1 - Deployment base para practicar rollout y rollback.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: c4-basico
+  labels: {app: nginx}
+  annotations:
+    kubernetes.io/change-cause: "Despliegue inicial nginx 1.25"
+spec:
+  replicas: 3
+  revisionHistoryLimit: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%          # cuantos Pods de mas se permiten durante el rollout
+      maxUnavailable: 25%    # cuantos Pods pueden faltar durante el rollout
+  selector:
+    matchLabels: {app: nginx}
+  template:
+    metadata:
+      labels: {app: nginx}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.25-alpine
+          ports: [{containerPort: 80}]
+          readinessProbe:            # sin esto, un rollout roto tumba el servicio
+            httpGet: {path: /, port: 80}
+            initialDelaySeconds: 3
+            periodSeconds: 5

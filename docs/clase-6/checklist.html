@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checklist CKA · Clase 6 · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
+
+</head>
+<body class="">
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../index.html">Inicio</a><a class="on" href="../guia.html">Clases</a><a href="../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../index.html">Inicio</a><span class="sep">/</span><a href="index.html">Clase 6</a><span class="sep">/</span><span>Checklist CKA</span></nav>
+<article class="md wide"><h1 id="checklist-cka-competencias-trabajadas-en-las-18-horas">CHECKLIST CKA — Competencias trabajadas en las 18 horas</h1>
+<p>Marca cada casilla solo cuando puedas hacerlo <strong>sin consultar apuntes</strong>, en menos de dos minutos y validando el resultado.</p>
+<p>Al lado de cada bloque figura la clase donde se trabajó y el peso aproximado del dominio en el examen.</p>
+<hr>
+<h2 id="fundamentos-y-kubectl-clase-1">Fundamentos y kubectl · Clase 1</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Configurar <code>alias k=kubectl</code>, <code>export do</code>, <code>export now</code> y el autocompletado.</li>
+<li class="task"><span class="box"></span>Cambiar de contexto y de namespace (<code>kubectl config use-context</code>, <code>set-context --current --namespace</code>).</li>
+<li class="task"><span class="box"></span>Crear un Pod imperativa y declarativamente.</li>
+<li class="task"><span class="box"></span>Generar un manifiesto con <code>--dry-run=client -o yaml</code>.</li>
+<li class="task"><span class="box"></span>Consultar un campo con <code>kubectl explain</code>.</li>
+<li class="task"><span class="box"></span>Etiquetar y filtrar objetos con <code>-l</code>.</li>
+<li class="task"><span class="box"></span>Leer <code>get</code>, <code>describe</code>, <code>logs</code>, <code>logs --previous</code>, <code>exec</code>, <code>get events</code>.</li>
+</ul>
+<h2 id="workloads-y-scheduling-clases-1-3-y-4-15">Workloads y Scheduling · Clases 1, 3 y 4 · <em>15 %</em></h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Crear un Deployment y escalarlo.</li>
+<li class="task"><span class="box"></span>Explicar <code>Deployment -&gt; ReplicaSet -&gt; Pod</code> con <code>ownerReferences</code>.</li>
+<li class="task"><span class="box"></span>Demostrar el self-healing.</li>
+<li class="task"><span class="box"></span>Ejecutar un Rolling Update.</li>
+<li class="task"><span class="box"></span>Consultar <code>rollout history</code> y el detalle de una revisión.</li>
+<li class="task"><span class="box"></span>Registrar la causa con <code>kubernetes.io/change-cause</code>.</li>
+<li class="task"><span class="box"></span>Ejecutar un rollback a una revisión concreta.</li>
+<li class="task"><span class="box"></span>Configurar <code>maxSurge</code>, <code>maxUnavailable</code> y <code>revisionHistoryLimit</code>.</li>
+<li class="task"><span class="box"></span>Etiquetar nodos y usar <code>nodeSelector</code>.</li>
+<li class="task"><span class="box"></span>Aplicar y retirar un taint; escribir una toleration.</li>
+<li class="task"><span class="box"></span>Escribir <code>nodeAffinity</code> <code>required</code> y <code>preferred</code> con <code>weight</code>.</li>
+<li class="task"><span class="box"></span>Usar <code>podAntiAffinity</code> con <code>topologyKey</code>.</li>
+<li class="task"><span class="box"></span>Crear una PriorityClass y explicar la preemption.</li>
+<li class="task"><span class="box"></span>Diagnosticar un Pod <code>Pending</code> leyendo los eventos.</li>
+<li class="task"><span class="box"></span>Definir <code>requests</code> y <code>limits</code> y deducir la clase de QoS.</li>
+<li class="task"><span class="box"></span>Instalar Metrics Server y usar <code>kubectl top</code>.</li>
+</ul>
+<h2 id="cluster-architecture-installation-configuration-clase-2-25">Cluster Architecture, Installation &amp; Configuration · Clase 2 · <em>25 %</em></h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Inventariar versiones de nodos, <code>kubeadm</code>, <code>kubelet</code> y <code>kubectl</code>.</li>
+<li class="task"><span class="box"></span>Identificar los static Pods del control plane.</li>
+<li class="task"><span class="box"></span>Usar <code>crictl</code> en un nodo.</li>
+<li class="task"><span class="box"></span><code>cordon</code>, <code>drain --ignore-daemonsets --delete-emptydir-data</code>, <code>uncordon</code>.</li>
+<li class="task"><span class="box"></span>Cambiar el repositorio <code>pkgs.k8s.io</code> a otra minor.</li>
+<li class="task"><span class="box"></span><code>kubeadm upgrade plan</code> y <code>kubeadm upgrade apply</code> en el control plane.</li>
+<li class="task"><span class="box"></span><code>kubeadm upgrade node</code> en un worker.</li>
+<li class="task"><span class="box"></span>Actualizar y reiniciar <code>kubelet</code> en el orden correcto.</li>
+<li class="task"><span class="box"></span>Localizar endpoint y certificados de etcd desde el manifiesto del API server.</li>
+<li class="task"><span class="box"></span><code>etcdctl snapshot save</code>.</li>
+<li class="task"><span class="box"></span><code>etcdutl snapshot status</code> para validar un snapshot.</li>
+<li class="task"><span class="box"></span><code>etcdutl snapshot restore</code> a un data dir nuevo y reapuntar el static Pod.</li>
+<li class="task"><span class="box"></span>Crear Role y RoleBinding.</li>
+<li class="task"><span class="box"></span>Crear ClusterRole y ClusterRoleBinding.</li>
+<li class="task"><span class="box"></span>Usar ClusterRole + RoleBinding para limitar el alcance a un namespace.</li>
+<li class="task"><span class="box"></span>Crear una ServiceAccount y vincularla correctamente.</li>
+<li class="task"><span class="box"></span>Auditar con <code>kubectl auth can-i --as</code> y <code>--list</code>.</li>
+</ul>
+<h2 id="storage-clase-3-10">Storage · Clase 3 · <em>10 %</em></h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Compartir datos entre contenedores con <code>emptyDir</code>.</li>
+<li class="task"><span class="box"></span>Crear un PV con capacidad, modo de acceso, clase y <code>reclaimPolicy</code>.</li>
+<li class="task"><span class="box"></span>Crear un PVC y comprobar el binding.</li>
+<li class="task"><span class="box"></span>Forzar el enlace a un PV concreto con <code>selector</code>.</li>
+<li class="task"><span class="box"></span>Montar un PVC en un Pod.</li>
+<li class="task"><span class="box"></span>Enumerar las causas por las que un PVC queda <code>Pending</code>.</li>
+<li class="task"><span class="box"></span>Liberar un PV en <code>Released</code>.</li>
+<li class="task"><span class="box"></span>Distinguir aprovisionamiento estático de dinámico.</li>
+<li class="task"><span class="box"></span>Explicar <code>Retain</code> frente a <code>Delete</code>.</li>
+<li class="task"><span class="box"></span>Desplegar un StatefulSet con <code>volumeClaimTemplates</code>.</li>
+<li class="task"><span class="box"></span>Crear un Headless Service y demostrar el DNS por Pod.</li>
+<li class="task"><span class="box"></span>Explicar por qué los PVC sobreviven al StatefulSet.</li>
+</ul>
+<h2 id="configuracion-de-aplicaciones-clase-4">Configuración de aplicaciones · Clase 4</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Crear ConfigMaps desde literales, archivos y <code>--from-env-file</code>.</li>
+<li class="task"><span class="box"></span>Consumir un ConfigMap con <code>env</code>, <code>envFrom</code> y como volumen.</li>
+<li class="task"><span class="box"></span>Crear un Secret <code>Opaque</code> y uno <code>tls</code>.</li>
+<li class="task"><span class="box"></span>Consumir un Secret con <code>secretKeyRef</code> y como volumen en solo lectura.</li>
+<li class="task"><span class="box"></span>Explicar por qué base64 no es cifrado.</li>
+<li class="task"><span class="box"></span>Explicar qué se actualiza en caliente y qué no.</li>
+</ul>
+<h2 id="services-networking-clase-5-20">Services &amp; Networking · Clase 5 · <em>20 %</em></h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Crear <code>ClusterIP</code>, <code>NodePort</code>, <code>LoadBalancer</code> y <code>ExternalName</code>.</li>
+<li class="task"><span class="box"></span>Distinguir <code>port</code>, <code>targetPort</code> y <code>nodePort</code>.</li>
+<li class="task"><span class="box"></span>Leer un <code>EndpointSlice</code> y relacionarlo con el selector.</li>
+<li class="task"><span class="box"></span>Resolver un Service por su FQDN.</li>
+<li class="task"><span class="box"></span>Leer <code>/etc/resolv.conf</code> de un Pod y explicar <code>search</code> y <code>ndots</code>.</li>
+<li class="task"><span class="box"></span>Diagnosticar un fallo de DNS y distinguirlo de un fallo de endpoints.</li>
+<li class="task"><span class="box"></span>Crear un Ingress con reglas por path y <code>pathType</code>.</li>
+<li class="task"><span class="box"></span>Identificar la <code>IngressClass</code> correcta.</li>
+<li class="task"><span class="box"></span>Crear un TLS Secret y asociarlo a un Ingress por host.</li>
+<li class="task"><span class="box"></span>Probar con <code>curl --resolve</code>.</li>
+<li class="task"><span class="box"></span>Explicar qué es Gateway API y por qué existe.</li>
+<li class="task"><span class="box"></span>Escribir una NetworkPolicy <code>default deny</code>.</li>
+<li class="task"><span class="box"></span>Permitir DNS explícitamente en una política de egress.</li>
+<li class="task"><span class="box"></span>Permitir tráfico entre Pods con <code>podSelector</code> en ambas direcciones.</li>
+<li class="task"><span class="box"></span>Usar <code>namespaceSelector</code> y distinguir el AND del OR.</li>
+</ul>
+<h2 id="troubleshooting-clase-6-30">Troubleshooting · Clase 6 · <em>30 %</em></h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Traducir <code>Pending</code> a su causa probable.</li>
+<li class="task"><span class="box"></span>Traducir <code>ImagePullBackOff</code>.</li>
+<li class="task"><span class="box"></span>Traducir <code>CreateContainerConfigError</code>.</li>
+<li class="task"><span class="box"></span>Traducir <code>CrashLoopBackOff</code> y usar <code>logs --previous</code>.</li>
+<li class="task"><span class="box"></span>Traducir <code>Running 0/1 READY</code>.</li>
+<li class="task"><span class="box"></span>Traducir <code>OOMKilled</code> y el exit code 137.</li>
+<li class="task"><span class="box"></span>Diagnosticar un nodo <code>NotReady</code>.</li>
+<li class="task"><span class="box"></span>Distinguir <code>NotReady</code> de <code>SchedulingDisabled</code>.</li>
+<li class="task"><span class="box"></span>Leer <code>journalctl -u kubelet</code>.</li>
+<li class="task"><span class="box"></span>Usar <code>crictl</code> cuando <code>kubectl</code> no responde.</li>
+<li class="task"><span class="box"></span>Recuperar un static Pod mal escrito.</li>
+<li class="task"><span class="box"></span>Diagnosticar un Service sin endpoints.</li>
+<li class="task"><span class="box"></span>Diagnosticar un PVC que no enlaza.</li>
+<li class="task"><span class="box"></span>Diagnosticar un <code>Forbidden</code> de RBAC.</li>
+<li class="task"><span class="box"></span>Diagnosticar tráfico bloqueado por NetworkPolicy.</li>
+<li class="task"><span class="box"></span>Diagnosticar un Ingress que no enruta.</li>
+<li class="task"><span class="box"></span>Diagnosticar un rollout atascado y revertirlo.</li>
+<li class="task"><span class="box"></span>Resolver una cadena de fallos entre varias capas, en orden.</li>
+</ul>
+<h2 id="estrategia-de-examen">Estrategia de examen</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Leo todas las tareas y anoto sus pesos antes de empezar.</li>
+<li class="task"><span class="box"></span>Cambio de contexto y namespace según indica cada tarea.</li>
+<li class="task"><span class="box"></span>Abandono a tiempo una tarea atascada y vuelvo al final.</li>
+<li class="task"><span class="box"></span>Valido cada tarea nada más terminarla.</li>
+<li class="task"><span class="box"></span>Uso solo <code>kubernetes.io/docs</code> y <code>kubectl explain</code>.</li>
+</ul></article>
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

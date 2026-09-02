@@ -1,0 +1,35 @@
+# LAB 3.2 - PVC que exige un PV concreto mediante selector por label.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-sitio
+  namespace: c3-inter
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  selector:
+    matchLabels:
+      contenido: beta      # -> obliga a enlazar con pv-b
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-persistente
+  namespace: c3-inter
+spec:
+  volumes:
+    - name: datos
+      persistentVolumeClaim:
+        claimName: pvc-sitio
+  containers:
+    - name: web
+      image: nginx:1.27-alpine
+      ports:
+        - containerPort: 80
+      volumeMounts:
+        - name: datos
+          mountPath: /usr/share/nginx/html

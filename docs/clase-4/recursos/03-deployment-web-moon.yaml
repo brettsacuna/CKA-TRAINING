@@ -1,0 +1,37 @@
+# LAB 4.2 - Deployment que consume ConfigMap y Secret de las cuatro formas.
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: web-moon, namespace: c4-config}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: web-moon}}
+  template:
+    metadata: {labels: {app: web-moon}}
+    spec:
+      volumes:
+        - name: html
+          configMap:
+            name: configmap-web-moon-html   # se actualiza solo al cambiar el CM
+        - name: cred
+          secret:
+            secretName: db-cred
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]
+          envFrom:
+            - configMapRef: {name: app-config}     # todas las claves como variables
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: db-cred, key: password}
+          volumeMounts:
+            - {name: html, mountPath: /usr/share/nginx/html}
+            - {name: cred, mountPath: /etc/db-cred, readOnly: true}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: web-moon, namespace: c4-config}
+spec:
+  selector: {app: web-moon}
+  ports: [{port: 80, targetPort: 80}]

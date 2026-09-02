@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clase 6 — Troubleshooting e Integración · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
+
+</head>
+<body class="">
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../index.html">Inicio</a><a class="on" href="../guia.html">Clases</a><a href="../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../index.html">Inicio</a><span class="sep">/</span><span>Clase 6</span></nav>
+
+<section class="clase-head">
+  <div class="eyebrow">Clase 6</div>
+  <h1>Troubleshooting e Integración</h1>
+  <p class="lead">El 30 % del examen. Cinco laboratorios, incluido el integrador final.</p>
+  <div class="chips">
+    <span class="chip mono">180 min</span>
+    <span class="chip mono">5 laboratorios</span>
+    <span class="chip mono">Kubernetes v1.35</span>
+  </div>
+</section>
+
+<div class="two-col">
+  <article class="md"><h2 id="objetivos">Objetivos</h2>
+<ol>
+<li>Aplicar un método de diagnóstico reproducible en lugar de ir probando comandos.</li>
+<li>Reconocer cada estado de Pod y saber a qué capa apunta.</li>
+<li>Diagnosticar fallos de nodo y de control plane, no solo de aplicación.</li>
+<li>Resolver escenarios que combinan scheduling, workloads, storage, configuración, permisos y red.</li>
+<li>Desplegar y reparar una arquitectura completa en el <strong>laboratorio integrador final</strong>.</li>
+<li>Salir de la clase con un checklist de competencias y una hoja de comandos propia.</li>
+</ol>
+<h2 id="contenidos">Contenidos</h2>
+<p>Esta clase <strong>no introduce módulos nuevos</strong>: usa todo lo anterior contra escenarios rotos.</p>
+<ul>
+<li>Método general: <code>observar -&gt; acotar la capa -&gt; formular hipótesis -&gt; verificar -&gt; corregir -&gt; validar</code>.</li>
+<li>Estados de Pod y su significado: <code>Pending</code>, <code>ContainerCreating</code>, <code>ImagePullBackOff</code>, <code>CreateContainerConfigError</code>, <code>CrashLoopBackOff</code>, <code>Running 0/1</code>, <code>OOMKilled</code>, <code>Error</code>, <code>Evicted</code>, <code>Terminating</code>.</li>
+<li>Troubleshooting de nodo: <code>NotReady</code>, <code>SchedulingDisabled</code>, kubelet parado, disco lleno, runtime caído.</li>
+<li>Troubleshooting del control plane: static Pods, <code>crictl</code>, logs del kubelet, certificados expirados.</li>
+<li>Los seis mental models del curso, aplicados juntos.</li>
+<li>Uso eficiente de <code>kubectl</code> bajo presión de tiempo.</li>
+</ul>
+<h2 id="agenda-180-min">Agenda (180 min)</h2>
+<table>
+<thead>
+<tr>
+<th>Tiempo</th>
+<th>Actividad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>00–12</td>
+<td>Método de diagnóstico y mapa de estados</td>
+</tr>
+<tr>
+<td>12–30</td>
+<td><strong>Demo</strong>: cinco Pods rotos, cinco causas distintas, en 15 minutos</td>
+</tr>
+<tr>
+<td>30–50</td>
+<td><strong>LAB 6.1 — Básico</strong>: identificar el estado y la capa</td>
+</tr>
+<tr>
+<td>50–78</td>
+<td><strong>LAB 6.2 — Intermedio</strong>: nodo y control plane</td>
+</tr>
+<tr>
+<td>78–105</td>
+<td><strong>LAB 6.3 — Avanzado</strong>: cadena de fallos entre capas</td>
+</tr>
+<tr>
+<td>105–120</td>
+<td><strong>LAB 6.4 — Challenge</strong>: contrarreloj, 15 minutos</td>
+</tr>
+<tr>
+<td>120–170</td>
+<td><strong>LAB 6.5 — INTEGRADOR FINAL</strong></td>
+</tr>
+<tr>
+<td>170–178</td>
+<td>Checklist CKA y Cheat Sheet</td>
+</tr>
+<tr>
+<td>178–180</td>
+<td>Cierre del curso</td>
+</tr>
+</tbody>
+</table>
+<h2 id="los-seis-mental-models">Los seis mental models</h2>
+<div class="hl"><pre><span></span><code>POD                 SCHEDULING            SERVICE
+get                 Pending               Service
+ v                   v                     v
+describe            Events                selector
+ v                   v                     v
+events              Recursos              EndpointSlice
+ v                   v                     v
+logs                nodeSelector          Pod labels
+ v                   v                     v
+logs --previous     Affinity              targetPort
+                     v
+                    Taints / Tolerations
+
+STORAGE             RBAC                  NETWORKING
+PVC                 Identity              Pod
+ v                   v                     v
+StorageClass        Role / ClusterRole    Service
+ v                   v                     v
+PV                  Binding               EndpointSlice
+ v                   v                     v
+AccessMode          Resource              DNS
+ v                   v                     v
+Capacity            Verb                  NetworkPolicy
+ v                   v                     v
+Pod                 auth can-i            Ingress
+</code></pre></div>
+
+<h2 id="checklist-final-de-la-clase">Checklist final de la clase</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Identifico la capa del fallo antes de tocar nada.</li>
+<li class="task"><span class="box"></span>Traduzco cada estado de Pod a su causa probable.</li>
+<li class="task"><span class="box"></span>Diagnostico un nodo <code>NotReady</code>.</li>
+<li class="task"><span class="box"></span>Recupero un control plane con un static Pod mal escrito.</li>
+<li class="task"><span class="box"></span>Resuelvo una cadena de fallos que cruza varias capas.</li>
+<li class="task"><span class="box"></span>Trabajo contrarreloj sin perder el método.</li>
+<li class="task"><span class="box"></span>Despliego la arquitectura completa del laboratorio integrador.</li>
+<li class="task"><span class="box"></span>Reparo las fallas inyectadas y valido el resultado.</li>
+</ul></article>
+  <aside class="rail">
+    <div class="railcard">
+      <div class="railcard-h">Presentación</div>
+      <div class="slide-row"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M8 8h8M8 12h8M8 16h5"></path></svg><div><div class="mono fn">01-CLASE-06-CKA.pptx</div></div></div>
+      <a class="btn primary" href="../slides/01-CLASE-06-CKA.pptx" download>Descargar .pptx</a>
+    </div>
+    <div class="railcard">
+      <div class="railcard-h">Laboratorios</div>
+      <div class="lab-list"><a href="lab-1/"><span>LAB 6.1 — Traducir estados: seis Pods, seis causas</span><span class="lvl ok mono">Básico</span></a><a href="lab-2/"><span>LAB 6.2 — Nodo y control plane</span><span class="lvl blue mono">Intermedio</span></a><a href="lab-3/"><span>LAB 6.3 — Cadena de fallos entre capas</span><span class="lvl warn mono">Avanzado</span></a><a href="lab-4/"><span>LAB 6.4 — Challenge contrarreloj: 15 minutos</span><span class="lvl danger mono">Challenge</span></a><a href="lab-5/"><span>LAB 6.5 — LABORATORIO INTEGRADOR FINAL</span><span class="lvl danger mono">Integrador</span></a></div>
+    </div>
+    <div class="railcard">
+      <div class="railcard-h">Recursos · YAML</div>
+      <div class="rlist"><div class="rrow mono"><span>01-tienda-referencia.yaml</span><span class="acts"><a href="recursos.html#01-tienda-referencia.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/01-tienda-referencia.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>02-tienda-networkpolicies.yaml</span><span class="acts"><a href="recursos.html#02-tienda-networkpolicies.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/02-tienda-networkpolicies.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div></div>
+      <div class="railcard-h" style="margin-top:16px">Scripts</div>
+      <div class="rlist"><div class="rrow mono"><span>inject-failures.sh</span><span class="acts"><a href="recursos.html#inject-failures.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/inject-failures.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>reset-lab.sh</span><span class="acts"><a href="recursos.html#reset-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/reset-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>setup-lab.sh</span><span class="acts"><a href="recursos.html#setup-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/setup-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>validate-lab.sh</span><span class="acts"><a href="recursos.html#validate-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/validate-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div></div>
+      <a class="btn" href="recursos.html">Abrir visor de recursos</a>
+    </div>
+    <div class="railcard"><div class="railcard-h">Material adicional</div><a class="rlink" href="checklist.html">Checklist CKA</a><a class="rlink" href="cheatsheet.html">Cheat Sheet CKA</a></div>
+  </aside>
+</div>
+
+<nav class="pager"><a href="../clase-5/">← Clase 5</a><span></span></nav>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

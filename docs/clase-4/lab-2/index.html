@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 4.2 — ConfigMaps y Secrets · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+
+</head>
+<body class="labpage">
+<header class="topbar">
+  <a class="brand" href="../../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../../index.html">Inicio</a><a class="on" href="../../guia.html">Clases</a><a href="../../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../../index.html">Inicio</a><span class="sep">/</span><a href="../index.html">Clase 4</a><span class="sep">/</span><span>LAB 4.2</span></nav>
+
+<div class="lab-layout">
+  <aside class="lab-side">
+    <details class="lab-nav" open>
+      <summary>Clase 4 · Laboratorios</summary>
+      <div class="railcard-h">Clase 4 · Laboratorios</div>
+      <div class="side-labs"><a class="" href="../lab-1/">LAB 4.1 — Rolling Update y Rollback</a><a class="on" href="../lab-2/">LAB 4.2 — ConfigMaps y Secrets</a><a class="" href="../lab-3/">LAB 4.3 — Recursos, QoS, escalado y métricas</a><a class="" href="../lab-4/">LAB 4.4 — Challenge: el despliegue que no arranca</a></div>
+      <div class="railcard-h" style="margin-top:22px">Recursos</div>
+      <a class="rlink" href="../recursos.html">Visor de recursos</a>
+      <a class="rlink" href="../../slides/01-CLASE-04-CKA.pptx" download>Presentación (.pptx)</a>
+    </details>
+  </aside>
+  <script>if(matchMedia('(max-width:900px)').matches){var _ln=document.currentScript.previousElementSibling.querySelector('.lab-nav');if(_ln)_ln.removeAttribute('open');}</script>
+  <article class="md lab-body">
+    <div class="eyebrow">LAB 4.2</div>
+    <h1>ConfigMaps y Secrets</h1>
+    <div class="chips">
+      <span class="lvl blue mono">Nivel · Intermedio</span>
+      <span class="chip mono">30 minutos</span>
+    </div>
+    <h2 id="objetivo">Objetivo</h2>
+<p>Sacar toda la configuración fuera de la imagen: parámetros no sensibles en ConfigMaps, credenciales en Secrets, consumidos como variables de entorno y como archivos.</p>
+<h2 id="competencias">Competencias</h2>
+<ul>
+<li>Crear ConfigMaps y Secrets desde literales, archivos y YAML.</li>
+<li>Consumir con <code>env</code> + <code>configMapKeyRef</code> / <code>secretKeyRef</code>, con <code>envFrom</code> y como volumen.</li>
+<li>Comprobar el contenido dentro del contenedor.</li>
+<li>Explicar el modelo de protección real de un Secret.</li>
+</ul>
+<h2 id="escenario">Escenario</h2>
+<p>El equipo <code>moonpie</code> sirve una web con nginx. Hoy el <code>index.html</code>, los parámetros de la aplicación y la contraseña de la base de datos están <strong>dentro de la imagen</strong>. Hay que sacarlos.</p>
+<h2 id="estado-inicial">Estado inicial</h2>
+<ul>
+<li>Namespace de trabajo: <strong><code>c4-config</code></strong>.</li>
+<li>Crea en tu máquina el archivo <code>web-moon.html</code> con este contenido:</li>
+</ul>
+<div class="hl"><pre><span></span><code><span class="cp">&lt;!DOCTYPE html&gt;</span>
+<span class="p">&lt;</span><span class="nt">html</span> <span class="na">lang</span><span class="o">=</span><span class="s">&quot;es&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;&lt;</span><span class="nt">meta</span> <span class="na">charset</span><span class="o">=</span><span class="s">&quot;UTF-8&quot;</span><span class="p">&gt;&lt;</span><span class="nt">title</span><span class="p">&gt;</span>Web Moon<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>Contenido servido desde un ConfigMap.<span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
+</code></pre></div>
+
+<h2 id="requerimientos">Requerimientos</h2>
+<h3 id="parte-a-configmaps">Parte A — ConfigMaps</h3>
+<ol>
+<li>Crea el namespace <code>c4-config</code>.</li>
+<li>Crea un ConfigMap <strong><code>app-config</code></strong> con estas claves, <strong>desde literales</strong>:<ul>
+<li><code>APP_COLOR=blue</code></li>
+<li><code>APP_MODE=prod</code></li>
+</ul>
+</li>
+<li>Crea un ConfigMap <strong><code>configmap-web-moon-html</code></strong> con el contenido del archivo <code>web-moon.html</code> bajo la clave <strong><code>index.html</code></strong>, usando <code>--from-file</code>.</li>
+<li>Muestra ambos ConfigMaps en YAML y comprueba la diferencia entre una clave corta y una clave multilínea.</li>
+<li>Crea un Deployment <strong><code>web-moon</code></strong> (1 réplica, <code>nginx:1.27-alpine</code>) que:<ul>
+<li>reciba <strong>todas</strong> las claves de <code>app-config</code> como variables de entorno usando <strong><code>envFrom</code></strong>,</li>
+<li>monte <code>configmap-web-moon-html</code> en <code>/usr/share/nginx/html</code> como volumen.</li>
+</ul>
+</li>
+<li>Comprueba desde dentro del contenedor:<ul>
+<li><code>env | grep APP_</code></li>
+<li><code>cat /usr/share/nginx/html/index.html</code></li>
+</ul>
+</li>
+<li>Expón el Deployment con un Service ClusterIP <code>web-moon</code> en el puerto 80 y comprueba con <code>curl</code> desde un Pod temporal que sirve el contenido del ConfigMap.</li>
+</ol>
+<h3 id="parte-b-secrets">Parte B — Secrets</h3>
+<ol start="8">
+<li>Crea un Secret <strong><code>db-cred</code></strong> de tipo <code>Opaque</code> con:<ul>
+<li><code>user=admin</code></li>
+<li><code>password=Sup3rS3cret</code></li>
+</ul>
+</li>
+<li>Muestra el Secret en YAML. <strong>Decodifica</strong> el valor de <code>password</code> con <code>base64 -d</code> y comenta el resultado con el grupo.</li>
+<li>Modifica el Deployment <code>web-moon</code> para que además:<ul>
+<li>reciba la variable de entorno <strong><code>DB_PASSWORD</code></strong> desde la clave <code>password</code> del Secret (<code>secretKeyRef</code>),</li>
+<li>monte el Secret completo en <strong><code>/etc/db-cred</code></strong> en modo <strong>solo lectura</strong>.</li>
+</ul>
+</li>
+<li>Comprueba dentro del contenedor:<ul>
+<li><code>env | grep DB_PASSWORD</code></li>
+<li><code>ls /etc/db-cred</code> y <code>cat /etc/db-cred/user</code></li>
+<li><code>mount | grep db-cred</code> — anota el tipo de sistema de archivos que aparece y por qué.</li>
+</ul>
+</li>
+</ol>
+<h3 id="parte-c-actualizacion-en-caliente">Parte C — Actualización en caliente</h3>
+<ol start="12">
+<li>Cambia el valor de <code>APP_COLOR</code> a <code>green</code> en el ConfigMap <code>app-config</code>, y el contenido del <code>index.html</code> en <code>configmap-web-moon-html</code>.</li>
+<li><strong>Sin reiniciar el Pod</strong>, comprueba:<ul>
+<li>si la variable de entorno <code>APP_COLOR</code> cambió,</li>
+<li>si el archivo montado cambió (puede tardar hasta ~1 minuto).</li>
+</ul>
+</li>
+<li>Explica la diferencia y di qué hay que hacer para que la variable de entorno tome el valor nuevo.</li>
+</ol>
+<h2 id="restricciones">Restricciones</h2>
+<ul>
+<li>No pongas ningún valor sensible directamente en el manifiesto del Deployment.</li>
+<li>El montaje del Secret debe ser <code>readOnly: true</code>.</li>
+<li>En el paso 13 <strong>no puedes</strong> borrar el Pod ni hacer <code>rollout restart</code> hasta haber comprobado ambos comportamientos.</li>
+</ul>
+<h2 id="validacion">Validación</h2>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>-n<span class="w"> </span>c4-config<span class="w"> </span>get<span class="w"> </span>cm,secret
+kubectl<span class="w"> </span>-n<span class="w"> </span>c4-config<span class="w"> </span>get<span class="w"> </span>cm<span class="w"> </span>configmap-web-moon-html<span class="w"> </span>-o<span class="w"> </span>yaml
+kubectl<span class="w"> </span>-n<span class="w"> </span>c4-config<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>deploy/web-moon<span class="w"> </span>--<span class="w"> </span>env<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s1">&#39;APP_|DB_PASSWORD&#39;</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>c4-config<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>deploy/web-moon<span class="w"> </span>--<span class="w"> </span>cat<span class="w"> </span>/usr/share/nginx/html/index.html
+kubectl<span class="w"> </span>-n<span class="w"> </span>c4-config<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>deploy/web-moon<span class="w"> </span>--<span class="w"> </span>ls<span class="w"> </span>-l<span class="w"> </span>/etc/db-cred
+kubectl<span class="w"> </span>-n<span class="w"> </span>c4-config<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>deploy/web-moon<span class="w"> </span>--<span class="w"> </span>mount<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>db-cred
+kubectl<span class="w"> </span>run<span class="w"> </span>tmp<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>-n<span class="w"> </span>c4-config<span class="w"> </span>--image<span class="o">=</span>busybox:1.36<span class="w"> </span>--restart<span class="o">=</span>Never<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>wget<span class="w"> </span>-qO-<span class="w"> </span>http://web-moon
+</code></pre></div>
+
+<h2 id="resultado-esperado">Resultado esperado</h2>
+<ul>
+<li><code>APP_COLOR=blue</code> y <code>APP_MODE=prod</code> en el entorno del contenedor.</li>
+<li><code>/usr/share/nginx/html/index.html</code> con el contenido del ConfigMap; <code>curl</code> devuelve esa página.</li>
+<li><code>DB_PASSWORD=Sup3rS3cret</code> en el entorno; <code>/etc/db-cred/user</code> y <code>/etc/db-cred/password</code> como archivos.</li>
+<li>El montaje del Secret aparece como <strong><code>tmpfs</code></strong> (en memoria, no en disco del nodo).</li>
+<li>Tras el paso 12: <strong>el archivo montado se actualiza solo</strong>; <strong>la variable de entorno no</strong>.</li>
+</ul>
+<h2 id="criterios-de-exito">Criterios de éxito</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span><code>app-config</code> creado desde literales.</li>
+<li class="task"><span class="box"></span><code>configmap-web-moon-html</code> creado con <code>--from-file</code> y clave <code>index.html</code>.</li>
+<li class="task"><span class="box"></span><code>envFrom</code> inyecta todas las claves de <code>app-config</code>.</li>
+<li class="task"><span class="box"></span>El ConfigMap está montado y nginx sirve su contenido.</li>
+<li class="task"><span class="box"></span>Secret <code>db-cred</code> creado y consumido por <code>secretKeyRef</code>.</li>
+<li class="task"><span class="box"></span>Secret montado en <code>/etc/db-cred</code> en solo lectura.</li>
+<li class="task"><span class="box"></span>Identifiqué el <code>tmpfs</code> y sé explicarlo.</li>
+<li class="task"><span class="box"></span>Decodifiqué el base64 y expliqué qué protege realmente un Secret.</li>
+<li class="task"><span class="box"></span>Comprobé la diferencia de actualización entre volumen y variable de entorno.</li>
+<li class="task"><span class="box"></span>Sé qué comando fuerza a que la variable tome el valor nuevo.</li>
+</ul>
+    <div class="lab-note">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+    </div>
+    <nav class="pager"><a href="../lab-1/">← LAB 4.1</a><a href="../lab-3/">LAB 4.3 →</a></nav>
+  </article>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

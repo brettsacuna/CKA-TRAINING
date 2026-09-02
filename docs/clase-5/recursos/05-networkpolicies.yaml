@@ -1,0 +1,62 @@
+# LAB 5.3 - Conjunto de politicas de referencia (material del instructor).
+# 1) DEFAULT DENY: aisla todos los Pods del namespace, ingress y egress.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: default-deny, namespace: c5-netpol}
+spec:
+  podSelector: {}            # {} = TODOS los Pods del namespace
+  policyTypes: [Ingress, Egress]
+---
+# 2) DNS: sin esto, el default deny rompe toda resolucion de nombres.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-dns, namespace: c5-netpol}
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: kube-system}
+      ports:
+        - {protocol: UDP, port: 53}
+        - {protocol: TCP, port: 53}
+---
+# 3) frontend puede SALIR hacia backend (y solo hacia el).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: frontend-egress, namespace: c5-netpol}
+spec:
+  podSelector:
+    matchLabels: {run: frontend}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - podSelector:
+            matchLabels: {run: backend}
+---
+# 4) backend puede RECIBIR de frontend (y solo de el).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: backend-ingress, namespace: c5-netpol}
+spec:
+  podSelector:
+    matchLabels: {run: backend}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels: {run: frontend}
+---
+# 5) backend puede SALIR hacia el namespace de datos.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: backend-egress-datos, namespace: c5-netpol}
+spec:
+  podSelector:
+    matchLabels: {run: backend}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels: {ns: datos}

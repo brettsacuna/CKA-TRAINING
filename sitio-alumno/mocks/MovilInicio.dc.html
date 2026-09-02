@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    :root{
+      --bg:#0B1220; --panel:#131C2E; --soft:#0F1729; --line:#26354E;
+      --ink:#F3F6FC; --body:#BDC9DB; --muted:#8493AD; --faint:#4C5B75;
+      --blue:#326CE5; --blue2:#74A6FF;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--body);
+      font-family:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+    h1,h2,h3{color:var(--ink);font-weight:600;margin:0;line-height:1.2}
+    a{color:var(--blue2);text-decoration:none}
+    a:hover{color:#a7c6ff}
+    .mono{font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace}
+  </style>
+</helmet>
+
+<div style="width:390px;min-height:844px;background:var(--bg)">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;height:54px;padding:0 16px;border-bottom:1px solid var(--line)">
+    <div style="display:flex;align-items:center;gap:9px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle></svg>
+      <span style="color:var(--ink);font-weight:600;letter-spacing:.1em;font-size:11px">CKA HANDS-ON</span>
+    </div>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </div>
+
+  <div style="padding:26px 18px 18px">
+    <div style="color:var(--blue2);font-weight:600;font-size:10px;letter-spacing:.18em;text-transform:uppercase">Material del alumno</div>
+    <h1 style="font-size:27px;margin:10px 0 0;letter-spacing:-.01em">CKA Hands-On Training</h1>
+    <p style="font-size:14px;color:var(--body);margin:12px 0 0">Kubernetes práctico para el examen CKA. 6 clases · 18 horas · 70&nbsp;% laboratorio.</p>
+    <div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap">
+      <span class="mono" style="border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:11px;color:var(--body)">18 h</span>
+      <span class="mono" style="border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:11px;color:var(--body)">25 labs</span>
+      <span class="mono" style="border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:11px;color:var(--body)">v1.35</span>
+    </div>
+  </div>
+
+  <div style="padding:6px 18px 22px;display:flex;flex-direction:column;gap:12px">
+    <div style="font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-bottom:2px">Las seis clases</div>
+
+    <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:16px;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="mono" style="font-size:12px;color:var(--faint)">01</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.5"><rect x="4" y="6" width="16" height="12" rx="3"></rect><circle cx="9.5" cy="12" r="1.6"></circle><circle cx="14.5" cy="12" r="1.6"></circle></svg>
+      </div>
+      <h3 style="font-size:16px">Pods, YAML, Services y Scheduling</h3>
+      <div class="mono" style="font-size:11.5px;color:var(--muted)">180 min · 4 labs</div>
+    </div>
+
+    <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:16px;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="mono" style="font-size:12px;color:var(--faint)">02</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2.5"></rect><rect x="6.5" y="9" width="3.4" height="6" rx="1"></rect><rect x="10.3" y="9" width="3.4" height="6" rx="1"></rect><rect x="14.1" y="9" width="3.4" height="6" rx="1"></rect></svg>
+      </div>
+      <h3 style="font-size:16px">Administración del Cluster: Upgrade, ETCD y RBAC</h3>
+      <div class="mono" style="font-size:11.5px;color:var(--muted)">180 min · 4 labs</div>
+    </div>
+
+    <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:16px;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="mono" style="font-size:12px;color:var(--faint)">03</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.5"><ellipse cx="12" cy="6.5" rx="7" ry="2.8"></ellipse><path d="M5 6.5v11c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-11"></path><path d="M5 12c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8"></path></svg>
+      </div>
+      <h3 style="font-size:16px">Workloads, Storage y StatefulSets</h3>
+      <div class="mono" style="font-size:11.5px;color:var(--muted)">180 min · 4 labs</div>
+    </div>
+
+    <div style="text-align:center;font-size:12.5px;color:var(--blue2);font-weight:600;padding:6px 0">+ 3 clases más</div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

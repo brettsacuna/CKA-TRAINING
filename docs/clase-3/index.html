@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clase 3 — Workloads, Storage y StatefulSets · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
+
+</head>
+<body class="">
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../index.html">Inicio</a><a class="on" href="../guia.html">Clases</a><a href="../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../index.html">Inicio</a><span class="sep">/</span><span>Clase 3</span></nav>
+
+<section class="clase-head">
+  <div class="eyebrow">Clase 3</div>
+  <h1>Workloads, Storage y StatefulSets</h1>
+  <p class="lead">Aplicaciones que no pueden permitirse perder sus datos.</p>
+  <div class="chips">
+    <span class="chip mono">180 min</span>
+    <span class="chip mono">4 laboratorios</span>
+    <span class="chip mono">Kubernetes v1.35</span>
+  </div>
+</section>
+
+<div class="two-col">
+  <article class="md"><h2 id="objetivos">Objetivos</h2>
+<ol>
+<li>Explicar la cadena <code>Deployment -&gt; ReplicaSet -&gt; Pod</code> y demostrar el self-healing.</li>
+<li>Elegir el controlador correcto para cada tipo de carga.</li>
+<li>Compartir datos entre contenedores de un Pod con <code>emptyDir</code>.</li>
+<li>Aprovisionar almacenamiento de forma <strong>estática</strong> (PV creado a mano) y <strong>dinámica</strong> (StorageClass).</li>
+<li>Enlazar PV, PVC y Pod, y explicar por qué un PVC queda <code>Pending</code>.</li>
+<li>Desplegar un StatefulSet con Headless Service y <code>volumeClaimTemplates</code>, y demostrar la identidad estable.</li>
+<li>Diagnosticar fallos de almacenamiento.</li>
+</ol>
+<h2 id="contenidos">Contenidos</h2>
+<ul>
+<li>Pod → ReplicationController (solo referencia histórica) → ReplicaSet → Deployment → StatefulSet.</li>
+<li>Self-healing, <code>ownerReferences</code>, <code>matchLabels</code> y por qué el selector es inmutable.</li>
+<li>Volumes: ciclo de vida ligado al Pod, no al contenedor.</li>
+<li><code>emptyDir</code>, <code>hostPath</code> (y sus riesgos), <code>configMap</code>, <code>secret</code>, <code>persistentVolumeClaim</code>.</li>
+<li>PersistentVolume: <code>capacity</code>, <code>accessModes</code>, <code>persistentVolumeReclaimPolicy</code>, <code>storageClassName</code>.</li>
+<li>PersistentVolumeClaim: <code>resources.requests.storage</code>, <code>accessModes</code>, <code>selector</code>.</li>
+<li>Access modes: <code>ReadWriteOnce</code> (RWO), <code>ReadOnlyMany</code> (ROX), <code>ReadWriteMany</code> (RWX), <code>ReadWriteOncePod</code>.</li>
+<li>StorageClass: <code>provisioner</code>, <code>parameters</code>, <code>reclaimPolicy</code>, <code>volumeBindingMode</code>, <code>allowVolumeExpansion</code>.</li>
+<li>Aprovisionamiento estático vs dinámico. StorageClass por defecto.</li>
+<li>StatefulSet: nombre estable, orden de creación, <code>serviceName</code>, Headless Service (<code>clusterIP: None</code>), <code>volumeClaimTemplates</code>, un PVC por réplica.</li>
+<li>Qué ocurre cuando se borra un Pod de un StatefulSet.</li>
+</ul>
+<p>Relación que se enseña de forma explícita:</p>
+<div class="hl"><pre><span></span><code>StorageClass -&gt; PersistentVolume -&gt; PersistentVolumeClaim -&gt; Pod -&gt; volumeMount
+</code></pre></div>
+
+<h2 id="actualizaciones-tecnicas-respecto-al-material-original">Actualizaciones técnicas respecto al material original</h2>
+<table>
+<thead>
+<tr>
+<th>Tema</th>
+<th>Estado</th>
+<th>Cambio aplicado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Imagen <code>k8s.gcr.io/nginx-slim:0.8</code></td>
+<td><strong>LEGACY</strong></td>
+<td><code>k8s.gcr.io</code> está retirado. Se usa <code>registry.k8s.io/nginx-slim:0.27</code> o <code>nginx:1.27-alpine</code></td>
+</tr>
+<tr>
+<td><code>kubectl create -f</code> para todo</td>
+<td><strong>REQUIERE ACTUALIZACIÓN</strong></td>
+<td>Se usa <code>apply</code> (declarativo, idempotente)</td>
+</tr>
+<tr>
+<td>PV <code>hostPath</code> en 3 nodos</td>
+<td><strong>REQUIERE ACTUALIZACIÓN</strong></td>
+<td>Se explica por qué <code>hostPath</code> ata el Pod a un nodo y se introduce <code>local</code> + <code>nodeAffinity</code> y el provisioner dinámico</td>
+</tr>
+<tr>
+<td><code>reclaimPolicy: Recycle</code></td>
+<td><strong>ELIMINADO</strong></td>
+<td>Retirado de Kubernetes. Solo existen <code>Retain</code> y <code>Delete</code></td>
+</tr>
+<tr>
+<td>ReplicationController</td>
+<td><strong>SOLO REFERENCIA</strong></td>
+<td>Se menciona en 3 minutos y se pasa a ReplicaSet/Deployment</td>
+</tr>
+<tr>
+<td>Modo de acceso RWOP</td>
+<td><strong>NUEVO</strong></td>
+<td>Se añade <code>ReadWriteOncePod</code>, estable desde v1.29</td>
+</tr>
+</tbody>
+</table>
+<h2 id="agenda-180-min">Agenda (180 min)</h2>
+<table>
+<thead>
+<tr>
+<th>Tiempo</th>
+<th>Actividad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>00–12</td>
+<td>Repaso Clase 2 y objetivos</td>
+</tr>
+<tr>
+<td>12–35</td>
+<td>Conceptos: controladores de workload y self-healing</td>
+</tr>
+<tr>
+<td>35–50</td>
+<td><strong>Demo</strong>: borrar un Pod de un Deployment y de un StatefulSet, comparar</td>
+</tr>
+<tr>
+<td>50–72</td>
+<td><strong>LAB 3.1 — Básico</strong>: Deployment, ReplicaSet y self-healing</td>
+</tr>
+<tr>
+<td>72–90</td>
+<td>Conceptos: volúmenes, PV, PVC, StorageClass</td>
+</tr>
+<tr>
+<td>90–120</td>
+<td><strong>LAB 3.2 — Intermedio</strong>: emptyDir, PV y PVC estáticos</td>
+</tr>
+<tr>
+<td>120–130</td>
+<td>Conceptos: StatefulSet y Headless Service</td>
+</tr>
+<tr>
+<td>130–158</td>
+<td><strong>LAB 3.3 — Avanzado</strong>: StatefulSet con almacenamiento por réplica</td>
+</tr>
+<tr>
+<td>158–176</td>
+<td><strong>LAB 3.4 — Challenge</strong>: el PVC que nunca enlaza</td>
+</tr>
+<tr>
+<td>176–180</td>
+<td>Cierre, mental model de storage y CKA Tips</td>
+</tr>
+</tbody>
+</table>
+<h2 id="checklist-final-de-la-clase">Checklist final de la clase</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Explico la relación Deployment → ReplicaSet → Pod y la demuestro con <code>ownerReferences</code>.</li>
+<li class="task"><span class="box"></span>Demuestro el self-healing borrando un Pod.</li>
+<li class="task"><span class="box"></span>Comparto un directorio entre dos contenedores del mismo Pod.</li>
+<li class="task"><span class="box"></span>Creo un PV y un PVC que enlazan, y sé decir por qué enlazan.</li>
+<li class="task"><span class="box"></span>Sé enumerar las 4 causas por las que un PVC queda <code>Pending</code>.</li>
+<li class="task"><span class="box"></span>Distingo aprovisionamiento estático de dinámico.</li>
+<li class="task"><span class="box"></span>Explico qué hace <code>reclaimPolicy: Retain</code> frente a <code>Delete</code>.</li>
+<li class="task"><span class="box"></span>Despliego un StatefulSet con Headless Service y <code>volumeClaimTemplates</code>.</li>
+<li class="task"><span class="box"></span>Demuestro que un Pod de StatefulSet recupera su nombre y su volumen tras ser borrado.</li>
+<li class="task"><span class="box"></span>Sé por qué borrar un StatefulSet no borra sus PVC.</li>
+</ul></article>
+  <aside class="rail">
+    <div class="railcard">
+      <div class="railcard-h">Presentación</div>
+      <div class="slide-row"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M8 8h8M8 12h8M8 16h5"></path></svg><div><div class="mono fn">01-CLASE-03-CKA.pptx</div></div></div>
+      <a class="btn primary" href="../slides/01-CLASE-03-CKA.pptx" download>Descargar .pptx</a>
+    </div>
+    <div class="railcard">
+      <div class="railcard-h">Laboratorios</div>
+      <div class="lab-list"><a href="lab-1/"><span>LAB 3.1 — Deployment, ReplicaSet y self-healing</span><span class="lvl ok mono">Básico</span></a><a href="lab-2/"><span>LAB 3.2 — Volúmenes: emptyDir, PersistentVolume y PersistentVolumeClaim</span><span class="lvl blue mono">Intermedio</span></a><a href="lab-3/"><span>LAB 3.3 — StatefulSet con identidad estable y almacenamiento por réplica</span><span class="lvl warn mono">Avanzado</span></a><a href="lab-4/"><span>LAB 3.4 — Challenge: el PVC que nunca enlaza</span><span class="lvl danger mono">Challenge</span></a></div>
+    </div>
+    <div class="railcard">
+      <div class="railcard-h">Recursos · YAML</div>
+      <div class="rlist"><div class="rrow mono"><span>01-emptydir-sitio.yaml</span><span class="acts"><a href="recursos.html#01-emptydir-sitio.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/01-emptydir-sitio.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>02-pv-estaticos.yaml</span><span class="acts"><a href="recursos.html#02-pv-estaticos.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/02-pv-estaticos.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>03-pvc-selector.yaml</span><span class="acts"><a href="recursos.html#03-pvc-selector.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/03-pvc-selector.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>04-statefulset-web.yaml</span><span class="acts"><a href="recursos.html#04-statefulset-web.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/04-statefulset-web.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>05-pv-para-statefulset.yaml</span><span class="acts"><a href="recursos.html#05-pv-para-statefulset.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/05-pv-para-statefulset.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>06-storageclass-ejemplo.yaml</span><span class="acts"><a href="recursos.html#06-storageclass-ejemplo.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/06-storageclass-ejemplo.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div></div>
+      <div class="railcard-h" style="margin-top:16px">Scripts</div>
+      <div class="rlist"><div class="rrow mono"><span>reset-lab.sh</span><span class="acts"><a href="recursos.html#reset-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/reset-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>setup-lab.sh</span><span class="acts"><a href="recursos.html#setup-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/setup-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>validate-lab.sh</span><span class="acts"><a href="recursos.html#validate-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/validate-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div></div>
+      <a class="btn" href="recursos.html">Abrir visor de recursos</a>
+    </div>
+    
+  </aside>
+</div>
+
+<nav class="pager"><a href="../clase-2/">← Clase 2</a><a href="../clase-4/">Clase 4 →</a></nav>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

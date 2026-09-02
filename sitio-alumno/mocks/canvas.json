@@ -1,0 +1,15 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "Inicio", "x": 0, "y": 0, "w": 1440, "h": 1500 },
+    { "file": "Clase.dc.html", "title": "Página de clase", "x": 1560, "y": 0, "w": 1440, "h": 1600 },
+    { "file": "Laboratorio.dc.html", "title": "Página de laboratorio", "x": 3120, "y": 0, "w": 1440, "h": 2180 },
+    { "file": "VisorRecurso.dc.html", "title": "Visor de recurso (YAML)", "x": 0, "y": 2360, "w": 1440, "h": 860 },
+    { "file": "MovilInicio.dc.html", "title": "Móvil · Inicio", "x": 1560, "y": 2360, "w": 390, "h": 844 },
+    { "file": "MovilLab.dc.html", "title": "Móvil · Laboratorio", "x": 2040, "y": 2360, "w": 390, "h": 844 }
+  ],
+  "annotations": [
+    { "id": "direccion", "x": 0, "y": -150, "w": 900, "text": "Web estática del alumno · GitHub Pages. Tema oscuro heredado del deck (fondo #0B1220, azul Kubernetes #326CE5), tipografía IBM Plex Sans + IBM Plex Mono. Mockups estáticos, contenido real del repositorio." },
+    { "id": "sin-soluciones", "x": 3120, "y": -150, "w": 640, "text": "Las carpetas SOLUCIONES/ NO se publican. En labs y clases solo aparece el enunciado, los recursos (YAML/scripts) y la validación." }
+  ],
+  "launch": { "view": "canvas" }
+}

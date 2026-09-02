@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clase 1 — Pods, YAML, Services y Scheduling · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
+
+</head>
+<body class="">
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../index.html">Inicio</a><a class="on" href="../guia.html">Clases</a><a href="../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../index.html">Inicio</a><span class="sep">/</span><span>Clase 1</span></nav>
+
+<section class="clase-head">
+  <div class="eyebrow">Clase 1</div>
+  <h1>Pods, YAML, Services y Scheduling</h1>
+  <p class="lead">De ejecutar un comando a decidir dónde corre tu aplicación.</p>
+  <div class="chips">
+    <span class="chip mono">180 min</span>
+    <span class="chip mono">4 laboratorios</span>
+    <span class="chip mono">Kubernetes v1.35</span>
+  </div>
+</section>
+
+<div class="two-col">
+  <article class="md"><h2 id="objetivos">Objetivos</h2>
+<p>Al finalizar la clase el participante podrá:</p>
+<ol>
+<li>Crear Pods de forma imperativa y declarativa, y decidir cuándo usar cada vía.</li>
+<li>Generar manifiestos rápidamente con <code>--dry-run=client -o yaml</code> y <code>kubectl explain</code>.</li>
+<li>Usar labels y selectors para agrupar y seleccionar objetos.</li>
+<li>Exponer Pods con Services <code>ClusterIP</code> y <code>NodePort</code>, y comprender la cadena <code>Service -&gt; selector -&gt; EndpointSlice -&gt; Pod</code>.</li>
+<li>Resolver servicios por DNS dentro del cluster.</li>
+<li>Controlar dónde se ejecuta un Pod: labels de nodo, <code>nodeSelector</code>, taints, tolerations, node affinity, pod (anti-)affinity, PriorityClass y preemption.</li>
+<li>Diagnosticar un Pod en estado <code>Pending</code> y un Service sin endpoints.</li>
+</ol>
+<h2 id="contenidos">Contenidos</h2>
+<ul>
+<li>Pod como unidad de despliegue. Ciclo de vida y estados.</li>
+<li>YAML: <code>apiVersion</code>, <code>kind</code>, <code>metadata</code>, <code>spec</code>. <code>kubectl explain</code>.</li>
+<li>Imperativo vs declarativo. <code>kubectl run</code>, <code>create</code>, <code>apply</code>, <code>edit</code>, <code>patch</code>, <code>replace --force</code>.</li>
+<li>Inspección: <code>get</code>, <code>describe</code>, <code>logs</code>, <code>logs --previous</code>, <code>exec</code>, <code>get events</code>.</li>
+<li>Labels, selectors, <code>kubectl label</code>.</li>
+<li>Services: <code>ClusterIP</code>, <code>NodePort</code>. <code>port</code>, <code>targetPort</code>, <code>nodePort</code>. <code>kubectl expose</code>.</li>
+<li>EndpointSlice y por qué un Service puede quedarse vacío.</li>
+<li>DNS de servicios: <code>&lt;svc&gt;.&lt;ns&gt;.svc.cluster.local</code>.</li>
+<li>Scheduling: labels de nodo, <code>nodeSelector</code>, Taints y Tolerations, <code>nodeAffinity</code>
+  (<code>requiredDuringSchedulingIgnoredDuringExecution</code> / <code>preferredDuringSchedulingIgnoredDuringExecution</code>, <code>weight</code>),
+  <code>podAffinity</code> / <code>podAntiAffinity</code>, <code>topologyKey</code>.</li>
+<li>PriorityClass, <code>priority</code>, <code>preemptionPolicy</code> y preemption.</li>
+<li>Mental model de scheduling: <code>Pending -&gt; events -&gt; recursos -&gt; nodeSelector -&gt; affinity -&gt; taints</code>.</li>
+</ul>
+<h2 id="agenda-180-min">Agenda (180 min)</h2>
+<table>
+<thead>
+<tr>
+<th>Tiempo</th>
+<th>Actividad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>00–15</td>
+<td>Presentación, entorno, alias y atajos de examen</td>
+</tr>
+<tr>
+<td>15–45</td>
+<td>Conceptos: Pod, YAML, labels/selectors, Services</td>
+</tr>
+<tr>
+<td>45–65</td>
+<td><strong>Demo del instructor</strong>: crear → inspeccionar → exponer → romper el selector → reparar</td>
+</tr>
+<tr>
+<td>65–90</td>
+<td><strong>LAB 1.1 — Básico</strong>: Pods, YAML e inspección</td>
+</tr>
+<tr>
+<td>90–120</td>
+<td><strong>LAB 1.2 — Intermedio</strong>: Services, EndpointSlice y DNS</td>
+</tr>
+<tr>
+<td>120–128</td>
+<td>Conceptos: scheduling (nodeSelector, taints, affinity, priority)</td>
+</tr>
+<tr>
+<td>128–155</td>
+<td><strong>LAB 1.3 — Avanzado</strong>: colocación de Pods por requerimientos</td>
+</tr>
+<tr>
+<td>155–175</td>
+<td><strong>LAB 1.4 — Challenge</strong>: Pod Pending y Service sin endpoints</td>
+</tr>
+<tr>
+<td>175–180</td>
+<td>Cierre, mental models y CKA Tips</td>
+</tr>
+</tbody>
+</table>
+<h2 id="checklist-final-de-la-clase">Checklist final de la clase</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Creo un Pod imperativa y declarativamente.</li>
+<li class="task"><span class="box"></span>Genero YAML con <code>--dry-run=client -o yaml</code> sin copiar de la documentación.</li>
+<li class="task"><span class="box"></span>Uso <code>kubectl explain</code> para recordar un campo.</li>
+<li class="task"><span class="box"></span>Etiqueto objetos y los filtro con <code>-l</code>.</li>
+<li class="task"><span class="box"></span>Expongo un Pod con ClusterIP y con NodePort.</li>
+<li class="task"><span class="box"></span>Explico por qué un Service tiene 0 endpoints y lo reparo.</li>
+<li class="task"><span class="box"></span>Resuelvo un Service por DNS desde otro Pod.</li>
+<li class="task"><span class="box"></span>Fuerzo un Pod a un nodo concreto con <code>nodeSelector</code>.</li>
+<li class="task"><span class="box"></span>Aplico y tolero un taint.</li>
+<li class="task"><span class="box"></span>Escribo <code>nodeAffinity</code> required y preferred.</li>
+<li class="task"><span class="box"></span>Uso <code>podAntiAffinity</code> para repartir réplicas.</li>
+<li class="task"><span class="box"></span>Diagnostico un <code>FailedScheduling</code> leyendo los eventos.</li>
+</ul></article>
+  <aside class="rail">
+    <div class="railcard">
+      <div class="railcard-h">Presentación</div>
+      <div class="slide-row"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M8 8h8M8 12h8M8 16h5"></path></svg><div><div class="mono fn">01-CLASE-01-CKA.pptx</div></div></div>
+      <a class="btn primary" href="../slides/01-CLASE-01-CKA.pptx" download>Descargar .pptx</a>
+    </div>
+    <div class="railcard">
+      <div class="railcard-h">Laboratorios</div>
+      <div class="lab-list"><a href="lab-1/"><span>LAB 1.1 — Pods, YAML e inspección</span><span class="lvl ok mono">Básico</span></a><a href="lab-2/"><span>LAB 1.2 — Services, EndpointSlice y DNS</span><span class="lvl blue mono">Intermedio</span></a><a href="lab-3/"><span>LAB 1.3 — Colocación de Pods: nodeSelector, Taints, Affinity y Priority</span><span class="lvl warn mono">Avanzado</span></a><a href="lab-4/"><span>LAB 1.4 — Challenge: la aplicación shop no responde</span><span class="lvl danger mono">Challenge</span></a></div>
+    </div>
+    <div class="railcard">
+      <div class="railcard-h">Recursos · YAML</div>
+      <div class="rlist"><div class="rrow mono"><span>01-pod-api.yaml</span><span class="acts"><a href="recursos.html#01-pod-api.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/01-pod-api.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>02-services.yaml</span><span class="acts"><a href="recursos.html#02-services.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/02-services.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>03-scheduling.yaml</span><span class="acts"><a href="recursos.html#03-scheduling.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/03-scheduling.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>04-priorityclass.yaml</span><span class="acts"><a href="recursos.html#04-priorityclass.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/04-priorityclass.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>05-antiaffinity-deployment.yaml</span><span class="acts"><a href="recursos.html#05-antiaffinity-deployment.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/05-antiaffinity-deployment.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>06-shop-referencia.yaml</span><span class="acts"><a href="recursos.html#06-shop-referencia.yaml" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/06-shop-referencia.yaml" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div></div>
+      <div class="railcard-h" style="margin-top:16px">Scripts</div>
+      <div class="rlist"><div class="rrow mono"><span>reset-lab.sh</span><span class="acts"><a href="recursos.html#reset-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/reset-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>setup-lab.sh</span><span class="acts"><a href="recursos.html#setup-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/setup-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div><div class="rrow mono"><span>validate-lab.sh</span><span class="acts"><a href="recursos.html#validate-lab.sh" title="Ver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></a><a href="recursos/validate-lab.sh" download title="Descargar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg></a></span></div></div>
+      <a class="btn" href="recursos.html">Abrir visor de recursos</a>
+    </div>
+    
+  </aside>
+</div>
+
+<nav class="pager"><span></span><a href="../clase-2/">Clase 2 →</a></nav>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

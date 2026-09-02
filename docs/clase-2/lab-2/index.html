@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 2.2 — Upgrade del cluster kubeadm (v1.34 → v1.35) · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+
+</head>
+<body class="labpage">
+<header class="topbar">
+  <a class="brand" href="../../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../../index.html">Inicio</a><a class="on" href="../../guia.html">Clases</a><a href="../../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../../index.html">Inicio</a><span class="sep">/</span><a href="../index.html">Clase 2</a><span class="sep">/</span><span>LAB 2.2</span></nav>
+
+<div class="lab-layout">
+  <aside class="lab-side">
+    <details class="lab-nav" open>
+      <summary>Clase 2 · Laboratorios</summary>
+      <div class="railcard-h">Clase 2 · Laboratorios</div>
+      <div class="side-labs"><a class="" href="../lab-1/">LAB 2.1 — Inventario del cluster, cordon y drain</a><a class="on" href="../lab-2/">LAB 2.2 — Upgrade del cluster kubeadm (v1.34 → v1.35)</a><a class="" href="../lab-3/">LAB 2.3 — ETCD: snapshot, validación y restore</a><a class="" href="../lab-4/">LAB 2.4 — Challenge: Forbidden en producción</a></div>
+      <div class="railcard-h" style="margin-top:22px">Recursos</div>
+      <a class="rlink" href="../recursos.html">Visor de recursos</a>
+      <a class="rlink" href="../../slides/01-CLASE-02-CKA.pptx" download>Presentación (.pptx)</a>
+    </details>
+  </aside>
+  <script>if(matchMedia('(max-width:900px)').matches){var _ln=document.currentScript.previousElementSibling.querySelector('.lab-nav');if(_ln)_ln.removeAttribute('open');}</script>
+  <article class="md lab-body">
+    <div class="eyebrow">LAB 2.2</div>
+    <h1>Upgrade del cluster kubeadm (v1.34 → v1.35)</h1>
+    <div class="chips">
+      <span class="lvl blue mono">Nivel · Intermedio</span>
+      <span class="chip mono">35 minutos</span>
+    </div>
+    <h2 id="objetivo">Objetivo</h2>
+<p>Ejecutar un upgrade completo de un cluster kubeadm, en el orden correcto, sin dejar la aplicación caída y validando cada etapa.</p>
+<h2 id="competencias">Competencias</h2>
+<ul>
+<li>Cambiar el repositorio <code>pkgs.k8s.io</code> a la minor de destino.</li>
+<li><code>apt-mark hold</code> / <code>unhold</code>.</li>
+<li><code>kubeadm upgrade plan</code> / <code>apply</code> / <code>node</code>.</li>
+<li>Actualizar <code>kubelet</code> y <code>kubectl</code> y reiniciar el agente.</li>
+<li>Validar un upgrade.</li>
+</ul>
+<h2 id="escenario">Escenario</h2>
+<p>El cluster corre <strong>v1.34.x</strong>. Seguridad exige subir a <strong>v1.35.x</strong> esta semana. La aplicación <code>inventario</code> de la Clase 2 debe seguir respondiendo durante toda la ventana.</p>
+<p>Flujo obligatorio:</p>
+<div class="hl"><pre><span></span><code>Validar versiones
+      v
+Snapshot de etcd (seguro)
+      v
+CONTROL PLANE:  repo -&gt; kubeadm -&gt; upgrade plan -&gt; upgrade apply -&gt; drain -&gt; kubelet/kubectl -&gt; restart -&gt; uncordon
+      v
+WORKERS (uno a uno): repo -&gt; kubeadm -&gt; drain -&gt; upgrade node -&gt; kubelet/kubectl -&gt; restart -&gt; uncordon
+      v
+Validar
+</code></pre></div>
+
+<h2 id="estado-inicial">Estado inicial</h2>
+<ul>
+<li>Cluster kubeadm en <strong>v1.34.x</strong> en todos los nodos.</li>
+<li>Acceso root por SSH a todos los nodos.</li>
+<li>Deployment <code>inventario</code> con 4 réplicas en <code>c2-basico</code> (del LAB 2.1).</li>
+<li>Salida a Internet para los repositorios de paquetes.</li>
+</ul>
+<h2 id="requerimientos">Requerimientos</h2>
+<ol>
+<li><strong>Antes de nada</strong>, toma un snapshot de etcd (usa <code>RECURSOS/SCRIPTS/etcd-backup.sh</code> o hazlo a mano). Anota la ruta.</li>
+<li>Registra las versiones de partida de los tres binarios en cada nodo.</li>
+<li>En <code>cka-master</code>, apunta el repositorio de Kubernetes a la minor <strong>v1.35</strong>.</li>
+<li>Actualiza <strong>solo <code>kubeadm</code></strong> a <code>1.35.x</code> y verifica con <code>kubeadm version</code>.</li>
+<li>Ejecuta <code>kubeadm upgrade plan</code> y <strong>anota la versión objetivo que propone</strong>.</li>
+<li>Ejecuta <code>kubeadm upgrade apply</code> a esa versión.</li>
+<li>Vacía el control plane, actualiza <code>kubelet</code> y <code>kubectl</code>, reinicia <code>kubelet</code> y devuélvelo al servicio.</li>
+<li>Verifica que <code>kubectl get nodes</code> muestra el master en <code>v1.35.x</code>.</li>
+<li>Repite el procedimiento en <strong>cada worker</strong>, uno a uno, usando <strong><code>kubeadm upgrade node</code></strong> (no <code>apply</code>).</li>
+<li>Durante todo el proceso, mantén en otra terminal una comprobación continua de que la aplicación responde.</li>
+<li>Al finalizar, valida: versiones de nodos, Pods del control plane, versión de CoreDNS y de etcd, y estado de la aplicación.</li>
+</ol>
+<h2 id="restricciones">Restricciones</h2>
+<ul>
+<li><strong>No saltes minors</strong>: kubeadm no permite <code>1.34 -&gt; 1.36</code> en un paso.</li>
+<li><code>kubectl</code> no puede quedar más de una minor por delante o por detrás del API server.</li>
+<li>No actualices <code>kubelet</code> antes de <code>kubeadm upgrade apply</code>.</li>
+<li>No hagas <code>drain</code> de los tres nodos a la vez.</li>
+<li>No borres el Deployment <code>inventario</code>.</li>
+</ul>
+<h2 id="pistas-de-metodo-no-de-solucion">Pistas de método (no de solución)</h2>
+<ul>
+<li>El repositorio de Kubernetes está en <code>/etc/apt/sources.list.d/kubernetes.list</code> y su clave en <code>/etc/apt/keyrings/</code>. Hay <strong>un repositorio por minor</strong>.</li>
+<li>Si <code>apt install kubeadm=&lt;versión&gt;</code> dice que no encuentra el paquete, el problema está en el repositorio, no en la versión.</li>
+<li><code>apt-cache madison kubeadm</code> te dice qué versiones ve tu sistema.</li>
+<li><code>kubeadm upgrade plan</code> no cambia nada: úsalo tantas veces como quieras.</li>
+</ul>
+<h2 id="validacion">Validación</h2>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>-o<span class="w"> </span>wide
+kubeadm<span class="w"> </span>version<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>kubelet<span class="w"> </span>--version<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>kubectl<span class="w"> </span>version
+kubectl<span class="w"> </span>-n<span class="w"> </span>kube-system<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-o<span class="w"> </span>wide
+kubectl<span class="w"> </span>-n<span class="w"> </span>kube-system<span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>coredns<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.template.spec.containers[0].image}{&quot;\n&quot;}&#39;</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>c2-basico<span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>inventario
+kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>SchedulingDisabled<span class="w">     </span><span class="c1"># no debe devolver nada</span>
+</code></pre></div>
+
+<h2 id="resultado-esperado">Resultado esperado</h2>
+<ul>
+<li>Todos los nodos en <code>Ready</code> y en <strong>v1.35.x</strong>.</li>
+<li>Ningún nodo en <code>SchedulingDisabled</code>.</li>
+<li>Los 4 static Pods del control plane <code>Running</code> con imágenes <code>v1.35.x</code>.</li>
+<li>CoreDNS y etcd actualizados a las versiones que indicó <code>upgrade plan</code>.</li>
+<li><code>inventario</code> con 4/4 réplicas disponibles.</li>
+</ul>
+<h2 id="criterios-de-exito">Criterios de éxito</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Snapshot de etcd tomado <strong>antes</strong> del upgrade.</li>
+<li class="task"><span class="box"></span>Repositorio apuntando a v1.35 en todos los nodos.</li>
+<li class="task"><span class="box"></span><code>kubeadm</code> actualizado antes que <code>kubelet</code> en cada nodo.</li>
+<li class="task"><span class="box"></span><code>kubeadm upgrade plan</code> ejecutado y versión objetivo anotada.</li>
+<li class="task"><span class="box"></span><code>kubeadm upgrade apply</code> completado en el control plane.</li>
+<li class="task"><span class="box"></span><code>kubeadm upgrade node</code> usado en los workers (no <code>apply</code>).</li>
+<li class="task"><span class="box"></span><code>kubelet</code> reiniciado en cada nodo tras actualizarlo.</li>
+<li class="task"><span class="box"></span><code>uncordon</code> ejecutado en todos los nodos.</li>
+<li class="task"><span class="box"></span>Todos los nodos en v1.35.x.</li>
+<li class="task"><span class="box"></span>La aplicación estuvo disponible durante toda la ventana.</li>
+</ul>
+    <div class="lab-note">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+    </div>
+    <nav class="pager"><a href="../lab-1/">← LAB 2.1</a><a href="../lab-3/">LAB 2.3 →</a></nav>
+  </article>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# LAB 3.2 - Dos contenedores compartiendo un emptyDir.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sitio
+  namespace: c3-inter
+spec:
+  volumes:
+    - name: www
+      emptyDir: {}          # vive y muere con el Pod
+  containers:
+    - name: writer
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - "echo '<h1>Hola CKA</h1>' > /data/index.html && sleep 3600"
+      volumeMounts:
+        - name: www
+          mountPath: /data
+    - name: web
+      image: nginx:1.27-alpine
+      ports:
+        - containerPort: 80
+      volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html

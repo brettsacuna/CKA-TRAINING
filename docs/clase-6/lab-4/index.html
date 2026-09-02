@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 6.4 — Challenge contrarreloj: 15 minutos · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+
+</head>
+<body class="labpage">
+<header class="topbar">
+  <a class="brand" href="../../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../../index.html">Inicio</a><a class="on" href="../../guia.html">Clases</a><a href="../../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../../index.html">Inicio</a><span class="sep">/</span><a href="../index.html">Clase 6</a><span class="sep">/</span><span>LAB 6.4</span></nav>
+
+<div class="lab-layout">
+  <aside class="lab-side">
+    <details class="lab-nav" open>
+      <summary>Clase 6 · Laboratorios</summary>
+      <div class="railcard-h">Clase 6 · Laboratorios</div>
+      <div class="side-labs"><a class="" href="../lab-1/">LAB 6.1 — Traducir estados: seis Pods, seis causas</a><a class="" href="../lab-2/">LAB 6.2 — Nodo y control plane</a><a class="" href="../lab-3/">LAB 6.3 — Cadena de fallos entre capas</a><a class="on" href="../lab-4/">LAB 6.4 — Challenge contrarreloj: 15 minutos</a><a class="" href="../lab-5/">LAB 6.5 — LABORATORIO INTEGRADOR FINAL</a></div>
+      <div class="railcard-h" style="margin-top:22px">Recursos</div>
+      <a class="rlink" href="../recursos.html">Visor de recursos</a>
+      <a class="rlink" href="../../slides/01-CLASE-06-CKA.pptx" download>Presentación (.pptx)</a>
+    </details>
+  </aside>
+  <script>if(matchMedia('(max-width:900px)').matches){var _ln=document.currentScript.previousElementSibling.querySelector('.lab-nav');if(_ln)_ln.removeAttribute('open');}</script>
+  <article class="md lab-body">
+    <div class="eyebrow">LAB 6.4</div>
+    <h1>Challenge contrarreloj: 15 minutos</h1>
+    <div class="chips">
+      <span class="lvl danger mono">Nivel · Challenge</span>
+      <span class="chip mono">15 minutos **cronometrados**</span>
+    </div>
+    <h2 id="objetivo">Objetivo</h2>
+<p>Reproducir la presión del examen: cinco tareas independientes, tiempo insuficiente para hacerlas con calma, y la obligación de decidir el orden.</p>
+<h2 id="competencias">Competencias</h2>
+<ul>
+<li>Priorizar tareas por coste y beneficio.</li>
+<li>Ejecutar sin dudar los comandos de uso frecuente.</li>
+<li>Abandonar una tarea a tiempo y volver luego.</li>
+<li>Validar rápido.</li>
+</ul>
+<h2 id="escenario">Escenario</h2>
+<p>Cinco incidentes simultáneos en el namespace <strong><code>c6-sprint</code></strong> y en el cluster. No te dará tiempo a hacerlos todos con comodidad. <strong>Cada tarea tiene un peso</strong>, igual que en el examen.</p>
+<h2 id="estado-inicial">Estado inicial</h2>
+<div class="hl"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>CLASE-06/RECURSOS/SCRIPTS
+./setup-lab.sh<span class="w"> </span>sprint
+</code></pre></div>
+
+<p>Arranca tu cronómetro. <strong>15 minutos.</strong></p>
+<h2 id="tareas">Tareas</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Peso</th>
+<th>Tarea</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T1</td>
+<td>8 %</td>
+<td>El Deployment <code>api</code> no tiene ninguna réplica disponible. Consigue <strong>3/3</strong>.</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>5 %</td>
+<td>El Service <code>api-svc</code> no enruta tráfico a los Pods de <code>api</code>. Repáralo sin cambiar los labels de los Pods.</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>12 %</td>
+<td>El Pod <code>batch</code> está en <code>CrashLoopBackOff</code>. Averigua por qué e impide que siga reiniciándose, dejándolo <code>Running</code>.</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>7 %</td>
+<td>La ServiceAccount <code>viewer</code> en <code>c6-sprint</code> debe poder <strong>listar</strong> Pods y Deployments del namespace y nada más. Ahora mismo no puede.</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>3 %</td>
+<td>Un nodo del cluster no acepta Pods nuevos. Devuélvelo al servicio.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="restricciones">Restricciones</h2>
+<ul>
+<li>15 minutos. Cuando suene, para.</li>
+<li>No elimines Deployments ni Services: corrígelos.</li>
+<li>T4 debe cumplirse con mínimo privilegio.</li>
+<li>Puedes usar cualquier comando de <code>kubectl</code> y la documentación oficial.</li>
+</ul>
+<h2 id="recomendacion-de-metodo">Recomendación de método</h2>
+<ol>
+<li><strong>Minuto 0–1:</strong> lee las cinco tareas y ordénalas por peso y dificultad estimada. No empieces por T1 solo porque es la primera.</li>
+<li>Ataca primero lo de mayor peso que sepas resolver rápido.</li>
+<li>Si una tarea te lleva más de 4 minutos, <strong>déjala</strong> y vuelve al final.</li>
+<li>Valida cada tarea nada más terminarla: una tarea "casi hecha" puntúa cero.</li>
+</ol>
+<h2 id="validacion">Validación</h2>
+<div class="hl"><pre><span></span><code>kubectl<span class="w"> </span>-n<span class="w"> </span>c6-sprint<span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>api<span class="w">                  </span><span class="c1"># 3/3</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>c6-sprint<span class="w"> </span>get<span class="w"> </span>endpointslices<span class="w">              </span><span class="c1"># api-svc con 3 direcciones</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>c6-sprint<span class="w"> </span>get<span class="w"> </span>pod<span class="w"> </span>batch<span class="w">                   </span><span class="c1"># Running, sin reinicios nuevos</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>c6-sprint<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>list<span class="w"> </span>pods<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--as<span class="w"> </span>system:serviceaccount:c6-sprint:viewer<span class="w">        </span><span class="c1"># yes</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>c6-sprint<span class="w"> </span>auth<span class="w"> </span>can-i<span class="w"> </span>delete<span class="w"> </span>pods<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--as<span class="w"> </span>system:serviceaccount:c6-sprint:viewer<span class="w">        </span><span class="c1"># no</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w">                                    </span><span class="c1"># ninguno SchedulingDisabled</span>
+
+<span class="nb">cd</span><span class="w"> </span>CLASE-06/RECURSOS/SCRIPTS<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>./validate-lab.sh<span class="w"> </span>sprint
+</code></pre></div>
+
+<h2 id="resultado-esperado">Resultado esperado</h2>
+<p><code>./validate-lab.sh sprint</code> muestra el porcentaje conseguido sobre 35 puntos y el detalle por tarea.</p>
+<h2 id="criterios-de-exito">Criterios de éxito</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Dediqué el primer minuto a leer y priorizar.</li>
+<li class="task"><span class="box"></span>Validé cada tarea al terminarla.</li>
+<li class="task"><span class="box"></span>Abandoné a tiempo alguna tarea si se atascó.</li>
+<li class="task"><span class="box"></span>Conseguí al menos <strong>24 de 35 puntos</strong> (equivalente al 66 % de aprobado del CKA).</li>
+<li class="task"><span class="box"></span>Puedo explicar la causa raíz de cada tarea que resolví.</li>
+<li class="task"><span class="box"></span>Identifiqué qué tarea me costó más tiempo del previsto y por qué.</li>
+</ul>
+    <div class="lab-note">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+    </div>
+    <nav class="pager"><a href="../lab-3/">← LAB 6.3</a><a href="../lab-5/">LAB 6.5 →</a></nav>
+  </article>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

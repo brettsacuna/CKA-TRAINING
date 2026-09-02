@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recursos · Clase 5 · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
+
+</head>
+<body class="viewerpage">
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../index.html">Inicio</a><a class="on" href="../guia.html">Clases</a><a href="../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../index.html">Inicio</a><span class="sep">/</span><a href="index.html">Clase 5</a><span class="sep">/</span><span>Recursos</span></nav>
+
+<section class="clase-head compact">
+  <div class="eyebrow">Clase 5 · Recursos</div>
+  <h1>Manifiestos y scripts</h1>
+  <p class="lead">Archivos de referencia de los laboratorios de la clase. Cópialos o descárgalos.</p>
+</section>
+<div class="viewer-layout">
+  <nav class="rl"><div class="rl-group mono">YAML/</div><a class="rl-item mono" href="#01-services-tipos.yaml" data-file="01-services-tipos.yaml">01-services-tipos.yaml</a><a class="rl-item mono" href="#02-ingress-http.yaml" data-file="02-ingress-http.yaml">02-ingress-http.yaml</a><a class="rl-item mono" href="#03-ingress-tls.yaml" data-file="03-ingress-tls.yaml">03-ingress-tls.yaml</a><a class="rl-item mono" href="#04-gateway-api.yaml" data-file="04-gateway-api.yaml">04-gateway-api.yaml</a><a class="rl-item mono" href="#05-networkpolicies.yaml" data-file="05-networkpolicies.yaml">05-networkpolicies.yaml</a><a class="rl-item mono" href="#06-portal-referencia.yaml" data-file="06-portal-referencia.yaml">06-portal-referencia.yaml</a><div class="rl-group mono">SCRIPTS/</div><a class="rl-item mono" href="#gen-tls-secret.sh" data-file="gen-tls-secret.sh">gen-tls-secret.sh</a><a class="rl-item mono" href="#install-ingress-controller.sh" data-file="install-ingress-controller.sh">install-ingress-controller.sh</a><a class="rl-item mono" href="#reset-lab.sh" data-file="reset-lab.sh">reset-lab.sh</a><a class="rl-item mono" href="#setup-lab.sh" data-file="setup-lab.sh">setup-lab.sh</a><a class="rl-item mono" href="#validate-lab.sh" data-file="validate-lab.sh">validate-lab.sh</a></nav>
+  <div class="viewer-stack">
+    <div class="viewer" data-file="01-services-tipos.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">01-services-tipos.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">39 líneas · 928 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="01-services-tipos.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/01-services-tipos.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 5.1 - Los tipos de Service sobre el mismo Deployment.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">web</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c5-basico</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">matchLabels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">web</span><span class="p p-Indicator">}}</span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">labels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">web</span><span class="p p-Indicator">}}</span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
+<span class="w">          </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:1.27-alpine</span>
+<span class="w">          </span><span class="nt">ports</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">containerPort</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}]</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">web-ci</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c5-basico</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClusterIP</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">web</span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">,</span><span class="nt"> targetPort</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}]</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">web-np</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c5-basico</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NodePort</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">web</span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">,</span><span class="nt"> targetPort</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">,</span><span class="nt"> nodePort</span><span class="p">:</span><span class="w"> </span><span class="nv">31500</span><span class="p p-Indicator">}]</span>
+<span class="nn">---</span>
+<span class="c1"># ExternalName: no tiene ClusterIP ni endpoints. CoreDNS devuelve un CNAME.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">externo</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c5-basico</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ExternalName</span>
+<span class="w">  </span><span class="nt">externalName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example.com</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="02-ingress-http.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">02-ingress-http.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">25 líneas · 618 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="02-ingress-http.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/02-ingress-http.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 5.2 - Ingress con routing por path.</span>
+<span class="c1"># Ajusta ingressClassName al valor real de &#39;kubectl get ingressclass&#39;.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">app-ingress</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">c5-ingress</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">ingressClassName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">traefik</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/service1</span>
+<span class="w">            </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prefix</span>
+<span class="w">            </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">                </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">service1</span>
+<span class="w">                </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/service2</span>
+<span class="w">            </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prefix</span>
+<span class="w">            </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">                </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">service2</span>
+<span class="w">                </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="03-ingress-tls.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">03-ingress-tls.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">24 líneas · 646 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="03-ingress-tls.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/03-ingress-tls.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 5.2 - Ingress con TLS. Requiere el Secret &#39;secure-ingress&#39; de tipo kubernetes.io/tls.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">app-ingress</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">c5-ingress</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">ingressClassName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">traefik</span>
+<span class="w">  </span><span class="nt">tls</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">hosts</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;secure-ingress.com&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">secretName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">secure-ingress</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">secure-ingress.com</span>
+<span class="w">      </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/service1</span>
+<span class="w">            </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prefix</span>
+<span class="w">            </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">service1</span><span class="p p-Indicator">,</span><span class="nt"> port</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}}</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/service2</span>
+<span class="w">            </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prefix</span>
+<span class="w">            </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">service2</span><span class="p p-Indicator">,</span><span class="nt"> port</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}}</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="04-gateway-api.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">04-gateway-api.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">42 líneas · 1131 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="04-gateway-api.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/04-gateway-api.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 5.2 (referencia) - El mismo routing expresado con Gateway API.</span>
+<span class="c1"># Requiere las CRD de Gateway API y un controlador que las implemente.</span>
+<span class="c1">#   kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml</span>
+<span class="c1">#</span>
+<span class="c1"># Separacion de responsabilidades:</span>
+<span class="c1">#   GatewayClass -&gt; proveedor de infraestructura</span>
+<span class="c1">#   Gateway      -&gt; administrador de plataforma</span>
+<span class="c1">#   HTTPRoute    -&gt; equipo de aplicacion</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gateway.networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Gateway</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">portal-gateway</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">c5-ingress</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">gatewayClassName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">traefik</span>
+<span class="w">  </span><span class="nt">listeners</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http</span>
+<span class="w">      </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HTTP</span>
+<span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">      </span><span class="nt">allowedRoutes</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">namespaces</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="nv">Same</span><span class="p p-Indicator">}</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gateway.networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HTTPRoute</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">portal-routes</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">c5-ingress</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">parentRefs</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">portal-gateway</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">matches</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="nv">PathPrefix</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">/service1</span><span class="p p-Indicator">}</span>
+<span class="w">      </span><span class="nt">backendRefs</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">service1</span>
+<span class="w">          </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">matches</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="nv">PathPrefix</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">/service2</span><span class="p p-Indicator">}</span>
+<span class="w">      </span><span class="nt">backendRefs</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">service2</span>
+<span class="w">          </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="05-networkpolicies.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">05-networkpolicies.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">63 líneas · 1786 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="05-networkpolicies.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/05-networkpolicies.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 5.3 - Conjunto de politicas de referencia (material del instructor).</span>
+<span class="c1"># 1) DEFAULT DENY: aisla todos los Pods del namespace, ingress y egress.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NetworkPolicy</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">default-deny</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c5-netpol</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">podSelector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span><span class="w">            </span><span class="c1"># {} = TODOS los Pods del namespace</span>
+<span class="w">  </span><span class="nt">policyTypes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Ingress</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Egress</span><span class="p p-Indicator">]</span>
+<span class="nn">---</span>
+<span class="c1"># 2) DNS: sin esto, el default deny rompe toda resolucion de nombres.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NetworkPolicy</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">allow-dns</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c5-netpol</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">podSelector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
+<span class="w">  </span><span class="nt">policyTypes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Egress</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">egress</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">to</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">namespaceSelector</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">matchLabels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">kubernetes.io/metadata.name</span><span class="p">:</span><span class="w"> </span><span class="nv">kube-system</span><span class="p p-Indicator">}</span>
+<span class="w">      </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="nv">UDP</span><span class="p p-Indicator">,</span><span class="nt"> port</span><span class="p">:</span><span class="w"> </span><span class="nv">53</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="nv">TCP</span><span class="p p-Indicator">,</span><span class="nt"> port</span><span class="p">:</span><span class="w"> </span><span class="nv">53</span><span class="p p-Indicator">}</span>
+<span class="nn">---</span>
+<span class="c1"># 3) frontend puede SALIR hacia backend (y solo hacia el).</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NetworkPolicy</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">frontend-egress</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c5-netpol</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">podSelector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="nv">frontend</span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">policyTypes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Egress</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">egress</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">to</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">podSelector</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">matchLabels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="nv">backend</span><span class="p p-Indicator">}</span>
+<span class="nn">---</span>
+<span class="c1"># 4) backend puede RECIBIR de frontend (y solo de el).</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NetworkPolicy</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">backend-ingress</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c5-netpol</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">podSelector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="nv">backend</span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">policyTypes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Ingress</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">ingress</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">podSelector</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">matchLabels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="nv">frontend</span><span class="p p-Indicator">}</span>
+<span class="nn">---</span>
+<span class="c1"># 5) backend puede SALIR hacia el namespace de datos.</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NetworkPolicy</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">backend-egress-datos</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c5-netpol</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">podSelector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="nv">backend</span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">policyTypes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Egress</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">egress</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">to</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">namespaceSelector</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">matchLabels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">ns</span><span class="p">:</span><span class="w"> </span><span class="nv">datos</span><span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="06-portal-referencia.yaml" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">06-portal-referencia.yaml</span>
+          <span class="badge mono">YAML</span>
+          <span class="muted">53 líneas · 1320 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="06-portal-referencia.yaml"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/06-portal-referencia.yaml" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="c1"># LAB 5.4 - Estado CORRECTO de referencia del challenge (material del instructor).</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">frontend</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c5-challenge</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">matchLabels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">frontend</span><span class="p p-Indicator">}}</span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">labels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">frontend</span><span class="p p-Indicator">}}</span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">web</span><span class="p p-Indicator">,</span><span class="nt"> image</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;nicolaka/netshoot&quot;</span><span class="p p-Indicator">,</span><span class="nt"> command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;sleep&quot;</span><span class="p p-Indicator">,</span><span class="s">&quot;36000&quot;</span><span class="p p-Indicator">]}]</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">backend</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c5-challenge</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">matchLabels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">backend</span><span class="p p-Indicator">}}</span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">labels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">backend</span><span class="p p-Indicator">}}</span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">web</span>
+<span class="w">          </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:1.27-alpine</span>
+<span class="w">          </span><span class="nt">ports</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">containerPort</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}]</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">backend</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c5-challenge</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">backend</span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">,</span><span class="nt"> targetPort</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}]</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">portal</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c5-challenge</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="nv">backend</span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">,</span><span class="nt"> targetPort</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}]</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">portal</span><span class="p p-Indicator">,</span><span class="nt"> namespace</span><span class="p">:</span><span class="w"> </span><span class="nv">c5-challenge</span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">ingressClassName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">traefik</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">            </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prefix</span>
+<span class="w">            </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="nv">portal</span><span class="p p-Indicator">,</span><span class="nt"> port</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="nv">80</span><span class="p p-Indicator">}}</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="gen-tls-secret.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">gen-tls-secret.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">24 líneas · 955 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="gen-tls-secret.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/gen-tls-secret.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="c1"># CLASE 5 - Genera un certificado autofirmado y crea el Secret TLS del LAB 5.2.</span>
+<span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
+<span class="nv">CN</span><span class="o">=</span><span class="si">${</span><span class="nv">CN</span><span class="k">:-</span><span class="nv">secure</span><span class="p">-ingress.com</span><span class="si">}</span>
+<span class="nv">NS</span><span class="o">=</span><span class="si">${</span><span class="nv">NS</span><span class="k">:-</span><span class="nv">c5</span><span class="p">-ingress</span><span class="si">}</span>
+<span class="nv">NAME</span><span class="o">=</span><span class="si">${</span><span class="nv">NAME</span><span class="k">:-</span><span class="nv">secure</span><span class="p">-ingress</span><span class="si">}</span>
+<span class="nv">DIR</span><span class="o">=</span><span class="k">$(</span>mktemp<span class="w"> </span>-d<span class="k">)</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Generando certificado autofirmado para CN=</span><span class="si">${</span><span class="nv">CN</span><span class="si">}</span><span class="s2"> (3650 dias)...&quot;</span>
+openssl<span class="w"> </span>req<span class="w"> </span>-x509<span class="w"> </span>-newkey<span class="w"> </span>rsa:4096<span class="w"> </span>-nodes<span class="w"> </span>-days<span class="w"> </span><span class="m">3650</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-keyout<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$DIR</span><span class="s2">/key.pem&quot;</span><span class="w"> </span>-out<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$DIR</span><span class="s2">/cert.pem&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-subj<span class="w"> </span><span class="s2">&quot;/C=PE/ST=LIMA/L=LIMA/O=CKA-TRAINING/OU=LAB/CN=</span><span class="si">${</span><span class="nv">CN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-addext<span class="w"> </span><span class="s2">&quot;subjectAltName=DNS:</span><span class="si">${</span><span class="nv">CN</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Creando Secret </span><span class="si">${</span><span class="nv">NAME</span><span class="si">}</span><span class="s2"> de tipo kubernetes.io/tls en </span><span class="si">${</span><span class="nv">NS</span><span class="si">}</span><span class="s2">...&quot;</span>
+kubectl<span class="w"> </span>create<span class="w"> </span>namespace<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$NS</span><span class="s2">&quot;</span><span class="w"> </span>--dry-run<span class="o">=</span>client<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>-
+kubectl<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$NS</span><span class="s2">&quot;</span><span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>tls<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$NAME</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--cert<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$DIR</span><span class="s2">/cert.pem&quot;</span><span class="w"> </span>--key<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$DIR</span><span class="s2">/key.pem&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--dry-run<span class="o">=</span>client<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>-
+
+kubectl<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$NS</span><span class="s2">&quot;</span><span class="w"> </span>get<span class="w"> </span>secret<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$NAME</span><span class="s2">&quot;</span><span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.type}{&quot;\n&quot;}&#39;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Certificado en: </span><span class="nv">$DIR</span><span class="s2">&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Verifica el CN con: openssl x509 -in </span><span class="nv">$DIR</span><span class="s2">/cert.pem -noout -subject&quot;</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="install-ingress-controller.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">install-ingress-controller.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">37 líneas · 1260 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="install-ingress-controller.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/install-ingress-controller.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="c1"># CLASE 5 - Instala un Ingress Controller MANTENIDO (Traefik) mediante Helm.</span>
+<span class="c1">#</span>
+<span class="c1"># NOTA IMPORTANTE (2026): el controlador comunitario kubernetes/ingress-nginx fue</span>
+<span class="c1"># RETIRADO en marzo de 2026. Su repositorio esta archivado y no recibe parches de</span>
+<span class="c1"># seguridad. Por eso este curso usa Traefik, que soporta la API Ingress estandar</span>
+<span class="c1"># y ademas implementa Gateway API.</span>
+<span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
+<span class="nv">NS</span><span class="o">=</span><span class="si">${</span><span class="nv">NS</span><span class="k">:-</span><span class="nv">ingress</span><span class="si">}</span>
+
+<span class="nb">command</span><span class="w"> </span>-v<span class="w"> </span>helm<span class="w"> </span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Helm no esta instalado. Instalalo primero.&quot;</span><span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
+
+helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>traefik<span class="w"> </span>https://traefik.github.io/charts<span class="w"> </span>&gt;/dev/null
+helm<span class="w"> </span>repo<span class="w"> </span>update<span class="w"> </span>&gt;/dev/null
+
+kubectl<span class="w"> </span>create<span class="w"> </span>namespace<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$NS</span><span class="s2">&quot;</span><span class="w"> </span>--dry-run<span class="o">=</span>client<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>-
+
+helm<span class="w"> </span>upgrade<span class="w"> </span>--install<span class="w"> </span>traefik<span class="w"> </span>traefik/traefik<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--namespace<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$NS</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--set<span class="w"> </span>service.type<span class="o">=</span>NodePort<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--set<span class="w"> </span>ports.web.nodePort<span class="o">=</span><span class="m">32080</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--set<span class="w"> </span>ports.websecure.nodePort<span class="o">=</span><span class="m">32443</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--set<span class="w"> </span>ingressClass.enabled<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--set<span class="w"> </span>ingressClass.isDefaultClass<span class="o">=</span><span class="nb">true</span>
+
+kubectl<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$NS</span><span class="s2">&quot;</span><span class="w"> </span>rollout<span class="w"> </span>status<span class="w"> </span>deploy/traefik<span class="w"> </span>--timeout<span class="o">=</span>180s
+
+<span class="nb">echo</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;== IngressClass registrada ==&quot;</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>ingressclass
+<span class="nb">echo</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;== Service del controlador ==&quot;</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$NS</span><span class="s2">&quot;</span><span class="w"> </span>get<span class="w"> </span>svc<span class="w"> </span>traefik
+<span class="nb">echo</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Prueba con:  curl http://&lt;IP-de-un-nodo&gt;:32080/&lt;path&gt;&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;HTTPS en   :  https://&lt;host&gt;:32443/&lt;path&gt;&quot;</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="reset-lab.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">reset-lab.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">8 líneas · 330 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="reset-lab.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/reset-lab.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="nb">set</span><span class="w"> </span>-uo<span class="w"> </span>pipefail
+kubectl<span class="w"> </span>delete<span class="w"> </span>namespace<span class="w"> </span>c5-basico<span class="w"> </span>c5-ingress<span class="w"> </span>c5-netpol<span class="w"> </span>c5-datos<span class="w"> </span>c5-challenge<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--ignore-not-found<span class="w"> </span>--wait<span class="o">=</span><span class="nb">false</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&gt;&gt; Reset de la Clase 5 completado.&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;   El Ingress Controller se deja instalado: se usa en la Clase 6.&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;   Para desinstalarlo: helm -n ingress uninstall traefik&quot;</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="setup-lab.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">setup-lab.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">118 líneas · 3196 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="setup-lab.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/setup-lab.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="c1"># CLASE 5 - Prepara el escenario del LAB 5.4 (Challenge de red) YA ROTO.</span>
+<span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
+<span class="nv">NS</span><span class="o">=</span>c5-challenge
+kubectl<span class="w"> </span>create<span class="w"> </span>namespace<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$NS</span><span class="s2">&quot;</span><span class="w"> </span>--dry-run<span class="o">=</span>client<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>-
+
+cat<span class="w"> </span><span class="s">&lt;&lt;&#39;YAML&#39; | kubectl apply -f -</span>
+<span class="s">apiVersion: apps/v1</span>
+<span class="s">kind: Deployment</span>
+<span class="s">metadata: {name: frontend, namespace: c5-challenge}</span>
+<span class="s">spec:</span>
+<span class="s">  replicas: 1</span>
+<span class="s">  selector: {matchLabels: {app: frontend}}</span>
+<span class="s">  template:</span>
+<span class="s">    metadata: {labels: {app: frontend}}</span>
+<span class="s">    spec:</span>
+<span class="s">      containers: [{name: web, image: &quot;nicolaka/netshoot&quot;, command: [&quot;sleep&quot;,&quot;36000&quot;]}]</span>
+<span class="s">---</span>
+<span class="s">apiVersion: apps/v1</span>
+<span class="s">kind: Deployment</span>
+<span class="s">metadata: {name: backend, namespace: c5-challenge}</span>
+<span class="s">spec:</span>
+<span class="s">  replicas: 2</span>
+<span class="s">  selector: {matchLabels: {app: backend}}</span>
+<span class="s">  template:</span>
+<span class="s">    metadata: {labels: {app: backend}}</span>
+<span class="s">    spec:</span>
+<span class="s">      containers:</span>
+<span class="s">        - name: web</span>
+<span class="s">          image: nginx:1.27-alpine</span>
+<span class="s">          ports: [{containerPort: 80}]</span>
+<span class="s">---</span>
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: Service</span>
+<span class="s">metadata: {name: backend, namespace: c5-challenge}</span>
+<span class="s">spec:</span>
+<span class="s">  selector: {app: backend-v2}</span>
+<span class="s">  ports: [{port: 80, targetPort: 80}]</span>
+<span class="s">---</span>
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: Service</span>
+<span class="s">metadata: {name: portal, namespace: c5-challenge}</span>
+<span class="s">spec:</span>
+<span class="s">  selector: {app: backend}</span>
+<span class="s">  ports: [{port: 80, targetPort: 80}]</span>
+<span class="s">---</span>
+<span class="s">apiVersion: networking.k8s.io/v1</span>
+<span class="s">kind: NetworkPolicy</span>
+<span class="s">metadata: {name: default-deny, namespace: c5-challenge}</span>
+<span class="s">spec:</span>
+<span class="s">  podSelector: {}</span>
+<span class="s">  policyTypes: [Ingress, Egress]</span>
+<span class="s">---</span>
+<span class="s">apiVersion: networking.k8s.io/v1</span>
+<span class="s">kind: NetworkPolicy</span>
+<span class="s">metadata: {name: allow-dns, namespace: c5-challenge}</span>
+<span class="s">spec:</span>
+<span class="s">  podSelector: {}</span>
+<span class="s">  policyTypes: [Egress]</span>
+<span class="s">  egress:</span>
+<span class="s">    - to:</span>
+<span class="s">        - namespaceSelector:</span>
+<span class="s">            matchLabels: {kubernetes.io/metadata.name: kube-system}</span>
+<span class="s">      ports:</span>
+<span class="s">        - {protocol: UDP, port: 5353}</span>
+<span class="s">---</span>
+<span class="s">apiVersion: networking.k8s.io/v1</span>
+<span class="s">kind: NetworkPolicy</span>
+<span class="s">metadata: {name: allow-frontend-to-backend, namespace: c5-challenge}</span>
+<span class="s">spec:</span>
+<span class="s">  podSelector: {matchLabels: {app: backend}}</span>
+<span class="s">  policyTypes: [Ingress]</span>
+<span class="s">  ingress:</span>
+<span class="s">    - from:</span>
+<span class="s">        - podSelector: {matchLabels: {app: frontend}}</span>
+<span class="s">---</span>
+<span class="s">apiVersion: networking.k8s.io/v1</span>
+<span class="s">kind: NetworkPolicy</span>
+<span class="s">metadata: {name: allow-frontend-egress, namespace: c5-challenge}</span>
+<span class="s">spec:</span>
+<span class="s">  podSelector: {matchLabels: {app: frontend}}</span>
+<span class="s">  policyTypes: [Egress]</span>
+<span class="s">  egress:</span>
+<span class="s">    - to:</span>
+<span class="s">        - podSelector: {matchLabels: {app: backend}}</span>
+<span class="s">---</span>
+<span class="s">apiVersion: networking.k8s.io/v1</span>
+<span class="s">kind: NetworkPolicy</span>
+<span class="s">metadata: {name: allow-ingress-controller, namespace: c5-challenge}</span>
+<span class="s">spec:</span>
+<span class="s">  podSelector: {matchLabels: {app: backend}}</span>
+<span class="s">  policyTypes: [Ingress]</span>
+<span class="s">  ingress:</span>
+<span class="s">    - from:</span>
+<span class="s">        - namespaceSelector:</span>
+<span class="s">            matchLabels: {kubernetes.io/metadata.name: ingress}</span>
+<span class="s">---</span>
+<span class="s">apiVersion: networking.k8s.io/v1</span>
+<span class="s">kind: Ingress</span>
+<span class="s">metadata: {name: portal, namespace: c5-challenge}</span>
+<span class="s">spec:</span>
+<span class="s">  ingressClassName: nginx</span>
+<span class="s">  rules:</span>
+<span class="s">    - http:</span>
+<span class="s">        paths:</span>
+<span class="s">          - path: /</span>
+<span class="s">            pathType: Prefix</span>
+<span class="s">            backend:</span>
+<span class="s">              service: {name: portal-svc, port: {number: 8080}}</span>
+<span class="s">YAML</span>
+
+<span class="nb">echo</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;===============================================================&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; LAB 5.4 listo. El escenario esta ROTO a proposito.&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; Objetivo: frontend alcanza backend por nombre, y el Ingress&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; responde 200 desde fuera. NO borres la politica default-deny.&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;===============================================================&quot;</span>
+</pre></div>
+</div>
+    </div>
+    <div class="viewer" data-file="validate-lab.sh" hidden>
+      <div class="viewer-h">
+        <div class="vh-l"><span class="mono fn">validate-lab.sh</span>
+          <span class="badge mono">SH</span>
+          <span class="muted">47 líneas · 2280 B</span></div>
+        <div class="vh-r">
+          <button class="btn sm copybtn" data-target="validate-lab.sh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg> Copiar</button>
+          <a class="btn sm primary" href="recursos/validate-lab.sh" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg> Descargar</a>
+        </div>
+      </div>
+      <div class="viewer-code"><div class="hl"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="c1"># CLASE 5 - Valida el LAB 5.4.</span>
+<span class="nb">set</span><span class="w"> </span>-uo<span class="w"> </span>pipefail
+<span class="nv">NS</span><span class="o">=</span>c5-challenge<span class="p">;</span><span class="w"> </span><span class="nv">OK</span><span class="o">=</span><span class="m">0</span><span class="p">;</span><span class="w"> </span><span class="nv">FAIL</span><span class="o">=</span><span class="m">0</span>
+chk<span class="o">(){</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$2</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$3</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [OK]    </span><span class="nv">$1</span><span class="s2">&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">OK</span><span class="o">=</span><span class="k">$((</span><span class="nv">OK</span><span class="o">+</span><span class="m">1</span><span class="k">))</span><span class="p">;</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [FALLA] </span><span class="nv">$1</span><span class="s2"> (obtenido &#39;</span><span class="nv">$2</span><span class="s2">&#39;, esperado &#39;</span><span class="nv">$3</span><span class="s2">&#39;)&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">FAIL</span><span class="o">=</span><span class="k">$((</span><span class="nv">FAIL</span><span class="o">+</span><span class="m">1</span><span class="k">))</span><span class="p">;</span><span class="w"> </span><span class="k">fi</span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;== Validando LAB 5.4 ==&quot;</span>
+
+<span class="nv">DD</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>networkpolicy<span class="w"> </span>default-deny<span class="w"> </span>-o<span class="w"> </span>name<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="p">|</span><span class="w"> </span>wc<span class="w"> </span>-l<span class="k">)</span>
+chk<span class="w"> </span><span class="s2">&quot;La politica default-deny sigue existiendo&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$DD</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;1&quot;</span>
+
+<span class="nv">SEL</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>svc<span class="w"> </span>backend<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.selector.app}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="k">)</span>
+chk<span class="w"> </span><span class="s2">&quot;Selector del Service backend&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SEL</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;backend&quot;</span>
+
+<span class="nv">ADDR</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>endpointslices<span class="w"> </span>-l<span class="w"> </span>kubernetes.io/service-name<span class="o">=</span>backend<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{range .items[*]}{range .endpoints[*]}{.addresses[0]}{&quot;\n&quot;}{end}{end}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-c<span class="w"> </span>.<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="m">0</span><span class="k">)</span>
+chk<span class="w"> </span><span class="s2">&quot;EndpointSlice de backend con 2 direcciones&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$ADDR</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;2&quot;</span>
+
+<span class="nv">DNSPORT</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>networkpolicy<span class="w"> </span>allow-dns<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.egress[0].ports[0].port}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="k">)</span>
+chk<span class="w"> </span><span class="s2">&quot;La politica de DNS permite el puerto 53&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$DNSPORT</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;53&quot;</span>
+
+<span class="nv">ICLASS</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>portal<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.ingressClassName}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="k">)</span>
+<span class="k">if</span><span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>ingressclass<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$ICLASS</span><span class="s2">&quot;</span><span class="w"> </span>&gt;/dev/null<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [OK]    ingressClassName &#39;</span><span class="nv">$ICLASS</span><span class="s2">&#39; existe en el cluster&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">OK</span><span class="o">=</span><span class="k">$((</span><span class="nv">OK</span><span class="o">+</span><span class="m">1</span><span class="k">))</span>
+<span class="k">else</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [FALLA] ingressClassName &#39;</span><span class="nv">$ICLASS</span><span class="s2">&#39; no corresponde a ninguna IngressClass&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">FAIL</span><span class="o">=</span><span class="k">$((</span><span class="nv">FAIL</span><span class="o">+</span><span class="m">1</span><span class="k">))</span>
+<span class="k">fi</span>
+
+<span class="nv">ISVC</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>portal<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.rules[0].http.paths[0].backend.service.name}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="k">)</span>
+chk<span class="w"> </span><span class="s2">&quot;El Ingress apunta al Service portal&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$ISVC</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;portal&quot;</span>
+
+<span class="nv">IPORT</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>portal<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.rules[0].http.paths[0].backend.service.port.number}&#39;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="k">)</span>
+chk<span class="w"> </span><span class="s2">&quot;El Ingress apunta al puerto 80&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$IPORT</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;80&quot;</span>
+
+<span class="k">if</span><span class="w"> </span>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nv">$NS</span><span class="w"> </span><span class="nb">exec</span><span class="w"> </span>deploy/frontend<span class="w"> </span>--<span class="w"> </span>curl<span class="w"> </span>-s<span class="w"> </span>--max-time<span class="w"> </span><span class="m">5</span><span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>http://backend<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [OK]    frontend alcanza a backend por nombre&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">OK</span><span class="o">=</span><span class="k">$((</span><span class="nv">OK</span><span class="o">+</span><span class="m">1</span><span class="k">))</span>
+<span class="k">else</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;  [FALLA] frontend NO alcanza a backend por nombre&quot;</span><span class="p">;</span><span class="w"> </span><span class="nv">FAIL</span><span class="o">=</span><span class="k">$((</span><span class="nv">FAIL</span><span class="o">+</span><span class="m">1</span><span class="k">))</span>
+<span class="k">fi</span>
+
+<span class="nb">echo</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$FAIL</span><span class="s2">&quot;</span><span class="w"> </span>-eq<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;LAB 5.4 SUPERADO (</span><span class="si">${</span><span class="nv">OK</span><span class="si">}</span><span class="s2"> comprobaciones)&quot;</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Ultimo paso manual: curl -s -o /dev/null -w &#39;%{http_code}\n&#39; http://&lt;IP-nodo&gt;:32080/&quot;</span>
+<span class="w">  </span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span>
+<span class="k">else</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;LAB 5.4 NO superado: </span><span class="si">${</span><span class="nv">FAIL</span><span class="si">}</span><span class="s2"> pendiente(s).&quot;</span><span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span><span class="p">;</span><span class="w"> </span><span class="k">fi</span>
+</pre></div>
+</div>
+    </div></div>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

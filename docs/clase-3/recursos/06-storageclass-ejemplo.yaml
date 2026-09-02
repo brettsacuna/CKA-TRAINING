@@ -1,0 +1,14 @@
+# Referencia conceptual de StorageClass (aprovisionamiento dinamico).
+# El 'provisioner' depende de tu infraestructura: cambialo por el de tu CSI driver.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: standard
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: ejemplo.csi.k8s.io      # p.ej. ebs.csi.aws.com, pd.csi.storage.gke.io
+parameters:
+  type: ssd
+reclaimPolicy: Delete                # solo Delete o Retain (Recycle fue eliminado)
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 2.3 — ETCD: snapshot, validación y restore · CKA Hands-On Training</title>
+<meta name="description" content="Material del alumno · Kubernetes práctico para el examen CKA">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+
+</head>
+<body class="labpage">
+<header class="topbar">
+  <a class="brand" href="../../index.html">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path></svg>
+    <span>CKA HANDS-ON TRAINING</span>
+  </a>
+  <nav class="mainnav"><a href="../../index.html">Inicio</a><a class="on" href="../../guia.html">Clases</a><a href="../../clase-6/cheatsheet.html">Cheatsheet</a><span class="chip mono">v1.35</span></nav>
+  <button class="burger" aria-label="Menú" onclick="document.body.classList.toggle('nav-open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BDC9DB" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+</header>
+<main>
+<nav class="crumbs"><a href="../../index.html">Inicio</a><span class="sep">/</span><a href="../index.html">Clase 2</a><span class="sep">/</span><span>LAB 2.3</span></nav>
+
+<div class="lab-layout">
+  <aside class="lab-side">
+    <details class="lab-nav" open>
+      <summary>Clase 2 · Laboratorios</summary>
+      <div class="railcard-h">Clase 2 · Laboratorios</div>
+      <div class="side-labs"><a class="" href="../lab-1/">LAB 2.1 — Inventario del cluster, cordon y drain</a><a class="" href="../lab-2/">LAB 2.2 — Upgrade del cluster kubeadm (v1.34 → v1.35)</a><a class="on" href="../lab-3/">LAB 2.3 — ETCD: snapshot, validación y restore</a><a class="" href="../lab-4/">LAB 2.4 — Challenge: Forbidden en producción</a></div>
+      <div class="railcard-h" style="margin-top:22px">Recursos</div>
+      <a class="rlink" href="../recursos.html">Visor de recursos</a>
+      <a class="rlink" href="../../slides/01-CLASE-02-CKA.pptx" download>Presentación (.pptx)</a>
+    </details>
+  </aside>
+  <script>if(matchMedia('(max-width:900px)').matches){var _ln=document.currentScript.previousElementSibling.querySelector('.lab-nav');if(_ln)_ln.removeAttribute('open');}</script>
+  <article class="md lab-body">
+    <div class="eyebrow">LAB 2.3</div>
+    <h1>ETCD: snapshot, validación y restore</h1>
+    <div class="chips">
+      <span class="lvl warn mono">Nivel · Avanzado</span>
+      <span class="chip mono">27 minutos</span>
+    </div>
+    <h2 id="objetivo">Objetivo</h2>
+<p>Respaldar el estado completo del cluster, validar que el respaldo sirve y restaurarlo demostrando que el cluster vuelve a un punto anterior en el tiempo.</p>
+<h2 id="competencias">Competencias</h2>
+<ul>
+<li>Deducir el endpoint y los certificados de etcd desde el manifiesto del API server.</li>
+<li><code>etcdctl snapshot save</code> y <code>etcdctl endpoint status</code>.</li>
+<li><code>etcdutl snapshot status</code> para <strong>validar</strong> un snapshot.</li>
+<li><code>etcdutl snapshot restore</code> a un data dir nuevo.</li>
+<li>Reapuntar el static Pod de etcd y recuperar el control plane.</li>
+</ul>
+<h2 id="escenario">Escenario</h2>
+<p>Vas a demostrarle a tu equipo que el backup del cluster funciona. La demostración es la única prueba válida: un snapshot que nadie ha restaurado nunca no es un backup.</p>
+<p>Secuencia:</p>
+<div class="hl"><pre><span></span><code>1. identificar configuración
+2. localizar certificados
+3. identificar endpoint
+4. crear snapshot
+5. validar snapshot
+6. restaurar
+7. validar el cluster
+</code></pre></div>
+
+<h2 id="estado-inicial">Estado inicial</h2>
+<ul>
+<li>Cluster kubeadm de <strong>un solo control plane</strong> (<code>cka-master</code>), con etcd como static Pod local.</li>
+<li>Acceso root por SSH a <code>cka-master</code>.</li>
+<li><code>etcdctl</code> y <code>etcdutl</code> disponibles en el master. Si no lo están, instálalos desde el release de etcd que coincida con la versión que usa tu cluster.</li>
+<li>Namespace de trabajo: <strong><code>c2-etcd</code></strong>.</li>
+</ul>
+<h2 id="requerimientos">Requerimientos</h2>
+<h3 id="fase-1-reconocimiento">Fase 1 — Reconocimiento</h3>
+<ol>
+<li>A partir de <code>/etc/kubernetes/manifests/kube-apiserver.yaml</code>, determina:<ul>
+<li>el <strong>endpoint</strong> de etcd,</li>
+<li>la ruta de la <strong>CA</strong>,</li>
+<li>la ruta del <strong>certificado</strong> y de la <strong>clave</strong> de cliente.</li>
+</ul>
+</li>
+<li>A partir de <code>/etc/kubernetes/manifests/etcd.yaml</code>, determina el <strong>data dir</strong> de etcd.</li>
+<li>Comprueba la salud del endpoint (<code>etcdctl endpoint health</code> y <code>endpoint status</code>).</li>
+</ol>
+<h3 id="fase-2-punto-de-restauracion">Fase 2 — Punto de restauración</h3>
+<ol start="4">
+<li>En el namespace <code>c2-etcd</code>, crea un Deployment <strong><code>antes</code></strong> con 2 réplicas de <code>nginx:1.27-alpine</code>.</li>
+<li>Toma un <strong>snapshot</strong> de etcd en <code>/opt/backup/etcd-&lt;fecha&gt;.db</code>.</li>
+<li><strong>Valida el snapshot</strong>: muestra su hash, revisión y número total de claves. Anota el número de claves.</li>
+</ol>
+<h3 id="fase-3-cambio-posterior-al-backup">Fase 3 — Cambio posterior al backup</h3>
+<ol start="7">
+<li>Crea un segundo Deployment <strong><code>despues</code></strong> con 2 réplicas en el mismo namespace.</li>
+<li>Comprueba que ambos Deployments existen.</li>
+</ol>
+<h3 id="fase-4-restore">Fase 4 — Restore</h3>
+<ol start="9">
+<li>Restaura el snapshot a un <strong>data dir nuevo</strong> (<code>/var/lib/etcd-restore</code>). No sobrescribas <code>/var/lib/etcd</code>.</li>
+<li>Detén el control plane moviendo los manifiestos fuera de <code>/etc/kubernetes/manifests/</code> y comprueba con <code>crictl ps</code> que los contenedores desaparecen.</li>
+<li>Reapunta el volumen <code>etcd-data</code> del manifiesto <code>etcd.yaml</code> al data dir restaurado.</li>
+<li>Devuelve los manifiestos a su sitio y espera a que el API server vuelva.</li>
+<li>Comprueba qué Deployments existen ahora en <code>c2-etcd</code>.</li>
+</ol>
+<h3 id="fase-5-conclusion">Fase 5 — Conclusión</h3>
+<ol start="14">
+<li>Explica por escrito: ¿por qué desapareció <code>despues</code> y no <code>antes</code>? ¿Qué habría pasado si hubieras restaurado sobre <code>/var/lib/etcd</code> con el static Pod aún corriendo?</li>
+</ol>
+<h2 id="restricciones">Restricciones</h2>
+<ul>
+<li>No borres <code>/var/lib/etcd</code> original.</li>
+<li>No reinicies el nodo.</li>
+<li>No uses <code>kubectl</code> para "recrear" <code>antes</code>: debe reaparecer por el restore.</li>
+<li>El restore debe hacerse con <strong><code>etcdutl</code></strong>, no con <code>etcdctl</code> (deprecado para esta operación).</li>
+</ul>
+<h2 id="validacion">Validación</h2>
+<div class="hl"><pre><span></span><code><span class="c1"># antes del restore</span>
+sudo<span class="w"> </span><span class="nv">ETCDCTL_API</span><span class="o">=</span><span class="m">3</span><span class="w"> </span>etcdctl<span class="w"> </span>--endpoints<span class="o">=</span>https://127.0.0.1:2379<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--cacert<span class="o">=</span>/etc/kubernetes/pki/etcd/ca.crt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--cert<span class="o">=</span>/etc/kubernetes/pki/etcd/server.crt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--key<span class="o">=</span>/etc/kubernetes/pki/etcd/server.key<span class="w"> </span>endpoint<span class="w"> </span>status<span class="w"> </span>--write-out<span class="o">=</span>table
+
+sudo<span class="w"> </span>etcdutl<span class="w"> </span>snapshot<span class="w"> </span>status<span class="w"> </span>/opt/backup/etcd-&lt;fecha&gt;.db<span class="w"> </span>--write-out<span class="o">=</span>table
+
+<span class="c1"># después del restore</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>nodes
+kubectl<span class="w"> </span>-n<span class="w"> </span>c2-etcd<span class="w"> </span>get<span class="w"> </span>deploy
+kubectl<span class="w"> </span>-n<span class="w"> </span>kube-system<span class="w"> </span>get<span class="w"> </span>pods
+</code></pre></div>
+
+<h2 id="resultado-esperado">Resultado esperado</h2>
+<ul>
+<li><code>etcdutl snapshot status</code> devuelve una tabla con <code>HASH</code>, <code>REVISION</code>, <code>TOTAL KEYS</code>, <code>TOTAL SIZE</code>.</li>
+<li>Tras el restore, <code>kubectl -n c2-etcd get deploy</code> muestra <strong>solo <code>antes</code></strong>. <code>despues</code> ha desaparecido.</li>
+<li>Todos los nodos siguen <code>Ready</code> y el control plane vuelve a estar <code>Running</code>.</li>
+</ul>
+<h2 id="criterios-de-exito">Criterios de éxito</h2>
+<ul class="tasks">
+<li class="task"><span class="box"></span>Deduje endpoint y rutas de certificados sin buscarlas en Internet.</li>
+<li class="task"><span class="box"></span>Identifiqué el data dir en <code>etcd.yaml</code>.</li>
+<li class="task"><span class="box"></span><code>endpoint health</code> responde correctamente.</li>
+<li class="task"><span class="box"></span>Snapshot creado en <code>/opt/backup/</code>.</li>
+<li class="task"><span class="box"></span>Snapshot <strong>validado</strong> con <code>etcdutl snapshot status</code> y número de claves anotado.</li>
+<li class="task"><span class="box"></span>Restore hecho a un data dir nuevo con <code>etcdutl</code>.</li>
+<li class="task"><span class="box"></span>Control plane detenido y recuperado moviendo manifiestos.</li>
+<li class="task"><span class="box"></span><code>etcd.yaml</code> reapuntado al data dir restaurado.</li>
+<li class="task"><span class="box"></span>Tras el restore solo existe el Deployment <code>antes</code>.</li>
+<li class="task"><span class="box"></span>Redacté la explicación del punto 14.</li>
+</ul>
+    <div class="lab-note">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8493AD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
+    </div>
+    <nav class="pager"><a href="../lab-2/">← LAB 2.2</a><a href="../lab-4/">LAB 2.4 →</a></nav>
+  </article>
+</div>
+
+</main>
+<footer>
+  <span>CKA Hands-On Training · material del alumno</span>
+  <span class="muted">Las carpetas <span class="mono">SOLUCIONES/</span> son material del instructor y no se publican aquí.</span>
+</footer>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

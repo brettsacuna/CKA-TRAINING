@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    :root{
+      --bg:#0B1220; --panel:#131C2E; --soft:#0F1729; --line:#26354E;
+      --ink:#F3F6FC; --body:#BDC9DB; --muted:#8493AD; --faint:#4C5B75;
+      --blue:#326CE5; --blue2:#74A6FF; --code:#0A1120; --codet:#E6EDF3; --comment:#7C8AA5;
+      --key:#9CC7FF; --str:#B5E8C9; --num:#E3B341;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--body);
+      font-family:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+    h1,h2,h3{color:var(--ink);font-weight:600;margin:0}
+    a{color:var(--blue2);text-decoration:none}
+    a:hover{color:#a7c6ff}
+    .mono{font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace}
+    .ln{color:var(--faint);text-align:right;padding-right:18px;user-select:none;min-width:34px}
+    .cmt{color:var(--comment);font-style:italic}
+    .key{color:var(--key)}
+    .str{color:var(--str)}
+    .num{color:var(--num)}
+  </style>
+</helmet>
+
+<div style="min-height:100%;background:var(--bg);padding-bottom:56px">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 48px;border-bottom:1px solid var(--line);background:rgba(15,23,41,.6)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#74A6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12,2 20,7 20,17 12,22 4,17 4,7"></polygon><circle cx="12" cy="12" r="3"></circle>
+        <path d="M12 2v3M20 7l-2.6 1.5M20 17l-2.6-1.5M12 22v-3M4 17l2.6-1.5M4 7l2.6 1.5"></path>
+      </svg>
+      <span style="color:var(--ink);font-weight:600;letter-spacing:.14em;font-size:13px">CKA HANDS-ON TRAINING</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:28px;font-size:14px">
+      <a href="#" style="color:var(--muted)">Inicio</a>
+      <a href="#" style="color:var(--ink)">Clases</a>
+      <a href="#" style="color:var(--muted)">Cheatsheet</a>
+      <span style="border:1px solid var(--line);border-radius:999px;padding:4px 12px;color:var(--blue2);font-size:12px;font-weight:600" class="mono">v1.35</span>
+    </div>
+  </div>
+
+  <div style="max-width:1200px;margin:0 auto;padding:26px 48px 0;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center">
+    <a href="#" style="color:var(--muted)">Inicio</a><span>/</span><a href="#" style="color:var(--muted)">Clase 1</a><span>/</span><a href="#" style="color:var(--muted)">Recursos</a><span>/</span><span class="mono" style="color:var(--body)">01-pod-api.yaml</span>
+  </div>
+
+  <div style="max-width:1200px;margin:20px auto 0;padding:0 48px;display:grid;grid-template-columns:250px minmax(0,1fr);gap:32px;align-items:start">
+
+    <!-- file list -->
+    <div style="border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--line);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600">CLASE-01 / RECURSOS</div>
+      <div style="padding:8px 0">
+        <div class="mono" style="font-size:11px;color:var(--faint);padding:6px 16px">YAML/</div>
+        <a href="#" style="display:block;padding:7px 16px 7px 26px;font-size:12.5px;color:var(--ink);background:rgba(50,108,229,.14);border-left:2px solid var(--blue)" class="mono">01-pod-api.yaml</a>
+        <a href="#" style="display:block;padding:7px 16px 7px 26px;font-size:12.5px;color:var(--body)" class="mono">02-services.yaml</a>
+        <a href="#" style="display:block;padding:7px 16px 7px 26px;font-size:12.5px;color:var(--body)" class="mono">03-scheduling.yaml</a>
+        <a href="#" style="display:block;padding:7px 16px 7px 26px;font-size:12.5px;color:var(--body)" class="mono">04-priorityclass.yaml</a>
+        <a href="#" style="display:block;padding:7px 16px 7px 26px;font-size:12.5px;color:var(--body)" class="mono">05-antiaffinity-deployment.yaml</a>
+        <a href="#" style="display:block;padding:7px 16px 7px 26px;font-size:12.5px;color:var(--body)" class="mono">06-shop-referencia.yaml</a>
+        <div class="mono" style="font-size:11px;color:var(--faint);padding:12px 16px 6px">SCRIPTS/</div>
+        <a href="#" style="display:block;padding:7px 16px 7px 26px;font-size:12.5px;color:var(--body)" class="mono">setup-lab.sh</a>
+        <a href="#" style="display:block;padding:7px 16px 7px 26px;font-size:12.5px;color:var(--body)" class="mono">validate-lab.sh</a>
+        <a href="#" style="display:block;padding:7px 16px 7px 26px;font-size:12.5px;color:var(--body)" class="mono">reset-lab.sh</a>
+      </div>
+    </div>
+
+    <!-- code viewer -->
+    <div style="border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--code)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--line);background:var(--soft)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="mono" style="font-size:13px;color:var(--ink)">01-pod-api.yaml</span>
+          <span class="mono" style="font-size:10.5px;color:var(--blue2);border:1px solid rgba(116,166,255,.35);border-radius:5px;padding:1px 7px">YAML</span>
+          <span style="font-size:11.5px;color:var(--muted)">18 líneas · 312 B</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <span style="display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:12.5px;color:var(--body)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg>Copiar</span>
+          <span style="display:flex;align-items:center;gap:7px;background:var(--blue);border-radius:8px;padding:6px 12px;font-size:12.5px;color:#fff;font-weight:600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"></path></svg>Descargar</span>
+        </div>
+      </div>
+
+      <div class="mono" style="padding:16px 8px 20px;font-size:13px;line-height:1.85">
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">1</span><span class="cmt"># LAB 1.1 - Pod declarativo de referencia.</span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">2</span><span class="cmt"># Genéralo tú con:  kubectl run api --image=httpd:2.4-alpine $do &gt; api.yaml</span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">3</span><span><span class="key">apiVersion</span>:&nbsp;<span class="str">v1</span></span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">4</span><span><span class="key">kind</span>:&nbsp;<span class="str">Pod</span></span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">5</span><span><span class="key">metadata</span>:</span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">6</span><span>&nbsp;&nbsp;<span class="key">name</span>:&nbsp;<span class="str">api</span></span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">7</span><span>&nbsp;&nbsp;<span class="key">namespace</span>:&nbsp;<span class="str">c1-basico</span></span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">8</span><span>&nbsp;&nbsp;<span class="key">labels</span>:</span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">9</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">app</span>:&nbsp;<span class="str">api</span></span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">10</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">tier</span>:&nbsp;<span class="str">backend</span></span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">11</span><span><span class="key">spec</span>:</span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">12</span><span>&nbsp;&nbsp;<span class="key">containers</span>:</span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">13</span><span>&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<span class="key">name</span>:&nbsp;<span class="str">api</span></span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">14</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">image</span>:&nbsp;<span class="str">httpd:2.4-alpine</span></span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">15</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">ports</span>:</span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">16</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<span class="key">containerPort</span>:&nbsp;<span class="num">80</span></span></div>
+        <div style="display:grid;grid-template-columns:44px 1fr"><span class="ln">17</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">name</span>:&nbsp;<span class="str">http</span></span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
