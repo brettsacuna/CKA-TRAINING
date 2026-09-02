@@ -11,6 +11,7 @@ from pptx.util import Emu, Pt
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 
 import design as D
+import icons as I
 from design import (
     EMU_W, EMU_H, MARGIN, CONTENT_W, COL_GAP, Y_BODY, Y_FOOTER,
     INK, BODY, MUTED, FAINT, PANEL, PANEL_SOFT, HAIRLINE, BG, BG_ALT,
@@ -26,6 +27,15 @@ def _accent(name):
     return ACCENTS.get(name or "blue", ACCENTS["blue"])
 
 
+HEADING_W = CONTENT_W - 900000        # deja hueco para el icono del tema
+
+
+def _topic_icon(slide, s, ac_t, size=640000):
+    """Icono del tema en la esquina superior derecha de una diapositiva de contenido."""
+    icon = s.get("icon") or I.name_for(s.get("heading", ""), s.get("eyebrow", ""))
+    I.draw(slide, icon, EMU_W - MARGIN - size, 275000, size, ac_t)
+
+
 # --------------------------------------------------------------------------- #
 # Arquetipos
 # --------------------------------------------------------------------------- #
@@ -36,8 +46,7 @@ def render_cover(slide, s, ctx):
            fill=D.BG_ALT)
     D.oval(slide, EMU_W - 1850000, EMU_H - 1550000, 2900000, 2900000,
            fill=D.PANEL_SOFT)
-    D.hex_motif(slide, cx=EMU_W - 1350000, cy=1550000, r=1150000,
-                color=D.HAIRLINE, line_w=2.25)
+    I.draw(slide, "wheel", EMU_W - 2550000, 1000000, 1650000, D.K8S_TEXT)
 
     x = MARGIN + 40000
     D.eyebrow(slide, ctx["curso"], x=x, w=8600000)
@@ -76,8 +85,10 @@ def render_section(slide, s, ctx):
     ac, ac_t, ac_d = _accent(s.get("accent"))
     D.set_bg(slide, BG_ALT)
     D.oval(slide, -1500000, EMU_H - 2600000, 4200000, 4200000, fill=BG)
-    D.hex_motif(slide, cx=EMU_W - 1250000, cy=EMU_H - 1150000, r=1500000,
-                color=D.HAIRLINE, line_w=2.5)
+
+    # icono grande del tema
+    icon = s.get("icon") or I.name_for(s["title"], s.get("subtitle", ""))
+    I.draw(slide, icon, EMU_W - 3350000, 2150000, 1800000, ac_t, w=2.4)
 
     # número fantasma
     tb = D.textbox(slide, MARGIN - 30000, 1150000, 4000000, 2600000)
@@ -103,7 +114,8 @@ def render_list(slide, s, ctx):
     ac, ac_t, ac_d = _accent(s.get("accent"))
     D.scaffold(slide, clase_n=ctx["clase_n"], page=ctx["page"],
                eyebrow_text=s["eyebrow"], heading_text=s["heading"],
-               accent_text=ac_t, rule_color=ac)
+               accent_text=ac_t, rule_color=ac, heading_w=HEADING_W)
+    _topic_icon(slide, s, ac_t)
     items = s["items"]
     cols = s.get("columns", 1)
     check = s.get("style") == "check"
@@ -134,7 +146,9 @@ def render_list(slide, s, ctx):
 
 def render_agenda(slide, s, ctx):
     D.scaffold(slide, clase_n=ctx["clase_n"], page=ctx["page"],
-               eyebrow_text=s["eyebrow"], heading_text=s["heading"])
+               eyebrow_text=s["eyebrow"], heading_text=s["heading"],
+               heading_w=HEADING_W)
+    _topic_icon(slide, s, D.K8S_TEXT)
     rows = s["rows"]
     row_h = min(470000, BODY_H / len(rows))
     y0 = Y_BODY + (BODY_H - row_h * len(rows)) / 2
@@ -163,7 +177,8 @@ def render_concept(slide, s, ctx):
     ac, ac_t, ac_d = _accent(s.get("accent"))
     D.scaffold(slide, clase_n=ctx["clase_n"], page=ctx["page"],
                eyebrow_text=s["eyebrow"], heading_text=s["heading"],
-               accent_text=ac_t, rule_color=ac)
+               accent_text=ac_t, rule_color=ac, heading_w=HEADING_W)
+    _topic_icon(slide, s, ac_t)
     left_w = CONTENT_W * 0.52
     right_x = MARGIN + left_w + COL_GAP
     right_w = CONTENT_W - left_w - COL_GAP
@@ -217,7 +232,8 @@ def render_columns(slide, s, ctx):
     ac, ac_t, ac_d = _accent(s.get("accent"))
     D.scaffold(slide, clase_n=ctx["clase_n"], page=ctx["page"],
                eyebrow_text=s["eyebrow"], heading_text=s["heading"],
-               accent_text=ac_t, rule_color=ac)
+               accent_text=ac_t, rule_color=ac, heading_w=HEADING_W)
+    _topic_icon(slide, s, ac_t)
     cols = s["cols"]
     note = s.get("note")
     avail_h = BODY_H - (600000 if note else 0)
@@ -273,7 +289,8 @@ def render_codeblocks(slide, s, ctx):
     ac, ac_t, ac_d = _accent(s.get("accent"))
     D.scaffold(slide, clase_n=ctx["clase_n"], page=ctx["page"],
                eyebrow_text=s["eyebrow"], heading_text=s["heading"],
-               accent_text=ac_t, rule_color=ac)
+               accent_text=ac_t, rule_color=ac, heading_w=HEADING_W)
+    _topic_icon(slide, s, ac_t)
     blocks = s["blocks"]
     note = s.get("note")
     intro = s.get("intro")
@@ -342,7 +359,8 @@ def render_table(slide, s, ctx):
     ac, ac_t, ac_d = _accent(s.get("accent"))
     D.scaffold(slide, clase_n=ctx["clase_n"], page=ctx["page"],
                eyebrow_text=s["eyebrow"], heading_text=s["heading"],
-               accent_text=ac_t, rule_color=ac)
+               accent_text=ac_t, rule_color=ac, heading_w=HEADING_W)
+    _topic_icon(slide, s, ac_t)
     headers = s["headers"]
     rows = s["rows"]
     note = s.get("note")
@@ -393,7 +411,7 @@ def render_cards(slide, s, ctx):
     ac, ac_t, ac_d = _accent(s.get("accent"))
     D.scaffold(slide, clase_n=ctx["clase_n"], page=ctx["page"],
                eyebrow_text=s["eyebrow"], heading_text=s["heading"],
-               accent_text=ac_t, rule_color=ac)
+               accent_text=ac_t, rule_color=ac, heading_w=HEADING_W)
     cards = s["cards"]
     note = s.get("note")
     ncols = s.get("cols", 2)
@@ -409,6 +427,7 @@ def render_cards(slide, s, ctx):
     ch = min((avail_h - gy * (nrows - 1)) / nrows, nat_ch, 2050000)
     grid_h = ch * nrows + gy * (nrows - 1)
     y_top = Y_BODY + (avail_h - grid_h) / 2
+    dfl = I.name_for(s["heading"], s["eyebrow"])
     for idx, card in enumerate(cards):
         r, c = divmod(idx, ncols)
         x = MARGIN + c * (cw + gx)
@@ -417,7 +436,10 @@ def render_cards(slide, s, ctx):
                rounded=True, radius=0.06)
         D.rect(slide, x + 24000, y, cw - 48000, 46000, fill=ac, line=None)
         D.num_badge(slide, x + pad, y + pad + 20000, 300000, idx + 1, fill=ac)
-        tb = D.textbox(slide, x + pad + 410000, y + pad, cw - pad - 460000,
+        isz = 330000
+        I.draw_named(slide, x + cw - pad - isz, y + pad + 6000, isz, ac_t,
+                     card["title"], default=dfl, w=1.9)
+        tb = D.textbox(slide, x + pad + 410000, y + pad, cw - pad - 830000,
                        340000, anchor=MSO_ANCHOR.MIDDLE)
         D.para(tb.text_frame, card["title"], size=SZ_LEAD, color=INK,
                font=F_HEAD, bold=True, first=True, space_after=0, line=1.05)
@@ -435,7 +457,8 @@ def render_process(slide, s, ctx):
     ac, ac_t, ac_d = _accent(s.get("accent"))
     D.scaffold(slide, clase_n=ctx["clase_n"], page=ctx["page"],
                eyebrow_text=s["eyebrow"], heading_text=s["heading"],
-               accent_text=ac_t, rule_color=ac)
+               accent_text=ac_t, rule_color=ac, heading_w=HEADING_W)
+    _topic_icon(slide, s, ac_t)
     steps = s["steps"]
     note = s.get("note")
     avail_h = BODY_H - (520000 if note else 0)
@@ -473,23 +496,25 @@ def render_chain(slide, s, ctx):
     ac, ac_t, ac_d = _accent(s.get("accent"))
     D.scaffold(slide, clase_n=ctx["clase_n"], page=ctx["page"],
                eyebrow_text=s["eyebrow"], heading_text=s["heading"],
-               accent_text=ac_t, rule_color=ac)
+               accent_text=ac_t, rule_color=ac, heading_w=HEADING_W)
+    _topic_icon(slide, s, ac_t)
     nodes = s["nodes"]
     detail = s["detail"]
     n = len(nodes)
-    gap = 150000
+    gap = 210000
     per_row = n if n <= 5 else -(-n // 2)      # 2 filas si hay más de 5
     rows = [nodes[i:i + per_row] for i in range(0, n, per_row)]
-    node_h = 720000 if len(rows) == 1 else 660000
-    row_gap = 150000
-    y = Y_BODY + (320000 if len(rows) == 1 else 200000)
+    node_h = 760000 if len(rows) == 1 else 680000
+    row_gap = 260000
+
+    y = Y_BODY + (360000 if len(rows) == 1 else 240000)
     for r, row in enumerate(rows):
         ry = y + r * (node_h + row_gap)
         nw = (CONTENT_W - gap * (per_row - 1)) / per_row
         for i, node in enumerate(row):
             x = MARGIN + i * (nw + gap)
             D.rect(slide, x, ry, nw, node_h, fill=PANEL, line=ac, line_w=1.25,
-                   rounded=True, radius=0.12)
+                   rounded=True, radius=0.11)
             tb = D.textbox(slide, x + 70000, ry, nw - 140000, node_h,
                            anchor=MSO_ANCHOR.MIDDLE)
             D.para(tb.text_frame, node, size=SZ_SMALL, color=INK, font=F_HEAD,
@@ -497,17 +522,15 @@ def render_chain(slide, s, ctx):
                    line=1.12)
             last_in_deck = (r * per_row + i) == n - 1
             if i < len(row) - 1:
-                ar = D.textbox(slide, x + nw - 40000, ry, gap + 80000, node_h,
-                               anchor=MSO_ANCHOR.MIDDLE)
-                D.para(ar.text_frame, "→", size=15, color=ac_t, font=F_BODY,
-                       align=PP_ALIGN.CENTER, first=True, space_after=0, line=1.0)
+                cyv = ry + node_h / 2
+                I.line(slide, x + nw + 24000, cyv, x + nw + gap - 24000, cyv,
+                       ac_t, 1.75, arrow=True)
             elif not last_in_deck:               # salto de fila
-                ar = D.textbox(slide, x + nw / 2 - 100000, ry + node_h - 30000,
-                               200000, row_gap + 60000, anchor=MSO_ANCHOR.MIDDLE)
-                D.para(ar.text_frame, "↓", size=14, color=ac_t, font=F_BODY,
-                       align=PP_ALIGN.CENTER, first=True, space_after=0, line=1.0)
+                I.line(slide, x + nw / 2, ry + node_h + 26000,
+                       x + nw / 2, ry + node_h + row_gap - 26000,
+                       ac_t, 1.75, arrow=True)
 
-    dy = y + len(rows) * node_h + (len(rows) - 1) * row_gap + 320000
+    dy = y + len(rows) * node_h + (len(rows) - 1) * row_gap + 360000
     max_dy = Y_FOOTER - 160000
     line_h = 250000
     detail_h = min(max_dy - dy,
@@ -561,6 +584,12 @@ def render_lab(slide, s, ctx):
     mw = CONTENT_W - left_w - COL_GAP
     my = 2560000
     mh = Y_FOOTER - 360000 - my
+
+    # icono del laboratorio, sobre el panel de metadatos
+    lab_icon = "bug" if "challenge" in s["level"].lower() else "beaker"
+    isz = 980000
+    I.draw(slide, lab_icon, mx + (mw - isz) / 2, my - isz - 220000, isz,
+           ac_t, w=2.6)
     D.rect(slide, mx, my, mw, mh, fill=PANEL, line=HAIRLINE, line_w=1.0,
            rounded=True, radius=0.06)
     D.rect(slide, mx, my, mw, 46000, fill=ac, line=None)
@@ -585,12 +614,12 @@ def render_lab(slide, s, ctx):
 def render_closing(slide, s, ctx):
     D.set_bg(slide, BG_ALT)
     D.oval(slide, EMU_W - 2600000, -1400000, 4000000, 4000000, fill=BG)
-    D.hex_motif(slide, cx=1250000, cy=EMU_H - 1100000, r=1450000,
-                color=D.HAIRLINE, line_w=2.5)
+    D.oval(slide, -1400000, EMU_H - 2500000, 3800000, 3800000, fill=BG)
+    I.draw(slide, "wheel", EMU_W - 2650000, 900000, 1650000, D.K8S_TEXT)
     x = MARGIN + 20000
     D.eyebrow(slide, s["eyebrow"], x=x, w=9000000)
-    tb = D.textbox(slide, x, 1500000, 10000000, 900000)
-    D.para(tb.text_frame, s["title"], size=46, color=INK, font=F_LIGHT,
+    tb = D.textbox(slide, x, 1560000, 9200000, 900000)
+    D.para(tb.text_frame, s["title"], size=44, color=INK, font=F_LIGHT,
            first=True, space_after=0, line=1.04)
     D.accent_rule(slide, x=x + 4000, y=2560000, w=620000, color=K8S)
     tb = D.textbox(slide, x, 2820000, CONTENT_W - 1200000, 2600000)

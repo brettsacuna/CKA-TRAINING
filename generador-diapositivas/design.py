@@ -359,10 +359,10 @@ def note_band(slide, text, *, y, accent=K8S, x=MARGIN, w=CONTENT_W, h=470000,
 
 
 def scaffold(slide, *, clase_n, page, eyebrow_text, heading_text,
-             accent_text=K8S_TEXT, rule_color=K8S, motif=False):
+             accent_text=K8S_TEXT, rule_color=K8S, motif=False, heading_w=None):
     """Estructura común: fondo, eyebrow, título, regla y pie."""
     set_bg(slide)
     eyebrow(slide, eyebrow_text, accent_text=accent_text)
-    heading(slide, heading_text)
+    heading(slide, heading_text, w=heading_w or CONTENT_W)
     accent_rule(slide, color=rule_color)
     footer(slide, clase_n, page)

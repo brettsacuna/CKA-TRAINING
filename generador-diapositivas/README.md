@@ -40,10 +40,28 @@ Los `.pptx` originales están guardados en `_originales/*.bak`.
 | Archivo | Función |
 |---|---|
 | `design.py` | Paleta, tipografía, rejilla (EMU) y primitivas de dibujo. |
+| `icons.py` | Capa de iconos: usa los PNG oficiales de Kubernetes (`assets/k8s/`) y, si no hay recurso equivalente, dibuja un glifo vectorial. |
 | `builder.py` | Un renderizador por arquetipo + ensamblado del `.pptx`. |
 | `contenido/claseNN.py` | Contenido de cada clase como lista de diapositivas (`DECK`). |
 | `build.py` | Punto de entrada CLI. |
+| `assets/k8s/` | Iconos oficiales de Kubernetes (Apache-2.0 / CC-BY-4.0). Ver `NOTICE.md`. |
 | `_originales/` | Copia de seguridad de los `.pptx` previos. |
+
+## Iconos
+
+Los divisores de sección, las tarjetas y los diagramas usan los **iconos oficiales
+de Kubernetes** (`kubernetes/community/icons`, PNG a color). Para conceptos que no
+son un recurso de Kubernetes (agenda, tip, aviso, troubleshooting…) se dibuja un
+icono vectorial. La atribución de la licencia está en `assets/k8s/NOTICE.md`.
+
+Para actualizar o ampliar el juego de iconos:
+
+```bash
+BASE=https://raw.githubusercontent.com/kubernetes/community/main/icons/png
+curl -sSL -o assets/k8s/<nombre>.png "$BASE/resources/unlabeled/<recurso>-256.png"
+```
+
+y añade la entrada correspondiente en `icons.py` (`_PNG` y `_KEYMAP`).
 
 ## Añadir o editar una clase
 
