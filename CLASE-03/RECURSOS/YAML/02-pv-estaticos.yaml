@@ -1,0 +1,33 @@
+# LAB 3.2 - Dos PV estaticos distinguibles por label.
+# Crea antes los directorios en el worker:  mkdir -p /mnt/data-a /mnt/data-b
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-a
+  labels:
+    contenido: alfa
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/data-a
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-b
+  labels:
+    contenido: beta
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/data-b

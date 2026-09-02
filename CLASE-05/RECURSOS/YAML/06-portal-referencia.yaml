@@ -1,0 +1,52 @@
+# LAB 5.4 - Estado CORRECTO de referencia del challenge (material del instructor).
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: frontend, namespace: c5-challenge}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: frontend}}
+  template:
+    metadata: {labels: {app: frontend}}
+    spec:
+      containers: [{name: web, image: "nicolaka/netshoot", command: ["sleep","36000"]}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: backend, namespace: c5-challenge}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: backend}}
+  template:
+    metadata: {labels: {app: backend}}
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: backend, namespace: c5-challenge}
+spec:
+  selector: {app: backend}
+  ports: [{port: 80, targetPort: 80}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: portal, namespace: c5-challenge}
+spec:
+  selector: {app: backend}
+  ports: [{port: 80, targetPort: 80}]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata: {name: portal, namespace: c5-challenge}
+spec:
+  ingressClassName: traefik
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: portal, port: {number: 80}}

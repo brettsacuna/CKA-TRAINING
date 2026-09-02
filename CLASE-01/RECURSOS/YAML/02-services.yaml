@@ -1,0 +1,31 @@
+# LAB 1.2 - Services de referencia.
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-dbserver
+  namespace: c1-inter
+spec:
+  type: ClusterIP
+  selector:
+    app: dbserver
+  ports:
+    - name: postgres
+      protocol: TCP
+      port: 15432        # puerto del Service (red interna del cluster)
+      targetPort: 5432   # puerto del contenedor
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-webserver
+  namespace: c1-inter
+spec:
+  type: NodePort
+  selector:
+    app: webserver
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080         # puerto del Service
+      targetPort: 80     # puerto del contenedor
+      nodePort: 31100    # puerto publicado en cada nodo (30000-32767)

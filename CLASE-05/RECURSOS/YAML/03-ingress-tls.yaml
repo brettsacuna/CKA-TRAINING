@@ -1,0 +1,23 @@
+# LAB 5.2 - Ingress con TLS. Requiere el Secret 'secure-ingress' de tipo kubernetes.io/tls.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  namespace: c5-ingress
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: ["secure-ingress.com"]
+      secretName: secure-ingress
+  rules:
+    - host: secure-ingress.com
+      http:
+        paths:
+          - path: /service1
+            pathType: Prefix
+            backend:
+              service: {name: service1, port: {number: 80}}
+          - path: /service2
+            pathType: Prefix
+            backend:
+              service: {name: service2, port: {number: 80}}

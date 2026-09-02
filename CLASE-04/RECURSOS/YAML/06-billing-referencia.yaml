@@ -1,0 +1,44 @@
+# LAB 4.4 - Estado CORRECTO de referencia del challenge (material del instructor).
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: billing-cfg, namespace: c4-challenge}
+data:
+  APP_MODE: prod
+  LOG_LEVEL: info
+---
+apiVersion: v1
+kind: Secret
+metadata: {name: billing-secret, namespace: c4-challenge}
+type: Opaque
+stringData:
+  db-password: F4ctur4cion2026
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: billing, namespace: c4-challenge}
+spec:
+  replicas: 3
+  selector: {matchLabels: {app: billing}}
+  template:
+    metadata: {labels: {app: billing}}
+    spec:
+      containers:
+        - name: app
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]
+          envFrom:
+            - configMapRef: {name: billing-cfg}
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: billing-secret, key: db-password}
+          resources:
+            requests: {cpu: "100m", memory: "64Mi"}
+            limits:   {cpu: "500m", memory: "256Mi"}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: billing, namespace: c4-challenge}
+spec:
+  selector: {app: billing}
+  ports: [{port: 80, targetPort: 80}]

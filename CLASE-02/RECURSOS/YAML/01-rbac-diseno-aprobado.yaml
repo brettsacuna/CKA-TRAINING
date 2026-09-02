@@ -1,0 +1,89 @@
+# LAB 2.4 - Estado CORRECTO de referencia (material del instructor).
+# Equivalente imperativo en SOLUCIONES/SOLUCION-LAB-04.md
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: secret-manager
+  namespace: red
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: secret-manager
+  namespace: red
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: secret-manager
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: jane
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: secret-manager
+  namespace: blue
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: secret-manager
+  namespace: blue
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: secret-manager
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: jane
+---
+# ClusterRole reutilizable: define QUE se puede hacer, no DONDE.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: deploy-deleter
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["delete"]
+---
+# jane: en TODOS los namespaces -> ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: deploy-deleter
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: deploy-deleter
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: jane
+---
+# jim: SOLO en red -> ClusterRole + RoleBinding (la combinacion clave del CKA)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: deploy-deleter
+  namespace: red
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: deploy-deleter
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: jim
