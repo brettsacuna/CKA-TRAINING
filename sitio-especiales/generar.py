@@ -24,23 +24,53 @@ from pygments import highlight as pyg_highlight
 ROOT = Path(__file__).resolve().parent.parent
 OUT = Path(__file__).resolve().parent / "_site"
 SITE = "CKA · Entrenamiento"
-BASE_TAGLINE = "Entrenamiento práctico de Kubernetes — sesiones 9 a 15"
+BASE_TAGLINE = "Kubernetes práctico para el examen CKA — CKA Training + CKA Extras"
 
-CLASES = [
-    ("sesion-9", "CLASE-09", "9", "Networking en Kubernetes (Services)",
-     "De una IP que desaparece a un nombre estable para todo el programa.", "graph"),
-    ("sesion-10", "CLASE-10", "10", "Control de Tráfico Excluyente (Ingress)",
-     "Una sola puerta que decide, por host y por path, quién entra y a dónde.", "cycle"),
-    ("sesion-11", "CLASE-11", "11", "Configuración y Seguridad de Aplicaciones",
-     "Sacar la configuración de la imagen y dar un disco que sobreviva al Pod.", "cylinder"),
-    ("sesion-12", "CLASE-12", "12", "Salud de Aplicaciones y Observabilidad",
-     "Sondas que deciden reinicio y tráfico, y las herramientas para ver qué pasa.", "magnifier"),
-    ("sesion-13", "CLASE-13", "13", "Seguridad: RBAC, Red y Pods",
-     "Quién puede hacer qué, quién puede hablar con quién y qué puede hacer un contenedor.", "cluster"),
-    ("sesion-14", "CLASE-14", "14", "Entrega Continua: CI/CD, GitOps y Helm",
-     "De un commit a un despliegue reproducible, sin tocar el cluster a mano.", "cycle"),
-    ("sesion-15", "CLASE-15", "15", "Proyecto Integrador y Evaluación",
-     "Desplegar GRATITUD entero, validar cada capa y demostrarlo en el examen.", "pod"),
+# Dos grupos: (clave, etiqueta, sustantivo, subtítulo, [items]).
+# Cada item: (slug, carpeta_origen, n, título, subtítulo, icono).
+GRUPOS = [
+    ("training", "CKA Training", "Sesión",
+     "Siete sesiones sobre una arquitectura de microservicios real —el programa GRATITUD—: "
+     "Services, Ingress y TLS, configuración y almacenamiento, observabilidad, seguridad, "
+     "CI/CD y un proyecto integrador con evaluación.", [
+        ("sesion-9", "CLASE-09", "9", "Networking en Kubernetes (Services)",
+         "De una IP que desaparece a un nombre estable para todo el programa.", "graph"),
+        ("sesion-10", "CLASE-10", "10", "Control de Tráfico Excluyente (Ingress)",
+         "Una sola puerta que decide, por host y por path, quién entra y a dónde.", "cycle"),
+        ("sesion-11", "CLASE-11", "11", "Configuración y Seguridad de Aplicaciones",
+         "Sacar la configuración de la imagen y dar un disco que sobreviva al Pod.", "cylinder"),
+        ("sesion-12", "CLASE-12", "12", "Salud de Aplicaciones y Observabilidad",
+         "Sondas que deciden reinicio y tráfico, y las herramientas para ver qué pasa.", "magnifier"),
+        ("sesion-13", "CLASE-13", "13", "Seguridad: RBAC, Red y Pods",
+         "Quién puede hacer qué, quién puede hablar con quién y qué puede hacer un contenedor.", "cluster"),
+        ("sesion-14", "CLASE-14", "14", "Entrega Continua: CI/CD, GitOps y Helm",
+         "De un commit a un despliegue reproducible, sin tocar el cluster a mano.", "cycle"),
+        ("sesion-15", "CLASE-15", "15", "Proyecto Integrador y Evaluación",
+         "Desplegar GRATITUD entero, validar cada capa y demostrarlo en el examen.", "pod"),
+     ]),
+    ("extras", "CKA Extras", "Clase",
+     "El curso base: seis clases de fundamentos y troubleshooting, con laboratorios de "
+     "dificultad progresiva.", [
+        ("clase-1", "CLASE-01", "1", "Pods, YAML, Services y Scheduling",
+         "De ejecutar un comando a decidir dónde corre tu aplicación.", "pod"),
+        ("clase-2", "CLASE-02", "2", "Administración del Cluster: Upgrade, ETCD y RBAC",
+         "Mantener, recuperar y controlar el acceso al cluster.", "cluster"),
+        ("clase-3", "CLASE-03", "3", "Workloads, Storage y StatefulSets",
+         "Aplicaciones que no pueden permitirse perder sus datos.", "cylinder"),
+        ("clase-4", "CLASE-04", "4", "Lifecycle, ConfigMaps, Secrets y Recursos",
+         "Actualizar sin cortar, revertir sin drama, configurar desde fuera de la imagen.", "cycle"),
+        ("clase-5", "CLASE-05", "5", "Services, Ingress, CoreDNS y NetworkPolicy",
+         "Publicar aplicaciones y decidir quién puede hablar con quién.", "graph"),
+        ("clase-6", "CLASE-06", "6", "Troubleshooting e Integración",
+         "El 30 % del examen. Cinco laboratorios, incluido el integrador final.", "magnifier"),
+     ]),
+]
+
+# Lista plana con el sustantivo y la clave de grupo de cada item.
+ITEMS = [
+    (slug, src, n, title, sub, icon, noun, gk)
+    for gk, glabel, noun, gsub, items in GRUPOS
+    for (slug, src, n, title, sub, icon) in items
 ]
 
 LEVELS = {
@@ -132,6 +162,10 @@ def rewrite_links(body, *, in_class):
             return f'<a href="lab-{int(m3.group(1))}/">{text}</a>'
         if low.startswith("recursos/") or re.match(r"RECURSOS/?$", h):
             return f'<a href="recursos.html">{text}</a>'
+        if h == "02-CHECKLIST-CKA.md":
+            return f'<a href="checklist.html">{text}</a>'
+        if h == "03-CHEATSHEET-CKA.md":
+            return f'<a href="cheatsheet.html">{text}</a>'
         return m.group(0)
 
     body = re.sub(r'<a href="([^"]+)">((?:(?!</a>).)*)</a>', sub_href, body)
@@ -164,7 +198,9 @@ def shell(*, title, root, breadcrumb, content, nav_active="", head_extra="",
         cls = ' class="on"' if nav_active == key else ""
         return f'<a{cls} href="{href}">{label}</a>'
 
-    nav = na("inicio", "Inicio", f"{root}index.html")
+    nav = (na("inicio", "Inicio", f"{root}index.html")
+           + na("training", "CKA Training", f"{root}index.html#training")
+           + na("extras", "CKA Extras", f"{root}index.html#extras"))
     crumbs = ""
     if breadcrumb:
         parts = []
@@ -288,35 +324,48 @@ def build():
     write_assets()
 
     # presentaciones (.pptx) para descarga
-    for slug, src, n, title, sub, icon in CLASES:
+    for slug, src, n, title, sub, icon, noun, gk in ITEMS:
         pptx = ROOT / src / f"01-{src}-CKA.pptx"
         if pptx.exists():
             shutil.copy2(pptx, OUT / "slides" / pptx.name)
 
     build_index()
 
-    for i, (slug, src, n, title, sub, icon) in enumerate(CLASES):
-        src_dir = ROOT / src
-        cdir = OUT / slug
-        cdir.mkdir(parents=True, exist_ok=True)
-        labs = labs_of(src_dir)
-        res = resources_of(src_dir)
+    for gk, glabel, noun, gsub, items in GRUPOS:
+        for i, (slug, src, n, title, sub, icon) in enumerate(items):
+            src_dir = ROOT / src
+            cdir = OUT / slug
+            cdir.mkdir(parents=True, exist_ok=True)
+            labs = labs_of(src_dir)
+            res = resources_of(src_dir)
 
-        # recursos (copiar archivos + página visor)
-        rdir = cdir / "recursos"
-        rdir.mkdir(exist_ok=True)
-        for _g, name, p in res:
-            shutil.copy2(p, rdir / _safe(name))
-        build_recursos(slug, src, n, title, res)
+            rdir = cdir / "recursos"
+            rdir.mkdir(exist_ok=True)
+            for _g, name, p in res:
+                shutil.copy2(p, rdir / _safe(name))
+            build_recursos(slug, src, n, title, res, noun)
 
-        # página de clase
-        build_clase(slug, src, n, title, sub, icon, src_dir, labs, res,
-                    prev_=CLASES[i - 1] if i else None,
-                    next_=CLASES[i + 1] if i + 1 < len(CLASES) else None)
+            build_clase(slug, src, n, title, sub, icon, src_dir, labs, res, noun, gk,
+                        prev_=items[i - 1] if i else None,
+                        next_=items[i + 1] if i + 1 < len(items) else None)
 
-        # laboratorios
-        for j, (p, meta) in enumerate(labs):
-            build_lab(slug, src, n, title, labs, j, meta)
+            for j, (p, meta) in enumerate(labs):
+                build_lab(slug, src, n, title, labs, j, meta, noun)
+
+            # extras de la Clase 6: checklist y cheatsheet
+            if slug == "clase-6":
+                for fname, page, label in (
+                        ("02-CHECKLIST-CKA.md", "checklist.html", "Checklist CKA"),
+                        ("03-CHEATSHEET-CKA.md", "cheatsheet.html", "Cheat Sheet CKA")):
+                    fp = src_dir / fname
+                    if fp.exists():
+                        bd = process_md(fp.read_text(encoding="utf-8"), in_class=True)
+                        (cdir / page).write_text(shell(
+                            title=f"{label} · Clase 6", root="../",
+                            breadcrumb=[("Inicio", "../index.html"),
+                                        ("Clase 6", "index.html"), (label, None)],
+                            content=f'<article class="md wide">{bd}</article>'),
+                            encoding="utf-8")
 
     (OUT / ".nojekyll").write_text("", encoding="utf-8")
     (OUT / "404.html").write_text(shell(
@@ -332,36 +381,51 @@ def build():
 
 # --------------------------------------------------------------------------- #
 def build_index():
-    cards = []
-    for slug, src, n, title, sub, icon in CLASES:
+    def card(slug, src, n, title, sub, icon, noun):
         nlabs = len(list((ROOT / src / "LABORATORIOS").glob("LAB-*.md")))
-        cards.append(f"""
+        badge = f"S{int(n)}" if noun == "Sesión" else f"{int(n):02d}"
+        return f"""
       <a class="ccard" href="{slug}/">
-        <div class="ccard-top"><span class="mono num">S{int(n)}</span>{svg(ICONS[icon], 26)}</div>
+        <div class="ccard-top"><span class="mono num">{badge}</span>{svg(ICONS[icon], 26)}</div>
         <h3>{html.escape(title)}</h3>
         <p>{html.escape(sub)}</p>
-        <div class="ccard-foot"><span class="mono">180 min · {nlabs} labs</span><span class="go">Ver sesión →</span></div>
-      </a>""")
+        <div class="ccard-foot"><span class="mono">180 min · {nlabs} labs</span><span class="go">Ver {noun.lower()} →</span></div>
+      </a>"""
+
+    grupos_html = []
+    n_total_labs = sum(len(list((ROOT / it[1] / "LABORATORIOS").glob("LAB-*.md"))) for it in ITEMS)
+    for gk, glabel, noun, gsub, items in GRUPOS:
+        cards = "".join(card(s, sr, n, t, sb, ic, noun) for (s, sr, n, t, sb, ic) in items)
+        grupos_html.append(f"""
+<section class="block" id="{gk}">
+  <div class="group-head">
+    <h2 class="section-title">{html.escape(glabel)}</h2>
+    <span class="mono muted">{len(items)} {'sesiones' if noun == 'Sesión' else 'clases'}</span>
+  </div>
+  <p class="group-sub">{html.escape(gsub)}</p>
+  <div class="cgrid">{cards}</div>
+</section>""")
+
     content = f"""
 <section class="hero">
-  <div class="eyebrow">Track especial</div>
+  <div class="eyebrow">Kubernetes práctico · CKA</div>
   <h1>Entrenamiento · Kubernetes</h1>
-  <p class="lead">Siete sesiones que amplían el curso CKA sobre una arquitectura de
-  microservicios real —el programa <strong>GRATITUD</strong>—: Services, Ingress y TLS,
-  configuración y almacenamiento, observabilidad, seguridad, CI/CD y un proyecto
-  integrador con evaluación.</p>
+  <p class="lead">Dos tracks sobre una misma base práctica: <strong>CKA Training</strong>,
+  siete sesiones sobre la arquitectura GRATITUD (Services, Ingress, config, storage,
+  observabilidad, seguridad, CI/CD e integrador), y <strong>CKA Extras</strong>, las seis
+  clases de fundamentos y troubleshooting.</p>
   <div class="stats">
-    <div class="stat"><b>7 sesiones</b><span>9 a 15</span></div>
-    <div class="stat"><b>28</b><span>Laboratorios</span></div>
+    <div class="stat"><b>13</b><span>Módulos</span></div>
+    <div class="stat"><b>{n_total_labs}</b><span>Laboratorios</span></div>
+    <div class="stat"><b>2</b><span>Tracks</span></div>
     <div class="stat"><b>GRATITUD</b><span>Caso guía</span></div>
-    <div class="stat"><b>Integrador</b><span>+ evaluación</span></div>
+  </div>
+  <div class="chips" style="margin-top:24px">
+    <a class="chip" href="#training">CKA Training →</a>
+    <a class="chip" href="#extras">CKA Extras →</a>
   </div>
 </section>
-
-<section class="block">
-  <h2 class="section-title">Las siete sesiones</h2>
-  <div class="cgrid">{''.join(cards)}</div>
-</section>
+{''.join(grupos_html)}
 """
     (OUT / "index.html").write_text(shell(
         title="Inicio", root="", breadcrumb=[], nav_active="inicio",
@@ -378,7 +442,7 @@ def rail_labs(labs, current=None, rel=""):
     return "".join(rows)
 
 
-def build_clase(slug, src, n, title, sub, icon, src_dir, labs, res, prev_, next_):
+def build_clase(slug, src, n, title, sub, icon, src_dir, labs, res, noun, gk, prev_, next_):
     readme = (src_dir / "00-README.md").read_text(encoding="utf-8")
     readme = drop_sections(drop_h1(readme),
                            ["Duración", "Duracion", "Presentación", "Presentacion",
@@ -408,12 +472,12 @@ def build_clase(slug, src, n, title, sub, icon, src_dir, labs, res, prev_, next_
         f'<div class="rlist">{res_rows(g)}</div>'
         for i, g in enumerate(groups))
 
-    prevlink = f'<a href="../{prev_[0]}/">← Sesión {prev_[2]}</a>' if prev_ else '<span></span>'
-    nextlink = f'<a href="../{next_[0]}/">Sesión {next_[2]} →</a>' if next_ else '<span></span>'
+    prevlink = f'<a href="../{prev_[0]}/">← {noun} {prev_[2]}</a>' if prev_ else '<span></span>'
+    nextlink = f'<a href="../{next_[0]}/">{noun} {next_[2]} →</a>' if next_ else '<span></span>'
 
     content = f"""
 <section class="clase-head">
-  <div class="eyebrow">Sesión {n}</div>
+  <div class="eyebrow">{noun} {n}</div>
   <h1>{html.escape(title)}</h1>
   <p class="lead">{html.escape(sub)}</p>
   <div class="chips">
@@ -442,12 +506,12 @@ def build_clase(slug, src, n, title, sub, icon, src_dir, labs, res, prev_, next_
 <nav class="pager">{prevlink}{nextlink}</nav>
 """
     (OUT / slug / "index.html").write_text(shell(
-        title=f"Sesión {n} — {title}", root="../", nav_active="inicio",
-        breadcrumb=[("Inicio", "../index.html"), (f"Sesión {n}", None)],
+        title=f"{noun} {n} — {title}", root="../", nav_active=gk,
+        breadcrumb=[("Inicio", "../index.html"), (f"{noun} {n}", None)],
         content=content), encoding="utf-8")
 
 
-def build_lab(slug, src, n, ctitle, labs, idx, meta):
+def build_lab(slug, src, n, ctitle, labs, idx, meta, noun="Sesión"):
     p, m = labs[idx]
     labtext = drop_sections(drop_h1(m["text"]), ["Nivel", "Duración", "Duracion"])
     body = process_md(labtext, in_class=True)
@@ -466,8 +530,8 @@ def build_lab(slug, src, n, ctitle, labs, idx, meta):
 <div class="lab-layout">
   <aside class="lab-side">
     <details class="lab-nav" open>
-      <summary>Sesión {n} · Laboratorios</summary>
-      <div class="railcard-h">Sesión {n} · Laboratorios</div>
+      <summary>{noun} {n} · Laboratorios</summary>
+      <div class="railcard-h">{noun} {n} · Laboratorios</div>
       <div class="side-labs">{sidelabs}</div>
       <div class="railcard-h" style="margin-top:22px">Recursos</div>
       <a class="rlink" href="../recursos.html">Visor de recursos</a>
@@ -494,12 +558,12 @@ def build_lab(slug, src, n, ctitle, labs, idx, meta):
     (ldir / "index.html").write_text(shell(
         title=f"LAB {n}.{m['n']} — {m['title']}", root="../../", nav_active="inicio",
         breadcrumb=[("Inicio", "../../index.html"),
-                    (f"Sesión {n}", "../index.html"),
+                    (f"{noun} {n}", "../index.html"),
                     (f"LAB {n}.{m['n']}", None)],
         content=content, body_class="labpage"), encoding="utf-8")
 
 
-def build_recursos(slug, src, n, title, res):
+def build_recursos(slug, src, n, title, res, noun="Sesión"):
     listing = []
     panels = []
     last_kind = None
@@ -537,9 +601,9 @@ def build_recursos(slug, src, n, title, res):
 
     content = f"""
 <section class="clase-head compact">
-  <div class="eyebrow">Sesión {n} · Recursos</div>
+  <div class="eyebrow">{noun} {n} · Recursos</div>
   <h1>Manifiestos, scripts y charts</h1>
-  <p class="lead">Archivos de referencia de los laboratorios de la sesión. Cópialos o descárgalos.</p>
+  <p class="lead">Archivos de referencia de los laboratorios. Cópialos o descárgalos.</p>
 </section>
 <div class="viewer-layout">
   <nav class="rl">{''.join(listing)}</nav>
@@ -547,8 +611,8 @@ def build_recursos(slug, src, n, title, res):
 </div>
 """
     (OUT / slug / "recursos.html").write_text(shell(
-        title=f"Recursos · Sesión {n}", root="../", nav_active="inicio",
-        breadcrumb=[("Inicio", "../index.html"), (f"Sesión {n}", "index.html"),
+        title=f"Recursos · {noun} {n}", root="../", nav_active="inicio",
+        breadcrumb=[("Inicio", "../index.html"), (f"{noun} {n}", "index.html"),
                     ("Recursos", None)],
         content=content, body_class="viewerpage"), encoding="utf-8")
 
@@ -602,9 +666,12 @@ footer{max-width:var(--maxw);margin:0 auto;padding:26px clamp(16px,4vw,48px) 40p
 
 .eyebrow{color:var(--blue2);font-weight:600;font-size:12px;letter-spacing:.18em;text-transform:uppercase}
 .lead{max-width:660px;font-size:16.5px;color:var(--body)}
-.section-title{font-size:15px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;font-weight:600;margin-bottom:20px}
+.section-title{font-size:15px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;font-weight:600;margin:0}
+.group-head{display:flex;align-items:baseline;gap:14px;border-top:1px solid var(--line);padding-top:22px}
+.group-sub{max-width:640px;font-size:14px;color:var(--muted);margin:8px 0 22px}
 .chips,.chip-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
-.block{margin-top:44px}
+a.chip:hover{border-color:var(--blue2);color:#a7c6ff}
+.block{margin-top:44px;scroll-margin-top:80px}
 
 /* home */
 .hero{padding:60px 0 8px}
