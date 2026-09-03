@@ -547,10 +547,6 @@ def build_lab(slug, src, n, ctitle, labs, idx, meta, noun="Sesión"):
       {'<span class="chip mono">' + html.escape(m['duration']) + '</span>' if m['duration'] else ''}
     </div>
     {body}
-    <div class="lab-note">
-      {svg('<circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path>', 15, "#8493AD", "2")}
-      La solución de este laboratorio es material del instructor y no se incluye en el sitio del alumno.
-    </div>
     <nav class="pager">{prev_}{nxt}</nav>
   </article>
 </div>
